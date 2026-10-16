@@ -7,7 +7,7 @@ use std::time::Duration;
 use sheltie_store::{CheckRunJob, Store, StoreError};
 use tokio::sync::Notify;
 
-use crate::check_run::spec_for;
+use crate::check_run::{CheckContext, spec_for};
 use crate::client::GitHubApp;
 
 /// Longest wait between retries of a failing sync.
@@ -50,29 +50,21 @@ impl CheckRunSync {
 
     /// Runs until `shutdown` resolves. Polls every `poll`, or sooner when `wake` is notified.
     pub async fn run(self, wake: Arc<Notify>, shutdown: impl Future<Output = ()>) {
-        tokio::pin!(shutdown);
-        loop {
-            // Drain everything that is due before sleeping again.
-            loop {
-                match self.run_once().await {
-                    Ok(n) if n as i64 == self.batch => continue,
-                    Ok(_) => break,
-                    Err(error) => {
-                        tracing::error!(error = %error_chain(&error), "check-run sync failed");
-                        break;
-                    }
-                }
-            }
-            tokio::select! {
-                () = &mut shutdown => return,
-                () = wake.notified() => {}
-                () = tokio::time::sleep(self.poll) => {}
-            }
-        }
+        let (batch, poll) = (self.batch, self.poll);
+        run_loop("check-run sync", batch, poll, wake, shutdown, || {
+            self.run_once()
+        })
+        .await;
     }
 
     async fn sync(&self, job: CheckRunJob) -> Result<(), StoreError> {
-        let spec = spec_for(job.state, &job.change.head, job.footprint);
+        let spec = spec_for(&CheckContext {
+            state: job.state,
+            head: &job.change.head,
+            footprint: job.footprint,
+            readiness: job.readiness,
+            prediction: job.prediction.as_deref(),
+        });
         let result = match job.github_id {
             Some(id) => self
                 .github
@@ -115,6 +107,100 @@ impl CheckRunSync {
                     .await
             }
         }
+    }
+}
+
+/// Polls `once` until `shutdown`: drains everything due (while a run returns a full batch),
+/// then sleeps for `poll` or until woken.
+async fn run_loop<F, Fut>(
+    name: &'static str,
+    batch: i64,
+    poll: Duration,
+    wake: Arc<Notify>,
+    shutdown: impl Future<Output = ()>,
+    mut once: F,
+) where
+    F: FnMut() -> Fut,
+    Fut: Future<Output = Result<usize, StoreError>>,
+{
+    tokio::pin!(shutdown);
+    loop {
+        loop {
+            match once().await {
+                Ok(n) if i64::try_from(n).is_ok_and(|n| n >= batch) => continue,
+                Ok(_) => break,
+                Err(error) => {
+                    tracing::error!(worker = name, error = %error_chain(&error), "worker failed");
+                    break;
+                }
+            }
+        }
+        tokio::select! {
+            () = &mut shutdown => return,
+            () = wake.notified() => {}
+            () = tokio::time::sleep(poll) => {}
+        }
+    }
+}
+
+/// Keeps each live change's readiness in sync with GitHub and moves it between `pending`
+/// and `ready`.
+#[derive(Debug, Clone)]
+pub struct ReadinessSync {
+    store: Store,
+    github: Arc<GitHubApp>,
+    /// Jobs claimed per poll.
+    pub batch: i64,
+    /// How long a claimed job is reserved.
+    pub lease: Duration,
+    /// Poll interval when not woken.
+    pub poll: Duration,
+}
+
+impl ReadinessSync {
+    /// Creates a worker with default batch size, lease and poll interval.
+    pub fn new(store: Store, github: Arc<GitHubApp>) -> Self {
+        Self {
+            store,
+            github,
+            batch: 20,
+            lease: Duration::from_secs(60),
+            poll: Duration::from_secs(5),
+        }
+    }
+
+    /// Claims and checks one batch; returns how many changes were checked.
+    pub async fn run_once(&self) -> Result<usize, StoreError> {
+        let jobs = self.store.claim_readiness(self.batch, self.lease).await?;
+        let count = jobs.len();
+        for job in jobs {
+            match self
+                .github
+                .pull_request_readiness(job.installation, &job.repo, job.change.pr)
+                .await
+            {
+                Ok(data) => {
+                    let readiness = crate::readiness::evaluate(&data, &job.change.head);
+                    let state = self.store.apply_readiness(&job, readiness).await?;
+                    tracing::debug!(change = %job.change, state = %state, ?readiness, "readiness checked");
+                }
+                Err(error) => {
+                    let error = error_chain(&error);
+                    let retry_in = backoff(job.attempts);
+                    tracing::warn!(change = %job.change, attempts = job.attempts, error = %error, "readiness check failed; will retry");
+                    self.store
+                        .readiness_failed(job.change_db_id, retry_in, &error)
+                        .await?;
+                }
+            }
+        }
+        Ok(count)
+    }
+
+    /// Runs until `shutdown` resolves. Polls every `poll`, or sooner when `wake` is notified.
+    pub async fn run(self, wake: Arc<Notify>, shutdown: impl Future<Output = ()>) {
+        let (batch, poll) = (self.batch, self.poll);
+        run_loop("readiness", batch, poll, wake, shutdown, || self.run_once()).await;
     }
 }
 

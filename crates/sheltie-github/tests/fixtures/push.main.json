@@ -1,0 +1,42 @@
+{
+  "ref": "refs/heads/main",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "3333333333333333333333333333333333333333",
+  "created": false,
+  "deleted": false,
+  "forced": false,
+  "commits": [
+    {
+      "id": "4444444444444444444444444444444444444444",
+      "message": "wip"
+    },
+    {
+      "id": "3333333333333333333333333333333333333333",
+      "message": "Merge #7"
+    }
+  ],
+  "head_commit": {
+    "id": "3333333333333333333333333333333333333333"
+  },
+  "repository": {
+    "id": 1001,
+    "name": "widgets",
+    "full_name": "acme/widgets",
+    "private": true,
+    "owner": {
+      "login": "acme",
+      "id": 99,
+      "type": "Organization"
+    },
+    "default_branch": "main"
+  },
+  "installation": {
+    "id": 77,
+    "node_id": "MDIzOkludGVncmF0aW9uSW5zdGFsbGF0aW9uNzc="
+  },
+  "sender": {
+    "login": "maintainer",
+    "id": 7,
+    "type": "User"
+  }
+}

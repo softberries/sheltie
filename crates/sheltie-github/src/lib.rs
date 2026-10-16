@@ -8,6 +8,7 @@ pub mod check_run;
 mod client;
 pub mod oidc;
 pub mod payload;
+pub mod readiness;
 mod signature;
 mod sync;
 #[cfg(feature = "test-support")]
@@ -15,4 +16,4 @@ pub mod testing;
 
 pub use client::{GitHubApp, GitHubError};
 pub use signature::{SignatureError, WebhookSecret};
-pub use sync::CheckRunSync;
+pub use sync::{CheckRunSync, ReadinessSync};

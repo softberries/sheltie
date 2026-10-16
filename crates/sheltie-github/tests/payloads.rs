@@ -105,3 +105,52 @@ fn invalid_values_are_rejected() {
     body.as_object_mut().unwrap().remove("installation");
     assert!(parse("pull_request", &serde_json::to_vec(&body).unwrap()).is_err());
 }
+
+#[test]
+fn pull_request_target_and_merge_commit() {
+    let opened = pr("pull_request", "pull_request.opened.json");
+    assert_eq!(opened.base_ref, "main");
+    assert_eq!(opened.default_branch.as_deref(), Some("main"));
+    assert_eq!(opened.merge_commit, None);
+    let merged = pr("pull_request", "pull_request.closed.json");
+    assert_eq!(
+        merged.merge_commit.map(|c| c.to_string()),
+        Some("3".repeat(40))
+    );
+}
+
+#[test]
+fn finished_checks_and_statuses_request_readiness() {
+    for (event, file) in [
+        ("check_suite", "check_suite.completed.json"),
+        ("status", "status.json"),
+    ] {
+        let Some(Intake::Checks(e)) = parse(event, &fixture(file)).unwrap() else {
+            panic!("{event}: expected a checks event");
+        };
+        assert_eq!(e.head.as_str(), "2".repeat(40));
+        assert_eq!(e.repo.id, RepoId(1001));
+    }
+}
+
+#[test]
+fn sheltie_own_check_run_is_ignored() {
+    assert!(
+        parse("check_run", &fixture("check_run.completed.sheltie.json"))
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[test]
+fn push_to_default_branch() {
+    let Some(Intake::Push(e)) = parse("push", &fixture("push.main.json")).unwrap() else {
+        panic!("expected a push");
+    };
+    assert_eq!(
+        (e.branch.as_str(), e.default_branch.as_str()),
+        ("main", "main")
+    );
+    let commits: Vec<String> = e.commits.iter().map(ToString::to_string).collect();
+    assert_eq!(commits, ["4".repeat(40), "3".repeat(40)]);
+}
