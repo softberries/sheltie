@@ -7,12 +7,16 @@
 use std::time::Duration;
 
 mod checks;
+mod epochs;
 mod footprints;
 mod intake;
+mod readiness;
 
-pub use checks::{CheckRunJob, FootprintSummary};
+pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
+pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
 pub use intake::Ingested;
+pub use readiness::{Readiness, ReadinessJob};
 
 use sqlx::migrate::{MigrateError, Migrator};
 use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};

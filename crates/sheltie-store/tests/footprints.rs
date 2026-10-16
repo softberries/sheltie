@@ -68,6 +68,9 @@ async fn open_pr(store: &Store, head: char) {
         actor: Login::new("agent"),
         kind: PrEventKind::Opened,
         at: Utc.timestamp_opt(1_800_000_000, 0).unwrap(),
+        base_ref: "main".into(),
+        default_branch: Some("main".into()),
+        merge_commit: None,
     });
     store
         .ingest(

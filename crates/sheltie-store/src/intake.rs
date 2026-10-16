@@ -1,7 +1,9 @@
 //! Applying forge events: one transaction per webhook delivery.
 
 use chrono::{DateTime, Utc};
-use sheltie_core::intake::{InstallationEvent, Intake, Lifecycle, PrEvent, PrEventKind, RepoRef};
+use sheltie_core::intake::{
+    ChecksEvent, InstallationEvent, Intake, Lifecycle, PrEvent, PrEventKind, PushEvent, RepoRef,
+};
 use sheltie_core::{ChangeState, DeliveryId, InstallationId, Login};
 use sqlx::{PgConnection, Row};
 
@@ -44,6 +46,8 @@ impl Store {
         match intake {
             Intake::Pr(e) => apply_pr_event(&mut tx, delivery, e).await?,
             Intake::Installation(e) => apply_installation_event(&mut tx, e).await?,
+            Intake::Checks(e) => apply_checks_event(&mut tx, e).await?,
+            Intake::Push(e) => apply_push_event(&mut tx, e).await?,
         }
         tx.commit().await?;
         Ok(Ingested::Applied)
@@ -59,6 +63,9 @@ async fn apply_pr_event(
     let pr = to_db_id(e.pr.0, "pull request number")?;
     upsert_installation(conn, e.installation, &Login::new(e.repo.full_name.owner())).await?;
     upsert_repo(conn, &e.repo, Some(e.installation)).await?;
+    if let Some(branch) = &e.default_branch {
+        set_default_branch(conn, repo_id, branch).await?;
+    }
 
     // Serialize events for the same PR so supersession is decided on a consistent view.
     sqlx::query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))")
@@ -92,6 +99,23 @@ async fn apply_pr_event(
             !stale
         }
     };
+    if let Some(merge_commit) = &e.merge_commit {
+        sqlx::query(
+            "UPDATE changes SET merge_commit_sha = $4, merged_at = $5, updated_at = now()
+             WHERE repo_id = $1 AND pr_number = $2 AND head_sha = $3",
+        )
+        .bind(repo_id)
+        .bind(pr)
+        .bind(e.head.as_str())
+        .bind(merge_commit.as_str())
+        .bind(e.at)
+        .execute(&mut *conn)
+        .await?;
+    }
+    if e.kind.lifecycle() == Lifecycle::Record {
+        // Reviews and draft changes affect readiness.
+        request_readiness_at(conn, repo_id, e.head.as_str()).await?;
+    }
 
     sqlx::query(
         "INSERT INTO pr_events
@@ -121,10 +145,11 @@ async fn open_head(
 ) -> Result<(), StoreError> {
     close_live(conn, repo_id, pr, Some(e.head.as_str()), e.at).await?;
     let change_id: i64 = sqlx::query_scalar(
-        "INSERT INTO changes (repo_id, pr_number, head_sha, base_sha, state, event_at)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        "INSERT INTO changes (repo_id, pr_number, head_sha, base_sha, state, event_at, base_ref)
+         VALUES ($1, $2, $3, $4, $5, $6, $8)
          ON CONFLICT (repo_id, pr_number, head_sha) DO UPDATE
              SET base_sha = EXCLUDED.base_sha,
+                 base_ref = EXCLUDED.base_ref,
                  state = CASE WHEN changes.state = $7 THEN $5 ELSE changes.state END,
                  event_at = EXCLUDED.event_at,
                  updated_at = now()
@@ -137,9 +162,11 @@ async fn open_head(
     .bind(ChangeState::Pending.as_str())
     .bind(e.at)
     .bind(ChangeState::Closed.as_str())
+    .bind(&e.base_ref)
     .fetch_one(&mut *conn)
     .await?;
-    request_check_run(conn, change_id).await
+    request_check_run(conn, change_id).await?;
+    request_readiness(conn, change_id).await
 }
 
 /// Closes the PR's live changes, except the one at `keep_head`.
@@ -172,6 +199,99 @@ async fn close_live(
     for change_id in closed {
         request_check_run(conn, change_id).await?;
     }
+    Ok(())
+}
+
+/// Marks a change's readiness as needing a fresh look at GitHub.
+pub(crate) async fn request_readiness(
+    conn: &mut PgConnection,
+    change_id: i64,
+) -> Result<(), StoreError> {
+    sqlx::query(
+        "INSERT INTO readiness (change_id) VALUES ($1)
+         ON CONFLICT (change_id) DO UPDATE
+             SET desired_version = readiness.desired_version + 1,
+                 attempts = 0,
+                 next_attempt_at = now()",
+    )
+    .bind(change_id)
+    .execute(conn)
+    .await?;
+    Ok(())
+}
+
+/// Requests readiness for every live change of `repo_id` at `head`.
+pub(crate) async fn request_readiness_at(
+    conn: &mut PgConnection,
+    repo_id: i64,
+    head: &str,
+) -> Result<(), StoreError> {
+    let changes: Vec<i64> = sqlx::query_scalar(
+        "SELECT id FROM changes
+         WHERE repo_id = $1 AND head_sha = $2 AND state NOT IN ('landed', 'closed')",
+    )
+    .bind(repo_id)
+    .bind(head)
+    .fetch_all(&mut *conn)
+    .await?;
+    for change in changes {
+        request_readiness(conn, change).await?;
+    }
+    Ok(())
+}
+
+async fn set_default_branch(
+    conn: &mut PgConnection,
+    repo_id: i64,
+    branch: &str,
+) -> Result<(), StoreError> {
+    sqlx::query(
+        "UPDATE repositories SET default_branch = $2, updated_at = now()
+         WHERE id = $1 AND default_branch IS DISTINCT FROM $2",
+    )
+    .bind(repo_id)
+    .bind(branch)
+    .execute(conn)
+    .await?;
+    Ok(())
+}
+
+async fn apply_checks_event(conn: &mut PgConnection, e: &ChecksEvent) -> Result<(), StoreError> {
+    let repo_id = to_db_id(e.repo.id.0, "repository id")?;
+    upsert_installation(conn, e.installation, &Login::new(e.repo.full_name.owner())).await?;
+    upsert_repo(conn, &e.repo, Some(e.installation)).await?;
+    request_readiness_at(conn, repo_id, e.head.as_str()).await
+}
+
+/// Records commits pushed to the default branch, in order, so the scheduler knows what
+/// landed after a change's base. Pushes to other branches are ignored.
+async fn apply_push_event(conn: &mut PgConnection, e: &PushEvent) -> Result<(), StoreError> {
+    let repo_id = to_db_id(e.repo.id.0, "repository id")?;
+    upsert_installation(conn, e.installation, &Login::new(e.repo.full_name.owner())).await?;
+    upsert_repo(conn, &e.repo, Some(e.installation)).await?;
+    set_default_branch(conn, repo_id, &e.default_branch).await?;
+    if e.branch != e.default_branch {
+        return Ok(());
+    }
+    let mut commits: Vec<&str> = e.commits.iter().map(|c| c.as_str()).collect();
+    if commits.last() != Some(&e.after.as_str()) {
+        commits.push(e.after.as_str());
+    }
+    sqlx::query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))")
+        .bind(format!("branch:{repo_id}"))
+        .execute(&mut *conn)
+        .await?;
+    sqlx::query(
+        "INSERT INTO branch_commits (repo_id, sha, seq)
+         SELECT $1, c.sha,
+                (SELECT coalesce(max(seq), 0) FROM branch_commits WHERE repo_id = $1) + c.ord
+         FROM unnest($2::text[]) WITH ORDINALITY AS c(sha, ord)
+         WHERE NOT EXISTS (SELECT 1 FROM branch_commits b WHERE b.repo_id = $1 AND b.sha = c.sha)",
+    )
+    .bind(repo_id)
+    .bind(&commits)
+    .execute(&mut *conn)
+    .await?;
     Ok(())
 }
 
