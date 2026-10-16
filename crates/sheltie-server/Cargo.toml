@@ -11,6 +11,7 @@ publish.workspace = true
 
 [dependencies]
 sheltie-api = { workspace = true }
+sheltie-github = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }
 axum = { workspace = true }
@@ -21,6 +22,10 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
+aws-lc-rs = { workspace = true }
+base64 = { workspace = true }
+sheltie-core = { workspace = true }
+wiremock = { workspace = true }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
 

@@ -12,15 +12,16 @@ publish.workspace = true
 [dependencies]
 sheltie-core = { workspace = true }
 sheltie-store = { workspace = true }
+sheltie-github = { workspace = true }
 axum = { workspace = true }
 serde = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
 http-body-util = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
-tokio = { workspace = true }
 tower = { workspace = true }
 
 [lints]
