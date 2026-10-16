@@ -6,9 +6,12 @@
 
 pub mod check_run;
 mod client;
+pub mod oidc;
 pub mod payload;
 mod signature;
 mod sync;
+#[cfg(feature = "test-support")]
+pub mod testing;
 
 pub use client::{GitHubApp, GitHubError};
 pub use signature::{SignatureError, WebhookSecret};
