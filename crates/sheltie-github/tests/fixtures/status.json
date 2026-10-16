@@ -1,0 +1,28 @@
+{
+  "id": 1,
+  "sha": "2222222222222222222222222222222222222222",
+  "name": "acme/widgets",
+  "context": "ci/legacy",
+  "state": "success",
+  "repository": {
+    "id": 1001,
+    "name": "widgets",
+    "full_name": "acme/widgets",
+    "private": true,
+    "owner": {
+      "login": "acme",
+      "id": 99,
+      "type": "Organization"
+    },
+    "default_branch": "main"
+  },
+  "installation": {
+    "id": 77,
+    "node_id": "MDIzOkludGVncmF0aW9uSW5zdGFsbGF0aW9uNzc="
+  },
+  "sender": {
+    "login": "ci-bot",
+    "id": 2,
+    "type": "Bot"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "action": "completed",
+  "check_run": {
+    "id": 31,
+    "name": "Sheltie",
+    "head_sha": "2222222222222222222222222222222222222222",
+    "status": "completed",
+    "conclusion": "neutral"
+  },
+  "repository": {
+    "id": 1001,
+    "name": "widgets",
+    "full_name": "acme/widgets",
+    "private": true,
+    "owner": {
+      "login": "acme",
+      "id": 99,
+      "type": "Organization"
+    },
+    "default_branch": "main"
+  },
+  "installation": {
+    "id": 77,
+    "node_id": "MDIzOkludGVncmF0aW9uSW5zdGFsbGF0aW9uNzc="
+  },
+  "sender": {
+    "login": "sheltie-dev[bot]",
+    "id": 1,
+    "type": "Bot"
+  }
+}
