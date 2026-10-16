@@ -1,0 +1,162 @@
+//! Forge events Sheltie acts on, independent of the webhook payload format.
+//!
+//! `sheltie-github` parses and validates webhooks into these types; `sheltie-store` applies them.
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+use crate::ids::{CommitSha, InstallationId, Login, PrNumber, RepoFullName, RepoId};
+
+/// A repository as named in an event.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepoRef {
+    /// Stable numeric id.
+    pub id: RepoId,
+    /// `owner/name` at the time of the event.
+    pub full_name: RepoFullName,
+}
+
+text_enum! {
+    /// What happened to a pull request.
+    pub enum PrEventKind {
+        /// Opened.
+        Opened => "opened",
+        /// New commits pushed: the head moved.
+        Synchronized => "synchronized",
+        /// Reopened after being closed.
+        Reopened => "reopened",
+        /// Closed without merging.
+        Closed => "closed",
+        /// Merged outside Sheltie.
+        Merged => "merged",
+        /// Marked ready for review.
+        ReadyForReview => "ready_for_review",
+        /// Converted back to a draft.
+        ConvertedToDraft => "converted_to_draft",
+        /// A review approved it.
+        Approved => "approved",
+        /// A review requested changes.
+        ChangesRequested => "changes_requested",
+        /// A review was dismissed.
+        ReviewDismissed => "review_dismissed",
+    }
+}
+
+/// How an event affects the lifecycle of the PR's changes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Lifecycle {
+    /// The PR is open at the event's head: track that head, supersede older ones.
+    Open,
+    /// The PR is no longer open: close its live changes.
+    Close,
+    /// Recorded for scheduling decisions; no lifecycle change.
+    Record,
+}
+
+impl PrEventKind {
+    /// The lifecycle effect of this event.
+    pub const fn lifecycle(self) -> Lifecycle {
+        match self {
+            PrEventKind::Opened | PrEventKind::Synchronized | PrEventKind::Reopened => {
+                Lifecycle::Open
+            }
+            PrEventKind::Closed | PrEventKind::Merged => Lifecycle::Close,
+            PrEventKind::ReadyForReview
+            | PrEventKind::ConvertedToDraft
+            | PrEventKind::Approved
+            | PrEventKind::ChangesRequested
+            | PrEventKind::ReviewDismissed => Lifecycle::Record,
+        }
+    }
+}
+
+/// An event on one pull request.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PrEvent {
+    /// The installation the event came through.
+    pub installation: InstallationId,
+    /// The repository.
+    pub repo: RepoRef,
+    /// The pull request.
+    pub pr: PrNumber,
+    /// Head commit at the time of the event.
+    pub head: CommitSha,
+    /// Base commit at the time of the event.
+    pub base: CommitSha,
+    /// Who triggered it.
+    pub actor: Login,
+    /// What happened.
+    pub kind: PrEventKind,
+    /// The forge's last-update time of the pull request; orders out-of-order deliveries.
+    pub at: DateTime<Utc>,
+}
+
+/// A change to where the App is installed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum InstallationEvent {
+    /// The App was installed on an account, with access to these repositories.
+    Created {
+        /// The new installation.
+        installation: InstallationId,
+        /// The account that installed it.
+        account: Login,
+        /// Repositories the installation can access.
+        repos: Vec<RepoRef>,
+    },
+    /// The App was uninstalled.
+    Deleted {
+        /// The removed installation.
+        installation: InstallationId,
+    },
+    /// The installation was suspended; Sheltie must not act on its repositories.
+    Suspended {
+        /// The suspended installation.
+        installation: InstallationId,
+    },
+    /// A suspended installation was resumed.
+    Unsuspended {
+        /// The resumed installation.
+        installation: InstallationId,
+    },
+    /// Repositories were added to or removed from an installation.
+    ReposChanged {
+        /// The installation.
+        installation: InstallationId,
+        /// The account that owns the installation.
+        account: Login,
+        /// Newly accessible repositories.
+        added: Vec<RepoRef>,
+        /// Repositories no longer accessible.
+        removed: Vec<RepoId>,
+    },
+}
+
+/// Any event Sheltie acts on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Intake {
+    /// A pull request event.
+    Pr(PrEvent),
+    /// An installation event.
+    Installation(InstallationEvent),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_open_and_close_events_change_lifecycle() {
+        let open: Vec<_> = PrEventKind::ALL
+            .iter()
+            .filter(|k| k.lifecycle() == Lifecycle::Open)
+            .map(|k| k.as_str())
+            .collect();
+        assert_eq!(open, ["opened", "synchronized", "reopened"]);
+        let close: Vec<_> = PrEventKind::ALL
+            .iter()
+            .filter(|k| k.lifecycle() == Lifecycle::Close)
+            .map(|k| k.as_str())
+            .collect();
+        assert_eq!(close, ["closed", "merged"]);
+    }
+}

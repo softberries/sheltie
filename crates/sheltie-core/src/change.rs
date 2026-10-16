@@ -8,8 +8,8 @@ use crate::score::Score;
 text_enum! {
     /// Where a change is in Sheltie's pipeline.
     ///
-    /// Allowed moves are given by [`ChangeState::can_transition_to`]. `Landed` and `Closed`
-    /// are terminal.
+    /// Allowed moves are given by [`ChangeState::can_transition_to`]. `Landed` is terminal;
+    /// `Closed` is left only when the pull request is reopened at the same head.
     pub enum ChangeState {
         /// Open, but not yet ready: missing approval, green presubmit or footprint.
         Pending => "pending",
@@ -31,15 +31,19 @@ text_enum! {
 }
 
 impl ChangeState {
-    /// True for states a change never leaves.
+    /// True for the state a change never leaves.
     pub const fn is_terminal(self) -> bool {
-        matches!(self, ChangeState::Landed | ChangeState::Closed)
+        matches!(self, ChangeState::Landed)
+    }
+
+    /// True while the change is open: neither landed nor closed.
+    pub const fn is_live(self) -> bool {
+        !matches!(self, ChangeState::Landed | ChangeState::Closed)
     }
 
     /// Whether the scheduler may move a change from `self` to `next`.
     ///
-    /// Any non-terminal state may move to `Closed`. Staying in the same state is not a
-    /// transition.
+    /// Any live state may move to `Closed`. Staying in the same state is not a transition.
     pub const fn can_transition_to(self, next: ChangeState) -> bool {
         use ChangeState::*;
         if self.is_terminal() {
@@ -47,7 +51,9 @@ impl ChangeState {
         }
         matches!(
             (self, next),
-            (_, Closed)
+            (Pending | Ready | Merging | Verifying | Committable | Returned, Closed)
+                // The pull request was reopened without new commits.
+                | (Closed, Pending)
                 | (Pending, Ready)
                 | (Ready, Pending | Merging | Verifying)
                 | (Merging, Verifying | Returned)
@@ -67,8 +73,8 @@ pub struct Change {
     pub id: ChangeId,
     /// The commit the PR is based on.
     pub base: CommitSha,
-    /// Hash of the PR's diff against `base`.
-    pub diff_hash: DiffHash,
+    /// Hash of the PR's diff against `base`; known once the footprint is computed.
+    pub diff_hash: Option<DiffHash>,
     /// The agent's recorded intent, if the PR carries one.
     pub intent: Option<IntentRef>,
     /// Lifecycle state.
@@ -113,17 +119,26 @@ mod tests {
     }
 
     #[test]
-    fn terminal_states_have_no_successors() {
-        for from in [Landed, Closed] {
-            for &to in ChangeState::ALL {
-                assert!(!from.can_transition_to(to), "{from} -> {to}");
-            }
+    fn landed_has_no_successors() {
+        for &to in ChangeState::ALL {
+            assert!(!Landed.can_transition_to(to), "landed -> {to}");
+        }
+    }
+
+    #[test]
+    fn closed_only_reopens_to_pending() {
+        for &to in ChangeState::ALL {
+            assert_eq!(
+                Closed.can_transition_to(to),
+                to == Pending,
+                "closed -> {to}"
+            );
         }
     }
 
     #[test]
     fn every_live_state_can_close() {
-        for &s in ChangeState::ALL.iter().filter(|s| !s.is_terminal()) {
+        for &s in ChangeState::ALL.iter().filter(|s| s.is_live()) {
             assert!(s.can_transition_to(Closed), "{s} cannot close");
         }
     }
