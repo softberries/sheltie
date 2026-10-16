@@ -21,7 +21,7 @@ use tokio::sync::{Notify, watch};
 
 mod shadow;
 
-pub use shadow::ShadowScheduler;
+pub use shadow::{BranchCiWorker, ShadowScheduler};
 
 /// Default time between scheduler epochs.
 pub const DEFAULT_EPOCH_SECONDS: u64 = 10;
@@ -181,6 +181,7 @@ struct GitHub {
     check_runs: CheckRunSync,
     readiness: ReadinessSync,
     shadow: ShadowScheduler,
+    branch_ci: BranchCiWorker,
 }
 
 impl Server {
@@ -219,7 +220,8 @@ impl Server {
                         wake: intake,
                     },
                     check_runs: CheckRunSync::new(store.clone(), Arc::clone(&app)),
-                    readiness: ReadinessSync::new(store.clone(), app),
+                    readiness: ReadinessSync::new(store.clone(), Arc::clone(&app)),
+                    branch_ci: BranchCiWorker::new(store.clone(), app),
                     shadow: ShadowScheduler::new(
                         store.clone(),
                         config.epoch,
@@ -267,14 +269,23 @@ impl Server {
                 check_runs,
                 readiness,
                 shadow,
+                branch_ci,
             }) => {
                 let check_runs_wake = Arc::clone(&shadow.changed);
                 let readiness_wake = Arc::new(Notify::new());
+                let branch_ci_wake = Arc::new(Notify::new());
                 workers.push(tokio::spawn(fan_out(
                     Arc::clone(&webhooks.wake),
-                    vec![Arc::clone(&check_runs_wake), Arc::clone(&readiness_wake)],
+                    vec![
+                        Arc::clone(&check_runs_wake),
+                        Arc::clone(&readiness_wake),
+                        Arc::clone(&branch_ci_wake),
+                    ],
                     stopped(stop_rx.clone()),
                 )));
+                workers.push(tokio::spawn(
+                    branch_ci.run(branch_ci_wake, stopped(stop_rx.clone())),
+                ));
                 workers.push(tokio::spawn(
                     check_runs.run(check_runs_wake, stopped(stop_rx.clone())),
                 ));

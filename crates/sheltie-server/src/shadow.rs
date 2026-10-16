@@ -7,9 +7,96 @@ use std::time::Duration;
 
 use chrono::Utc;
 use sheltie_core::PrNumber;
+use sheltie_github::GitHubApp;
+use sheltie_scheduler::report::{LandedInWindow, suspected_misses};
 use sheltie_scheduler::{Candidate, plan_epoch};
 use sheltie_store::{PredictionRow, Store, StoreError};
 use tokio::sync::Notify;
+
+/// Polls CI results of recent default-branch commits and records suspected footprint misses
+/// when one turns red.
+#[derive(Debug, Clone)]
+pub struct BranchCiWorker {
+    store: Store,
+    github: Arc<GitHubApp>,
+    /// Poll interval when not woken.
+    pub poll: Duration,
+}
+
+impl BranchCiWorker {
+    /// Creates the worker.
+    pub fn new(store: Store, github: Arc<GitHubApp>) -> Self {
+        Self {
+            store,
+            github,
+            poll: Duration::from_secs(15),
+        }
+    }
+
+    /// Checks one batch of commits; returns how many were checked.
+    pub async fn run_once(&self) -> Result<usize, StoreError> {
+        let jobs = self
+            .store
+            .claim_branch_ci(20, Duration::from_secs(60))
+            .await?;
+        let count = jobs.len();
+        for job in jobs {
+            match self
+                .github
+                .commit_ci(job.installation, &job.full_name, &job.sha)
+                .await
+            {
+                Ok(data) => {
+                    let state = sheltie_github::ci::evaluate(&data);
+                    if let Some(window) = self.store.apply_branch_ci(&job, state).await? {
+                        let landed: Vec<LandedInWindow<i64>> = window
+                            .landed
+                            .iter()
+                            .map(|(key, footprint)| LandedInWindow {
+                                key: *key,
+                                footprint: footprint.clone(),
+                            })
+                            .collect();
+                        let misses = suspected_misses(&landed);
+                        tracing::warn!(
+                            repo = %job.full_name,
+                            commit = %job.sha,
+                            landed = landed.len(),
+                            suspected_misses = misses.len(),
+                            "default branch turned red"
+                        );
+                        self.store.record_misses(job.repo, &window, &misses).await?;
+                    }
+                }
+                Err(error) => {
+                    tracing::warn!(repo = %job.full_name, commit = %job.sha, error = %error, "CI lookup failed; will retry");
+                    let secs = 2u64
+                        .saturating_pow(job.attempts.clamp(1, 10).unsigned_abs())
+                        .min(600);
+                    self.store
+                        .branch_ci_failed(&job, Duration::from_secs(secs))
+                        .await?;
+                }
+            }
+        }
+        Ok(count)
+    }
+
+    /// Runs until `shutdown` resolves; polls every `poll`, or sooner when woken.
+    pub async fn run(self, wake: Arc<Notify>, shutdown: impl Future<Output = ()>) {
+        tokio::pin!(shutdown);
+        loop {
+            if let Err(error) = self.run_once().await {
+                tracing::error!(error = %error, "branch CI worker failed");
+            }
+            tokio::select! {
+                () = &mut shutdown => return,
+                () = wake.notified() => {}
+                () = tokio::time::sleep(self.poll) => {}
+            }
+        }
+    }
+}
 
 /// Runs an epoch for every repository with ready changes.
 #[derive(Debug, Clone)]
