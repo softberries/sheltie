@@ -8,3 +8,4 @@
 .idea/
 .vscode/
 /fixtures/**/target
+__pycache__/
