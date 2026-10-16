@@ -12,6 +12,7 @@ publish.workspace = true
 [dependencies]
 sheltie-core = { workspace = true }
 serde = { workspace = true }
+chrono = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }
