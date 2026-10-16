@@ -42,6 +42,9 @@ fn pr_event(kind: PrEventKind, head: char, secs: i64) -> Intake {
         actor: Login::new("agent-bot"),
         kind,
         at: at(secs),
+        base_ref: "main".into(),
+        default_branch: Some("main".into()),
+        merge_commit: None,
     })
 }
 
