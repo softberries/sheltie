@@ -1,0 +1,34 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change the package manifest: the crate root's interface changes.",
+  "footprint": {
+    "writes": [
+      "$workspace",
+      "shop"
+    ],
+    "reads": [
+      "$workspace",
+      "shop",
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::macros",
+      "shop::pricing",
+      "shop::shipping",
+      "shop::shipping::rates",
+      "shop::util"
+    ],
+    "tests": [
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::pricing",
+      "shop::shipping::rates"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

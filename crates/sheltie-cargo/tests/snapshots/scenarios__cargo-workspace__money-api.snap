@@ -1,0 +1,33 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a method to ledger-core::Money: every crate depending on ledger-core reads it.",
+  "footprint": {
+    "writes": [
+      "ledger-core"
+    ],
+    "reads": [
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "tests": [
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

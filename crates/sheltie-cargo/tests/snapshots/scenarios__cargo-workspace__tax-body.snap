@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in ledger-billing::tax.",
+  "footprint": {
+    "writes": [
+      "ledger-billing::tax"
+    ],
+    "reads": [
+      "ledger-billing::tax"
+    ],
+    "tests": [
+      "ledger-billing::tax"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
