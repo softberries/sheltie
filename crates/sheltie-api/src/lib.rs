@@ -16,6 +16,10 @@ use sheltie_github::{WebhookSecret, payload};
 use sheltie_store::{Ingested, Store};
 use tokio::sync::Notify;
 
+mod footprints;
+
+pub use footprints::Footprints;
+
 /// GitHub caps webhook payloads at 25 MB.
 const MAX_WEBHOOK_BYTES: usize = 25 * 1024 * 1024;
 
@@ -33,10 +37,12 @@ pub struct Webhooks {
 struct AppState {
     store: Store,
     webhooks: Option<Webhooks>,
+    footprints: Option<Footprints>,
 }
 
-/// Builds the HTTP router. `POST /webhooks/github` is served only when `webhooks` is set.
-pub fn router(store: Store, webhooks: Option<Webhooks>) -> Router {
+/// Builds the HTTP router. `POST /webhooks/github` is served only when `webhooks` is set,
+/// `POST /v1/footprints` only when `footprints` is set.
+pub fn router(store: Store, webhooks: Option<Webhooks>, footprints: Option<Footprints>) -> Router {
     let mut router = Router::new().route("/healthz", get(healthz));
     if webhooks.is_some() {
         router = router.route(
@@ -44,7 +50,17 @@ pub fn router(store: Store, webhooks: Option<Webhooks>) -> Router {
             post(github_webhook).layer(DefaultBodyLimit::max(MAX_WEBHOOK_BYTES)),
         );
     }
-    router.with_state(AppState { store, webhooks })
+    if footprints.is_some() {
+        router = router.route(
+            "/v1/footprints",
+            post(footprints::upload).layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
+        );
+    }
+    router.with_state(AppState {
+        store,
+        webhooks,
+        footprints,
+    })
 }
 
 /// JSON body of every response: a short machine-readable status.
