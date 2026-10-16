@@ -33,6 +33,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   workspaces from git, with no build and no nightly toolchain. `sheltie-cargo graph` prints the
   graph Sheltie sees. Golden tests cover a single-crate and a multi-crate fixture.
 
+- Footprint upload: `POST /v1/footprints` accepts reports from CI authenticated by GitHub
+  Actions OIDC tokens (`SHELTIE_OIDC_AUDIENCE`, default `sheltie`; `SHELTIE_OIDC_ISSUER`).
+  The "Sheltie" check run shows each change's footprint. Reusable workflow
+  `.github/workflows/footprint.yml` builds `sheltie-cargo`, computes and uploads it.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
