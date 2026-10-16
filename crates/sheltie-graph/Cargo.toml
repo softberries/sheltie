@@ -1,6 +1,6 @@
 [package]
 name = "sheltie-graph"
-description = "BuildGraph trait and the footprint algorithm."
+description = "Build-graph snapshots and the footprint algorithm."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,6 +11,10 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
 
 [lints]
 workspace = true
