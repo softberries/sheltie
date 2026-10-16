@@ -29,5 +29,7 @@ A separate GitHub organization keeps experiments away from real repositories and
    The PR shows a **Sheltie** check, queued with the title "Waiting to be ready".
 
 Permissions in `deploy/github-app-manifest.json`: checks (write), contents (read), metadata (read),
-pull requests (read); events: `pull_request`, `pull_request_review`. GitHub Apps always receive
-`installation` and `installation_repositories` events.
+pull requests (read), commit statuses (read); events: `pull_request`, `pull_request_review`,
+`check_suite`, `check_run`, `status`, `push`. GitHub Apps always receive `installation` and
+`installation_repositories` events. An App registered before M3 needs the statuses permission and
+the four new events added on its settings page; the installation then asks to approve them.

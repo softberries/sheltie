@@ -44,8 +44,10 @@ M2 priority — module-level footprints for single-crate projects. Most Rust pro
 
 **M3 — Shadow mode**
 
-- [ ] Conflict graph and epochs
-- [ ] Predicted batches written to check runs
+- [x] Readiness from GitHub (approval, checks, draft) with event-driven and periodic rechecks
+- [x] Default-branch history from `push` events; merged PRs' merge commits
+- [x] Conflict graph and epochs (`sheltie-scheduler`, property-tested)
+- [x] Predicted batches written to check runs
 - [ ] Prediction vs. reality log and footprint-miss report
 
 **M4 — Parallel commit**
