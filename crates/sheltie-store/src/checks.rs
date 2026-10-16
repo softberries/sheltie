@@ -34,6 +34,21 @@ pub struct CheckRunJob {
     pub attempts: i32,
     /// The latest footprint uploaded for the change's head, if any.
     pub footprint: Option<FootprintSummary>,
+    /// The last readiness check, if any.
+    pub readiness: Option<ReadinessFlags>,
+    /// The current shadow-mode prediction, for ready changes.
+    pub prediction: Option<String>,
+}
+
+/// The parts of readiness a check run explains.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ReadinessFlags {
+    /// Approved per branch protection.
+    pub approved: bool,
+    /// Other checks passed.
+    pub checks_green: bool,
+    /// The pull request is a draft.
+    pub draft: bool,
 }
 
 /// Sizes of a footprint, for display.
@@ -85,10 +100,13 @@ impl Store {
              SELECT claimed.change_id, claimed.github_id, claimed.desired_version,
                     claimed.attempts, c.repo_id, c.pr_number, c.head_sha, c.state,
                     r.full_name, r.installation_id,
-                    fp.writes_n, fp.reads_n, fp.tests_n, fp.leaky
+                    fp.writes_n, fp.reads_n, fp.tests_n, fp.leaky,
+                    rd.approved, rd.checks_green, rd.draft, p.summary AS prediction
              FROM claimed
              JOIN changes c ON c.id = claimed.change_id
              JOIN repositories r ON r.id = c.repo_id
+             LEFT JOIN readiness rd ON rd.change_id = c.id
+             LEFT JOIN predictions p ON p.change_id = c.id
              LEFT JOIN LATERAL (
                  SELECT cardinality(writes) AS writes_n, cardinality(reads) AS reads_n,
                         cardinality(tests) AS tests_n, leaky
@@ -199,5 +217,18 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
         version: row.try_get("desired_version")?,
         attempts: row.try_get("attempts")?,
         footprint,
+        readiness: match (
+            row.try_get::<Option<bool>, _>("approved")?,
+            row.try_get::<Option<bool>, _>("checks_green")?,
+            row.try_get::<Option<bool>, _>("draft")?,
+        ) {
+            (Some(approved), Some(checks_green), Some(draft)) => Some(ReadinessFlags {
+                approved,
+                checks_green,
+                draft,
+            }),
+            _ => None,
+        },
+        prediction: row.try_get("prediction")?,
     })
 }

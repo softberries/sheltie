@@ -75,6 +75,7 @@ impl Store {
         .await?;
         for change in &changes {
             crate::intake::request_check_run(&mut tx, *change).await?;
+            crate::intake::request_readiness(&mut tx, *change).await?;
         }
         tx.commit().await?;
         Ok(changes.len() as u64)
