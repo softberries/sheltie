@@ -15,10 +15,11 @@ One GitHub issue per task, labelled with its milestone; Claude Code can create t
 
 **M1 — GitHub App intake**
 
-- [ ] Webhook receiver with signature verification
-- [ ] Persist PR lifecycle events
-- [ ] Sheltie check run per PR with state
-- [ ] Installation token management
+- [x] Webhook receiver with signature verification
+- [x] Persist PR lifecycle events
+- [x] Sheltie check run per PR with state
+- [x] Installation token management
+- [ ] Register the development App and see the check on a playground PR (manual; `scripts/register-github-app.py`)
 
 **M2 — Footprints (Cargo)**
 
