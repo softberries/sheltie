@@ -1,6 +1,7 @@
 //! What the "Sheltie" check run says for each change state.
 
 use sheltie_core::{ChangeState, CommitSha};
+use sheltie_store::FootprintSummary;
 
 /// Name of the check run Sheltie posts on every pull request head.
 pub const CHECK_NAME: &str = "Sheltie";
@@ -38,8 +39,12 @@ pub struct CheckRunSpec {
     pub summary: String,
 }
 
-/// Renders the check run for a change in `state` at `head`.
-pub fn spec_for(state: ChangeState, head: &CommitSha) -> CheckRunSpec {
+/// Renders the check run for a change in `state` at `head`, with its footprint if known.
+pub fn spec_for(
+    state: ChangeState,
+    head: &CommitSha,
+    footprint: Option<FootprintSummary>,
+) -> CheckRunSpec {
     let short = head.as_str().get(..7).unwrap_or(head.as_str());
     let (status, title, detail) = match state {
         ChangeState::Pending => (
@@ -83,10 +88,26 @@ pub fn spec_for(state: ChangeState, head: &CommitSha) -> CheckRunSpec {
             "The pull request was closed, or a newer commit replaced this one.",
         ),
     };
+    let footprint = match footprint {
+        None => "Footprint: not computed yet.".to_owned(),
+        Some(f) => format!(
+            "Footprint: writes {} target{}, reads {}, runs {} test group{}{}.",
+            f.writes,
+            if f.writes == 1 { "" } else { "s" },
+            f.reads,
+            f.tests,
+            if f.tests == 1 { "" } else { "s" },
+            if f.leaky {
+                "; **leaky**, widened to everything it may affect"
+            } else {
+                ""
+            },
+        ),
+    };
     CheckRunSpec {
         status,
         title: title.to_owned(),
-        summary: format!("{detail}\n\nCommit `{short}`."),
+        summary: format!("{detail}\n\n{footprint}\n\nCommit `{short}`."),
     }
 }
 
@@ -100,15 +121,36 @@ mod tests {
 
     #[test]
     fn pending_is_queued() {
-        let spec = spec_for(ChangeState::Pending, &head());
+        let spec = spec_for(ChangeState::Pending, &head(), None);
         assert_eq!(spec.status, CheckStatus::Queued);
         assert!(spec.summary.contains("`0123456`"));
+        assert!(spec.summary.contains("not computed yet"));
+    }
+
+    #[test]
+    fn footprint_is_summarized() {
+        let f = FootprintSummary {
+            writes: 1,
+            reads: 3,
+            tests: 2,
+            leaky: true,
+        };
+        let spec = spec_for(ChangeState::Pending, &head(), Some(f));
+        assert!(
+            spec.summary
+                .contains("writes 1 target, reads 3, runs 2 test groups; **leaky**"),
+            "{}",
+            spec.summary
+        );
     }
 
     #[test]
     fn only_live_states_are_incomplete() {
         for &state in ChangeState::ALL {
-            let completed = matches!(spec_for(state, &head()).status, CheckStatus::Completed(_));
+            let completed = matches!(
+                spec_for(state, &head(), None).status,
+                CheckStatus::Completed(_)
+            );
             let expect_completed = matches!(
                 state,
                 ChangeState::Landed | ChangeState::Closed | ChangeState::Returned

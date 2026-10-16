@@ -15,7 +15,9 @@ sheltie-store = { workspace = true }
 chrono = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
+jsonwebtoken = { workspace = true }
 octocrab = { workspace = true }
+reqwest = { workspace = true, features = ["rustls"] }
 secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -23,13 +25,19 @@ sha2 = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+# test-support only
+aws-lc-rs = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
 
 [dev-dependencies]
-aws-lc-rs = { workspace = true }
-base64 = { workspace = true }
+sheltie-github = { path = ".", features = ["test-support"] }
 sqlx = { workspace = true }
 proptest = { workspace = true }
 wiremock = { workspace = true }
+
+[features]
+# Helpers for tests in this and other crates: throwaway keys and signed OIDC tokens.
+test-support = ["dep:aws-lc-rs", "dep:base64"]
 
 [lints]
 workspace = true
