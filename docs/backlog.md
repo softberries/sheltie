@@ -25,17 +25,19 @@ One GitHub issue per task, labelled with its milestone; Claude Code can create t
 
 M2 priority — module-level footprints for single-crate projects. Most Rust projects are a single crate. With crate-level targets, every PR writes the same target, so all PRs conflict and Sheltie falls back to batching and speculation. Resolve this at the start of M2, not later:
 
-- [ ] Decide footprint granularity inside a crate: modules / files as targets (e.g. via rust-analyzer's module graph or rustdoc JSON per module)
-- [ ] Interface hashing per module (public and `pub(crate)` items), so a change inside a module with an unchanged surface doesn't affect other modules
-- [ ] Map tests to modules (unit tests in-module; integration tests as readers of the public API)
-- [ ] Fixture: a single-crate project with several modules and scripted PRs, proving independent module changes land in parallel
+- [x] Decide footprint granularity inside a crate: modules as targets, parsed with `syn` (rustdoc JSON is nightly-only)
+- [x] Interface hashing per module, so a change inside a module with an unchanged surface doesn't affect other modules
+- [x] Map tests to modules (unit tests in-module; integration tests as readers of the public API)
+- [x] Fixture: a single-crate project with several modules and scripted PRs, proving independent module changes commute
 
-- [ ] `BuildGraph` trait
-- [ ] Cargo adapter: graph from `cargo metadata`
-- [ ] Interface hashing via `cargo-public-api`
-- [ ] Footprint algorithm + cache + `leaky` flag
-- [ ] `sheltie-cargo` CLI and upload endpoint
-- [ ] Snapshot tests on fixtures
+- [x] `BuildGraph` as a data snapshot (`GraphSnapshot`) plus a pure footprint function
+- [x] Cargo adapter: graph from `cargo metadata`
+- [x] Interface hashing (syn-based; replaces `cargo-public-api`, see design doc)
+- [x] Footprint algorithm + `leaky` flag
+- [ ] Footprint cache by `(base_tree, diff_hash)` (server side, with upload)
+- [x] `sheltie-cargo` CLI (`footprint`, `graph`)
+- [ ] Upload endpoint with GitHub Actions OIDC, and reusable `workflows/footprint.yml`
+- [x] Snapshot tests on fixtures
 
 **M3 — Shadow mode**
 
