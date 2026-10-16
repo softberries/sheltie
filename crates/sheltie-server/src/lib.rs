@@ -10,7 +10,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Context as _;
-use sheltie_api::Webhooks;
+use sheltie_api::{Footprints, Webhooks};
+use sheltie_github::oidc::{DEFAULT_AUDIENCE, OidcConfig, OidcVerifier};
 use sheltie_github::{CheckRunSync, GitHubApp, WebhookSecret};
 use sheltie_store::{PoolConfig, Store};
 use sqlx::postgres::PgConnectOptions;
@@ -46,6 +47,8 @@ pub struct GitHubConfig {
     pub webhook_secret: WebhookSecret,
     /// API base URL; `None` means `https://api.github.com`.
     pub api_url: Option<String>,
+    /// How footprint uploads from GitHub Actions are authenticated.
+    pub oidc: OidcConfig,
 }
 
 /// The variables that configure the GitHub App; all or none must be set.
@@ -58,7 +61,9 @@ const GITHUB_VARS: [&str; 3] = [
 impl Config {
     /// Reads `DATABASE_URL` (required), `SHELTIE_BIND` (default [`DEFAULT_BIND`]) and the
     /// optional GitHub App settings: `SHELTIE_GITHUB_APP_ID`, `SHELTIE_GITHUB_PRIVATE_KEY_PATH`,
-    /// `SHELTIE_GITHUB_WEBHOOK_SECRET` (all or none) and `SHELTIE_GITHUB_API_URL`.
+    /// `SHELTIE_GITHUB_WEBHOOK_SECRET` (all or none), `SHELTIE_GITHUB_API_URL`, and for
+    /// footprint uploads `SHELTIE_OIDC_AUDIENCE` (default `sheltie`) and `SHELTIE_OIDC_ISSUER`
+    /// (default GitHub Actions on github.com).
     pub fn from_env() -> anyhow::Result<Self> {
         Self::from_lookup(|key| std::env::var(key).ok())
     }
@@ -104,7 +109,21 @@ fn github_config(lookup: &impl Fn(&str) -> Option<String>) -> anyhow::Result<Opt
         private_key_path: PathBuf::from(key_path),
         webhook_secret,
         api_url: lookup("SHELTIE_GITHUB_API_URL").filter(|v| !v.is_empty()),
+        oidc: oidc_config(lookup),
     }))
+}
+
+fn oidc_config(lookup: &impl Fn(&str) -> Option<String>) -> OidcConfig {
+    let var = |k: &str| lookup(k).filter(|v| !v.is_empty());
+    let mut oidc = OidcConfig::github_actions(
+        var("SHELTIE_OIDC_AUDIENCE").unwrap_or_else(|| DEFAULT_AUDIENCE.to_owned()),
+    );
+    if let Some(issuer) = var("SHELTIE_OIDC_ISSUER") {
+        let issuer = issuer.trim_end_matches('/').to_owned();
+        oidc.jwks_url = format!("{issuer}/.well-known/jwks");
+        oidc.issuer = issuer;
+    }
+    oidc
 }
 
 impl fmt::Debug for Config {
@@ -129,10 +148,11 @@ pub struct Server {
     github: Option<GitHub>,
 }
 
-/// The running GitHub integration: webhook intake plus the check-run worker.
+/// The running GitHub integration: webhook intake, footprint uploads and the check-run worker.
 #[derive(Debug)]
 struct GitHub {
     webhooks: Webhooks,
+    footprints: Footprints,
     sync: CheckRunSync,
 }
 
@@ -155,13 +175,25 @@ impl Server {
         let listener = TcpListener::bind(config.bind)
             .await
             .with_context(|| format!("binding {}", config.bind))?;
-        let github = config.github.zip(github_app).map(|(config, app)| GitHub {
-            webhooks: Webhooks {
-                secret: config.webhook_secret,
-                wake: Arc::new(Notify::new()),
-            },
-            sync: CheckRunSync::new(store.clone(), Arc::new(app)),
-        });
+        let github = match config.github.zip(github_app) {
+            Some((config, app)) => {
+                let wake = Arc::new(Notify::new());
+                let verifier =
+                    OidcVerifier::new(config.oidc).context("creating the OIDC verifier")?;
+                Some(GitHub {
+                    webhooks: Webhooks {
+                        secret: config.webhook_secret,
+                        wake: Arc::clone(&wake),
+                    },
+                    footprints: Footprints {
+                        verifier: Arc::new(verifier),
+                        wake,
+                    },
+                    sync: CheckRunSync::new(store.clone(), Arc::new(app)),
+                })
+            }
+            None => None,
+        };
         Ok(Self {
             listener,
             store,
@@ -192,17 +224,22 @@ impl Server {
             let _ = rx.wait_for(|stop| *stop).await;
         };
 
-        let (webhooks, worker) = match self.github {
-            Some(GitHub { webhooks, sync }) => {
+        let (webhooks, footprints, worker) = match self.github {
+            Some(GitHub {
+                webhooks,
+                footprints,
+                sync,
+            }) => {
                 let worker =
                     tokio::spawn(sync.run(Arc::clone(&webhooks.wake), stopped(stop_rx.clone())));
-                (Some(webhooks), Some(worker))
+                (Some(webhooks), Some(footprints), Some(worker))
             }
-            None => (None, None),
+            None => (None, None, None),
         };
 
         tracing::info!(addr = %addr, github = webhooks.is_some(), "sheltie-server listening");
-        let served = axum::serve(self.listener, sheltie_api::router(self.store, webhooks))
+        let router = sheltie_api::router(self.store, webhooks, footprints);
+        let served = axum::serve(self.listener, router)
             .with_graceful_shutdown(stopped(stop_rx))
             .await
             .context("HTTP server failed");
@@ -290,6 +327,7 @@ mod tests {
         let github = config.github.as_ref().unwrap();
         assert_eq!(github.app_id, 123456);
         assert_eq!(github.api_url, None);
+        assert_eq!(github.oidc, OidcConfig::github_actions("sheltie"));
         assert!(
             !format!("{config:?}").contains("hush-hush"),
             "secret leaked into Debug"

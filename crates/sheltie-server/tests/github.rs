@@ -1,48 +1,49 @@
-//! M1 "done when": a pull request webhook leads to a "Sheltie" check run on its head.
+//! End to end: a pull request webhook leads to a "Sheltie" check run on its head (M1), and a
+//! footprint uploaded from CI with an OIDC token shows up on that check run (M2).
 //!
-//! Runs the real server against a throwaway database and a fake GitHub (wiremock).
+//! Runs the real server against a throwaway database and a fake GitHub (wiremock), which also
+//! serves the OIDC signing keys.
 
 // Integration-test helpers are not `#[test]` functions, so clippy's test exemption misses them.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::time::{Duration, Instant};
 
-use aws_lc_rs::encoding::{AsDer, Pkcs8V1Der};
-use aws_lc_rs::rsa::{KeyPair, KeySize};
-use base64::Engine as _;
 use serde_json::json;
 use sheltie_github::WebhookSecret;
+use sheltie_github::oidc::{GITHUB_ACTIONS_ISSUER, OidcConfig};
+use sheltie_github::testing::{OidcSigner, actions_claims};
 use sheltie_server::{Config, GitHubConfig, Server};
 use sheltie_store::PoolConfig;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use tokio::sync::oneshot;
-use wiremock::matchers::{body_partial_json, method, path};
+use wiremock::matchers::{body_partial_json, body_string_contains, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 const SECRET: &str = "e2e-webhook-secret";
 
-/// Writes a fresh App key (PKCS#8 PEM) under the test's scratch directory.
+/// Writes a fresh App key under the test's scratch directory.
 fn write_app_key() -> std::path::PathBuf {
-    let key = KeyPair::generate(KeySize::Rsa2048).unwrap();
-    let der = AsDer::<Pkcs8V1Der>::as_der(&key).unwrap();
-    let b64 = base64::engine::general_purpose::STANDARD.encode(der.as_ref());
-    let body: Vec<&str> = b64
-        .as_bytes()
-        .chunks(64)
-        .map(|c| std::str::from_utf8(c).unwrap())
-        .collect();
-    let pem = format!(
-        "-----BEGIN PRIVATE KEY-----\n{}\n-----END PRIVATE KEY-----\n",
-        body.join("\n")
-    );
     let path = std::path::Path::new(env!("CARGO_TARGET_TMPDIR"))
         .join(format!("app-key-{}.pem", std::process::id()));
-    std::fs::write(&path, pem).unwrap();
+    std::fs::write(&path, sheltie_github::testing::rsa_pem()).unwrap();
     path
 }
 
-async fn fake_github(head: &str) -> MockServer {
+async fn fake_github(head: &str, signer: &OidcSigner) -> MockServer {
     let github = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/.well-known/jwks"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(signer.jwks()))
+        .mount(&github)
+        .await;
+    Mock::given(method("PATCH"))
+        .and(path("/repos/acme/widgets/check-runs/31"))
+        .and(body_string_contains("Footprint: writes 1 target, reads 2"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(check_run(head)))
+        .expect(1)
+        .mount(&github)
+        .await;
     Mock::given(method("POST"))
         .and(path("/app/installations/77/access_tokens"))
         .respond_with(ResponseTemplate::new(201).set_body_json(json!({
@@ -55,24 +56,45 @@ async fn fake_github(head: &str) -> MockServer {
         .and(body_partial_json(
             json!({ "name": "Sheltie", "head_sha": head, "status": "queued" }),
         ))
-        .respond_with(ResponseTemplate::new(201).set_body_json(json!({
-            "id": 31, "node_id": "CR", "details_url": null, "head_sha": head,
-            "url": "https://api.github.com/repos/acme/widgets/check-runs/31", "html_url": null,
-            "conclusion": null, "started_at": null, "completed_at": null, "name": "Sheltie",
-            "pull_requests": [],
-            "output": { "title": "t", "summary": "s", "text": null,
-                        "annotations_count": 0, "annotations_url": "https://example.invalid" }
-        })))
+        .respond_with(ResponseTemplate::new(201).set_body_json(check_run(head)))
         .expect(1)
         .mount(&github)
         .await;
     github
 }
 
+fn check_run(head: &str) -> serde_json::Value {
+    json!({
+        "id": 31, "node_id": "CR", "details_url": null, "head_sha": head,
+        "url": "https://api.github.com/repos/acme/widgets/check-runs/31", "html_url": null,
+        "conclusion": null, "started_at": null, "completed_at": null, "name": "Sheltie",
+        "pull_requests": [],
+        "output": { "title": "t", "summary": "s", "text": null,
+                    "annotations_count": 0, "annotations_url": "https://example.invalid" }
+    })
+}
+
+/// Polls the fake GitHub until a request matching `pred` arrived.
+async fn wait_for(github: &MockServer, what: &str, pred: impl Fn(&wiremock::Request) -> bool) {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        let requests = github.received_requests().await.unwrap_or_default();
+        if requests.iter().any(&pred) {
+            return;
+        }
+        assert!(Instant::now() < deadline, "timed out waiting for {what}");
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+}
+
 #[sqlx::test(migrations = false)]
-async fn pull_request_gets_a_sheltie_check_run(_: PgPoolOptions, database: PgConnectOptions) {
+async fn check_run_is_created_and_shows_the_uploaded_footprint(
+    _: PgPoolOptions,
+    database: PgConnectOptions,
+) {
     let head = "1".repeat(40);
-    let github = fake_github(&head).await;
+    let signer = OidcSigner::new("k1");
+    let github = fake_github(&head, &signer).await;
     let key_path = write_app_key();
     let config = Config {
         database,
@@ -83,6 +105,11 @@ async fn pull_request_gets_a_sheltie_check_run(_: PgPoolOptions, database: PgCon
             private_key_path: key_path.clone(),
             webhook_secret: WebhookSecret::new(SECRET).unwrap(),
             api_url: Some(github.uri()),
+            oidc: OidcConfig {
+                issuer: GITHUB_ACTIONS_ISSUER.into(),
+                audience: "sheltie".into(),
+                jwks_url: format!("{}/.well-known/jwks", github.uri()),
+            },
         }),
     };
     let server = Server::start(config).await.unwrap();
@@ -114,18 +141,33 @@ async fn pull_request_gets_a_sheltie_check_run(_: PgPoolOptions, database: PgCon
     assert_eq!(response.status(), reqwest::StatusCode::ACCEPTED);
 
     // The webhook wakes the worker, which posts the check run.
-    let deadline = Instant::now() + Duration::from_secs(10);
-    loop {
-        let requests = github.received_requests().await.unwrap_or_default();
-        if requests
-            .iter()
-            .any(|r| r.url.path() == "/repos/acme/widgets/check-runs")
-        {
-            break;
-        }
-        assert!(Instant::now() < deadline, "no check run was posted");
-        tokio::time::sleep(Duration::from_millis(50)).await;
-    }
+    wait_for(&github, "the check run", |r| {
+        r.method.as_str() == "POST" && r.url.path() == "/repos/acme/widgets/check-runs"
+    })
+    .await;
+
+    // CI uploads the footprint; the check run is updated to show it.
+    let report = json!({
+        "adapter": "sheltie-cargo/test",
+        "base": "0".repeat(40),
+        "head": head,
+        "base_tree": "e".repeat(40),
+        "diff_hash": "sha256:abc",
+        "footprint": { "writes": ["shop::cart"], "reads": ["shop::cart", "shop"], "tests": [], "leaky": false },
+        "leak_reasons": []
+    });
+    let response = reqwest::Client::new()
+        .post(format!("http://{addr}/v1/footprints"))
+        .bearer_auth(signer.sign(&actions_claims("acme/widgets", 1001)))
+        .json(&report)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::ACCEPTED);
+    wait_for(&github, "the check run update", |r| {
+        r.method.as_str() == "PATCH"
+    })
+    .await;
 
     stop.send(()).unwrap();
     tokio::time::timeout(Duration::from_secs(5), handle)
@@ -133,7 +175,7 @@ async fn pull_request_gets_a_sheltie_check_run(_: PgPoolOptions, database: PgCon
         .expect("server did not shut down")
         .unwrap()
         .unwrap();
-    // Dropping `github` verifies the check run was created exactly once.
+    // Dropping `github` verifies the check run was created and updated exactly once.
 }
 
 #[sqlx::test(migrations = false)]
@@ -147,6 +189,7 @@ async fn missing_private_key_fails_startup(_: PgPoolOptions, database: PgConnect
             private_key_path: "/nonexistent/sheltie-app.pem".into(),
             webhook_secret: WebhookSecret::new(SECRET).unwrap(),
             api_url: None,
+            oidc: OidcConfig::github_actions("sheltie"),
         }),
     };
     let err = Server::start(config).await.unwrap_err();
