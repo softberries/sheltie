@@ -39,6 +39,8 @@ axum = "0.8"
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "migrate", "macros", "chrono"] }
 dotenvy = "0.15"
 octocrab = "0.54"
+# Same major as octocrab uses, so one copy is built.
+jsonwebtoken = { version = "10", default-features = false, features = ["aws_lc_rs"] }
 secrecy = "0.10"
 hmac = "0.13"
 sha2 = "0.11"
