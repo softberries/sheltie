@@ -11,6 +11,7 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+chrono = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 

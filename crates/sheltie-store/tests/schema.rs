@@ -151,3 +151,24 @@ async fn head_event_seq_is_the_cas(pool: PgPool) {
     let err = cas(0, GuaranteeTier::FootprintProven).await.unwrap_err();
     assert_eq!(sql_state(&err).as_deref(), Some(UNIQUE_VIOLATION));
 }
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn every_pr_event_kind_is_accepted(pool: PgPool) {
+    use sheltie_core::intake::PrEventKind;
+    insert_repo(&pool).await;
+    sqlx::query("INSERT INTO webhook_deliveries (delivery_id, event) VALUES ('d', 'pull_request')")
+        .execute(&pool)
+        .await
+        .unwrap();
+    for kind in PrEventKind::ALL {
+        sqlx::query(
+            "INSERT INTO pr_events (delivery_id, repo_id, pr_number, head_sha, base_sha, kind, actor, event_at, applied)
+             VALUES ('d', 1, 1, $1, $1, $2, 'x', now(), true)",
+        )
+        .bind(SHA_A)
+        .bind(kind.as_str())
+        .execute(&pool)
+        .await
+        .unwrap_or_else(|e| panic!("kind {kind} rejected: {e}"));
+    }
+}
