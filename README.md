@@ -41,7 +41,8 @@ Requirements: Rust (installed via rustup; the toolchain is pinned in `rust-toolc
 cp .env.example .env
 docker compose -f deploy/docker-compose.yml up -d   # Postgres
 cargo build --workspace
-cargo test --workspace
+cargo test --workspace                              # DB tests read DATABASE_URL from .env
+cargo run -p sheltie-server                         # then: curl localhost:8080/healthz
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow and [`CLAUDE.md`](CLAUDE.md) for the
