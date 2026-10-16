@@ -11,6 +11,11 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
 
 [lints]
 workspace = true
