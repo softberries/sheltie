@@ -1,0 +1,17 @@
+[package]
+name = "sheltie-server"
+description = "The Sheltie control-plane binary: wiring and configuration only."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+sheltie-core = { workspace = true }
+anyhow = { workspace = true }
+
+[lints]
+workspace = true

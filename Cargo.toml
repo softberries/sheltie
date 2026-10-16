@@ -1,0 +1,52 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "UNLICENSED" # placeholder until the license is decided (see docs/design.md)
+repository = "https://github.com/softberries/sheltie"
+homepage = "https://sheltie.dev"
+authors = ["Softberries <hello@softberries.dev>"]
+publish = false
+
+[workspace.dependencies]
+# Internal crates
+sheltie-core = { path = "crates/sheltie-core" }
+sheltie-graph = { path = "crates/sheltie-graph" }
+sheltie-cargo = { path = "crates/sheltie-cargo" }
+sheltie-github = { path = "crates/sheltie-github" }
+sheltie-scheduler = { path = "crates/sheltie-scheduler" }
+sheltie-merge = { path = "crates/sheltie-merge" }
+sheltie-commit = { path = "crates/sheltie-commit" }
+sheltie-sweeper = { path = "crates/sheltie-sweeper" }
+sheltie-store = { path = "crates/sheltie-store" }
+sheltie-api = { path = "crates/sheltie-api" }
+
+# External crates. Add new ones here first, then use `{ workspace = true }` in a crate.
+# Planned for later milestones (add when first used): tokio, axum, sqlx, octocrab, petgraph,
+# tracing-subscriber, reqwest, proptest, insta.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+dbg_macro = "warn"
+todo = "warn"
+print_stdout = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

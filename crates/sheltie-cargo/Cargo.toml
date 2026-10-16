@@ -1,0 +1,17 @@
+[package]
+name = "sheltie-cargo"
+description = "Cargo build-graph adapter (library and sheltie-cargo CLI)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+sheltie-core = { workspace = true }
+sheltie-graph = { workspace = true }
+
+[lints]
+workspace = true

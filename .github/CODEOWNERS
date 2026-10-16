@@ -1,0 +1,7 @@
+# Security-sensitive paths require maintainer review (see CLAUDE.md).
+*                                   @softberries
+/crates/sheltie-github/             @softberries
+/crates/sheltie-commit/             @softberries
+/crates/sheltie-merge/              @softberries
+/deny.toml                          @softberries
+/.github/                           @softberries
