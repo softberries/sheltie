@@ -1,0 +1,16 @@
+[package]
+name = "sheltie-github"
+description = "GitHub App: webhooks, check runs, labels, branches, merges."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+sheltie-core = { workspace = true }
+
+[lints]
+workspace = true

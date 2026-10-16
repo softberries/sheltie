@@ -1,0 +1,35 @@
+name: Bug report
+description: Something in Sheltie behaves incorrectly
+labels: [bug, triage]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did Sheltie do, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Repository setup, PRs involved, merge.toml, logs (redact secrets).
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Sheltie version
+      placeholder: e.g. 0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Build adapter
+      options: [Cargo, BSP (sbt/Mill/Gradle/Bazel), Maven, Fallback, Not sure]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: text
