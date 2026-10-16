@@ -90,21 +90,22 @@ PRs flow top to bottom. Textual conflicts detour through the merge engine; commu
 
 Footprints are computed per PR against its base, cached by `(base_tree_hash, diff_hash)`, and are the only input the scheduler uses to decide what may run in parallel.
 
-**Build-graph adapter interface** (Rust trait, one implementation per build tool):
+**Build-graph snapshot** (`sheltie-graph`). Each adapter describes one tree as data, and one pure function computes the footprint from the base and head snapshots, so the algorithm is the same for every build tool and can be property-tested:
 
 ```rust
-trait BuildGraph {
-    /// Targets (crates, modules, packages) and their declared inputs.
-    fn targets(&self, tree: TreeHash) -> Graph<TargetId, InputSet>;
-    /// Files or symbols -> owning targets.
-    fn owners(&self, tree: TreeHash, paths: &[Path]) -> Vec<TargetId>;
-    /// Hash of a target's public surface; equal hashes mean dependents are unaffected.
-    fn interface_hash(&self, tree: TreeHash, t: TargetId) -> IfaceHash;
-    /// Tests that must run when a target changes.
-    fn covering_tests(&self, tree: TreeHash, t: TargetId) -> Vec<TestId>;
-    /// Whether the target's build is known to be hermetic.
-    fn hermetic(&self, t: TargetId) -> Hermeticity;
+struct GraphSnapshot {
+    targets: Map<TargetId, Target>,          // per target: see below
+    owners: Map<RepoPath, Set<TargetId>>,    // files -> owning targets
 }
+struct Target {
+    reads: Map<TargetId, EdgeKind>,          // Local (same crate) or Public (another crate)
+    iface: IfaceHash,                        // seen by Local readers
+    public_iface: IfaceHash,                 // seen by Public readers
+    tests: Set<TestId>,                      // covering tests
+    hermetic: bool,
+    zone: Zone,                              // taint zone if not hermetic
+}
+fn footprint(base: &GraphSnapshot, head: &GraphSnapshot, changed: &Set<RepoPath>, extra_reads: &Set<TargetId>) -> Footprint;
 ```
 
 **Algorithm**
@@ -118,12 +119,14 @@ trait BuildGraph {
 
 | Adapter | Graph source | Interface hash | Known leaks |
 | --- | --- | --- | --- |
-| Cargo | `cargo metadata` | `cargo-public-api` / rustdoc JSON, hashed | `build.rs`, proc-macros, integration tests using fs or network |
+| Cargo | `cargo metadata` + module tree parsed with `syn` | Module signatures (bodies and docs removed), folded with the interfaces they name | `build.rs`, proc-macros, computed `include!` paths, integration tests using fs or network |
 | sbt / Mill | task graph export | Zinc API hash per compilation unit | macros, resource generators |
 | Nx / Turborepo | project graph JSON | `.d.ts` emit hash | runtime config, env vars |
 | Fallback | directory ownership file | none (any change propagates) | everything; footprints are coarse |
 
 **Adapter order:** Cargo first, then one BSP (Build Server Protocol) adapter covering sbt, Mill, Bazel and Gradle (via plugin), then a dedicated Maven adapter. sbt and Mill give the finest interface hashes through Zinc; Gradle exposes module ABIs through compile avoidance and the Tooling API; Maven has no ABI, so Sheltie hashes compiled class signatures itself (e.g. japicmp).
+
+**Cargo adapter (`sheltie-cargo`).** Targets are modules (`pkg::billing::tax`), so changes to different modules of one crate commute; most Rust projects are a single crate. Sources are parsed with `syn` straight from git objects, with no build and no nightly toolchain (rustdoc JSON, and so `cargo-public-api`, is nightly-only). A module's interface is its item signatures with function bodies and docs removed (types, traits, constants with values, `macro_rules!` bodies, impl headers), folded with the interfaces of the modules those signatures name, so `pub use` and type aliases propagate; a module's public interface also folds its `pub` children. Edges come from resolving `use` and qualified paths; anything unresolvable falls back to coarser targets, never to fewer edges. Test modules (`#[cfg(test)]`) belong to their parent; integration tests read the crate's public interface. Cross-crate edges point at the crate's public interface. Files outside the module graph are ignored (docs), tracked without effect (`.github/**`, lint configs) or treated as leaky; `Cargo.lock` changes read the crates whose resolved dependencies changed. `sheltie-cargo graph` prints the snapshot for debugging.
 
 **Where adapters run:** never in the control plane. Each adapter is a small CLI (`sheltie-cargo`, `sheltie-bsp`, `sheltie-maven`) run as a step on the customer's CI runner, where the toolchain already exists. It uploads a compact footprint file; the control plane only does set math and stays language-agnostic. Self-hosted worker pools get container images with each toolchain preinstalled.
 

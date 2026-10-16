@@ -9,7 +9,7 @@ The task list is `docs/backlog.md`; test setup is `docs/playground.md`; later wo
 ## Workspace layout
 
 - `crates/sheltie-core` — domain types only. No I/O, no async, no external services.
-- `crates/sheltie-graph` — `BuildGraph` trait and the footprint algorithm.
+- `crates/sheltie-graph` — build-graph snapshots (`GraphSnapshot`) and the footprint algorithm.
 - `crates/sheltie-cargo` — Cargo adapter (library + `sheltie-cargo` CLI).
 - `crates/sheltie-github` — GitHub App: webhooks, check runs, labels, branches, merges.
 - `crates/sheltie-scheduler` — conflict graph, epochs, strategies.
