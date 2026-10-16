@@ -1,0 +1,69 @@
+# Scenarios for fixtures/cargo-workspace (the ledger workspace, five crates).
+
+independent = [
+    ["store-body", "tax-body", "auth-body", "discount-body"],
+]
+
+[[scenarios]]
+name = "store-body"
+description = "Body-only change in ledger-store: no other crate is affected."
+[[scenarios.replace]]
+path = "crates/ledger-store/src/lib.rs"
+find = "let entry = self.balances.entry(account.clone()).or_default();"
+replace = "let entry = self.balances.entry(account.to_owned()).or_default();"
+
+[[scenarios]]
+name = "tax-body"
+description = "Body-only change in ledger-billing::tax."
+[[scenarios.replace]]
+path = "crates/ledger-billing/src/tax.rs"
+find = "    net.percent(STANDARD_RATE)"
+replace = "    Money(net.0).percent(STANDARD_RATE)"
+
+[[scenarios]]
+name = "discount-body"
+description = "Body-only change in ledger-billing::discount: independent of tax-body in the same crate."
+[[scenarios.replace]]
+path = "crates/ledger-billing/src/discount.rs"
+find = "if net >= VOLUME_THRESHOLD { net.percent(VOLUME_PCT) } else { Money::ZERO }"
+replace = "if net < VOLUME_THRESHOLD { Money::ZERO } else { net.percent(VOLUME_PCT) }"
+
+[[scenarios]]
+name = "auth-body"
+description = "Body-only change in ledger-auth."
+[[scenarios.replace]]
+path = "crates/ledger-auth/src/lib.rs"
+find = "Err(format!(\"token lacks scope {scope:?}\"))"
+replace = "Err(format!(\"token lacks the {scope:?} scope\"))"
+
+[[scenarios]]
+name = "tax-rate"
+description = "Change a public constant: an interface change that reaches invoice and, through the crate's public surface, ledger-api."
+[[scenarios.replace]]
+path = "crates/ledger-billing/src/tax.rs"
+find = "pub const STANDARD_RATE: i64 = 20;"
+replace = "pub const STANDARD_RATE: i64 = 21;"
+
+[[scenarios]]
+name = "money-api"
+description = "Add a method to ledger-core::Money: every crate depending on ledger-core reads it."
+[[scenarios.replace]]
+path = "crates/ledger-core/src/lib.rs"
+find = "    /// Applies a percentage, rounding half away from zero."
+replace = "    /// True for zero.\n    pub fn is_zero(self) -> bool {\n        self.0 == 0\n    }\n\n    /// Applies a percentage, rounding half away from zero."
+
+[[scenarios]]
+name = "workspace-manifest"
+description = "Change the workspace manifest: every target reads $workspace."
+[[scenarios.replace]]
+path = "Cargo.toml"
+find = "publish = false"
+replace = "publish = false\nrust-version = \"1.85\""
+
+[[scenarios]]
+name = "feature-flags"
+description = "Edit the feature-flag registry, which no module owns: leaky until merge rules declare it."
+[[scenarios.replace]]
+path = "config/feature_flags.txt"
+find = "auth.scoped_tokens"
+replace = "auth.scoped_tokens\nbilling.invoices_v2"
