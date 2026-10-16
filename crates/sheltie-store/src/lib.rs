@@ -6,6 +6,12 @@
 
 use std::time::Duration;
 
+mod checks;
+mod intake;
+
+pub use checks::CheckRunJob;
+pub use intake::Ingested;
+
 use sqlx::migrate::{MigrateError, Migrator};
 use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};
 
@@ -24,6 +30,20 @@ pub enum StoreError {
     /// A query failed.
     #[error("database query failed")]
     Query(#[from] sqlx::Error),
+    /// A value does not fit the database, or a stored row does not fit the domain types.
+    #[error("invalid data: {0}")]
+    InvalidRow(String),
+}
+
+/// Converts a forge id (`u64`) to a Postgres `BIGINT`.
+fn to_db_id(value: u64, what: &str) -> Result<i64, StoreError> {
+    i64::try_from(value)
+        .map_err(|_| StoreError::InvalidRow(format!("{what} {value} exceeds BIGINT")))
+}
+
+/// Converts a Postgres `BIGINT` back to a forge id.
+fn from_db_id(value: i64, what: &str) -> Result<u64, StoreError> {
+    u64::try_from(value).map_err(|_| StoreError::InvalidRow(format!("negative {what} {value}")))
 }
 
 /// Pool settings for [`Store::connect`].
