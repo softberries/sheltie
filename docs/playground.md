@@ -33,3 +33,18 @@ pull requests (read), commit statuses (read); events: `pull_request`, `pull_requ
 `check_suite`, `check_run`, `status`, `push`. GitHub Apps always receive `installation` and
 `installation_repositories` events. An App registered before M3 needs the statuses permission and
 the four new events added on its settings page; the installation then asks to approve them.
+
+## Shadow mode (M3)
+
+With the App installed and the footprint workflow running on the playground, merge PRs as usual
+(by hand or through GitHub's merge queue). Each PR's Sheltie check shows what Sheltie would have
+done. After a few days:
+
+```sh
+cargo run -p sheltie-server -- shadow-report --repo softberries/sheltie-playground-cargo --days 7
+```
+
+To produce a suspected miss on purpose, merge two PRs that change different modules, each green
+on its own, that break `main` together. For example, one changes `ledger_billing::tax::tax_on`'s
+body (a body-only change, so its footprint does not reach `invoice`) while the other adds an
+`invoice` test that pins the old tax result. Once `main` is red, the report lists the pair.

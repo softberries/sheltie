@@ -48,7 +48,8 @@ M2 priority — module-level footprints for single-crate projects. Most Rust pro
 - [x] Default-branch history from `push` events; merged PRs' merge commits
 - [x] Conflict graph and epochs (`sheltie-scheduler`, property-tested)
 - [x] Predicted batches written to check runs
-- [ ] Prediction vs. reality log and footprint-miss report
+- [x] Prediction vs. reality log and footprint-miss report (`sheltie-server shadow-report`)
+- [ ] A week of shadow data on a real repository (needs a deployment; see #51)
 
 **M4 — Parallel commit**
 
