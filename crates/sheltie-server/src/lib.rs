@@ -8,15 +8,23 @@ use std::future::Future;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::Context as _;
 use sheltie_api::{Footprints, Webhooks};
 use sheltie_github::oidc::{DEFAULT_AUDIENCE, OidcConfig, OidcVerifier};
-use sheltie_github::{CheckRunSync, GitHubApp, WebhookSecret};
+use sheltie_github::{CheckRunSync, GitHubApp, ReadinessSync, WebhookSecret};
 use sheltie_store::{PoolConfig, Store};
 use sqlx::postgres::PgConnectOptions;
 use tokio::net::TcpListener;
 use tokio::sync::{Notify, watch};
+
+mod shadow;
+
+pub use shadow::ShadowScheduler;
+
+/// Default time between scheduler epochs.
+pub const DEFAULT_EPOCH_SECONDS: u64 = 10;
 
 /// Default listen address when `SHELTIE_BIND` is unset.
 pub const DEFAULT_BIND: &str = "127.0.0.1:8080";
@@ -32,6 +40,8 @@ pub struct Config {
     pub bind: SocketAddr,
     /// Connection pool settings.
     pub pool: PoolConfig,
+    /// Time between scheduler epochs.
+    pub epoch: Duration,
     /// GitHub App settings; without them the server serves only `/healthz`.
     pub github: Option<GitHubConfig>,
 }
@@ -86,8 +96,22 @@ impl Config {
             database,
             bind,
             pool: PoolConfig::default(),
+            epoch: epoch(&lookup)?,
             github: github_config(&lookup)?,
         })
+    }
+}
+
+/// `SHELTIE_EPOCH_SECONDS`, 1–3600, default [`DEFAULT_EPOCH_SECONDS`].
+fn epoch(lookup: &impl Fn(&str) -> Option<String>) -> anyhow::Result<Duration> {
+    let Some(value) = lookup("SHELTIE_EPOCH_SECONDS").filter(|v| !v.is_empty()) else {
+        return Ok(Duration::from_secs(DEFAULT_EPOCH_SECONDS));
+    };
+    match value.parse::<u64>() {
+        Ok(secs @ 1..=3600) => Ok(Duration::from_secs(secs)),
+        _ => anyhow::bail!(
+            "SHELTIE_EPOCH_SECONDS {value:?} must be a number of seconds from 1 to 3600"
+        ),
     }
 }
 
@@ -135,6 +159,7 @@ impl fmt::Debug for Config {
             .field("database_user", &self.database.get_username())
             .field("bind", &self.bind)
             .field("pool", &self.pool)
+            .field("epoch", &self.epoch)
             .field("github", &self.github)
             .finish_non_exhaustive()
     }
@@ -148,12 +173,14 @@ pub struct Server {
     github: Option<GitHub>,
 }
 
-/// The running GitHub integration: webhook intake, footprint uploads and the check-run worker.
+/// The running GitHub integration: webhook intake, footprint uploads and the workers.
 #[derive(Debug)]
 struct GitHub {
     webhooks: Webhooks,
     footprints: Footprints,
-    sync: CheckRunSync,
+    check_runs: CheckRunSync,
+    readiness: ReadinessSync,
+    shadow: ShadowScheduler,
 }
 
 impl Server {
@@ -176,20 +203,28 @@ impl Server {
             .await
             .with_context(|| format!("binding {}", config.bind))?;
         let github = match config.github.zip(github_app) {
-            Some((config, app)) => {
-                let wake = Arc::new(Notify::new());
+            Some((github, app)) => {
+                // Intake (webhooks, uploads) signals this; `serve` forwards it to each worker.
+                let intake = Arc::new(Notify::new());
                 let verifier =
-                    OidcVerifier::new(config.oidc).context("creating the OIDC verifier")?;
+                    OidcVerifier::new(github.oidc).context("creating the OIDC verifier")?;
+                let app = Arc::new(app);
                 Some(GitHub {
                     webhooks: Webhooks {
-                        secret: config.webhook_secret,
-                        wake: Arc::clone(&wake),
+                        secret: github.webhook_secret,
+                        wake: Arc::clone(&intake),
                     },
                     footprints: Footprints {
                         verifier: Arc::new(verifier),
-                        wake,
+                        wake: intake,
                     },
-                    sync: CheckRunSync::new(store.clone(), Arc::new(app)),
+                    check_runs: CheckRunSync::new(store.clone(), Arc::clone(&app)),
+                    readiness: ReadinessSync::new(store.clone(), app),
+                    shadow: ShadowScheduler::new(
+                        store.clone(),
+                        config.epoch,
+                        Arc::new(Notify::new()),
+                    ),
                 })
             }
             None => None,
@@ -224,17 +259,32 @@ impl Server {
             let _ = rx.wait_for(|stop| *stop).await;
         };
 
-        let (webhooks, footprints, worker) = match self.github {
+        let mut workers = Vec::new();
+        let (webhooks, footprints) = match self.github {
             Some(GitHub {
                 webhooks,
                 footprints,
-                sync,
+                check_runs,
+                readiness,
+                shadow,
             }) => {
-                let worker =
-                    tokio::spawn(sync.run(Arc::clone(&webhooks.wake), stopped(stop_rx.clone())));
-                (Some(webhooks), Some(footprints), Some(worker))
+                let check_runs_wake = Arc::clone(&shadow.changed);
+                let readiness_wake = Arc::new(Notify::new());
+                workers.push(tokio::spawn(fan_out(
+                    Arc::clone(&webhooks.wake),
+                    vec![Arc::clone(&check_runs_wake), Arc::clone(&readiness_wake)],
+                    stopped(stop_rx.clone()),
+                )));
+                workers.push(tokio::spawn(
+                    check_runs.run(check_runs_wake, stopped(stop_rx.clone())),
+                ));
+                workers.push(tokio::spawn(
+                    readiness.run(readiness_wake, stopped(stop_rx.clone())),
+                ));
+                workers.push(tokio::spawn(shadow.run(stopped(stop_rx.clone()))));
+                (Some(webhooks), Some(footprints))
             }
-            None => (None, None, None),
+            None => (None, None),
         };
 
         tracing::info!(addr = %addr, github = webhooks.is_some(), "sheltie-server listening");
@@ -243,10 +293,25 @@ impl Server {
             .with_graceful_shutdown(stopped(stop_rx))
             .await
             .context("HTTP server failed");
-        if let Some(worker) = worker {
-            worker.await.context("check-run worker panicked")?;
+        for worker in workers {
+            worker.await.context("a background worker panicked")?;
         }
         served
+    }
+}
+
+/// Forwards each notification on `source` to every target, until `shutdown`.
+async fn fan_out(
+    source: Arc<Notify>,
+    targets: Vec<Arc<Notify>>,
+    shutdown: impl Future<Output = ()>,
+) {
+    tokio::pin!(shutdown);
+    loop {
+        tokio::select! {
+            () = &mut shutdown => return,
+            () = source.notified() => targets.iter().for_each(|t| t.notify_one()),
+        }
     }
 }
 
@@ -338,6 +403,22 @@ mod tests {
     fn partial_github_settings_are_an_error() {
         let err = config(&[("DATABASE_URL", URL), ("SHELTIE_GITHUB_APP_ID", "1")]).unwrap_err();
         assert!(err.to_string().contains("set all of"), "{err}");
+    }
+
+    #[test]
+    fn epoch_defaults_and_bounds() {
+        assert_eq!(
+            config(&[("DATABASE_URL", URL)]).unwrap().epoch,
+            Duration::from_secs(10)
+        );
+        let custom = config(&[("DATABASE_URL", URL), ("SHELTIE_EPOCH_SECONDS", "30")]).unwrap();
+        assert_eq!(custom.epoch, Duration::from_secs(30));
+        for bad in ["0", "3601", "fast"] {
+            assert!(
+                config(&[("DATABASE_URL", URL), ("SHELTIE_EPOCH_SECONDS", bad)]).is_err(),
+                "{bad}"
+            );
+        }
     }
 
     #[test]
