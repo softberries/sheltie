@@ -45,6 +45,9 @@ cargo test --workspace                              # DB tests read DATABASE_URL
 cargo run -p sheltie-server                         # then: curl localhost:8080/healthz
 ```
 
+To receive webhooks from a real GitHub App, follow "Running the GitHub App locally" in
+[`docs/playground.md`](docs/playground.md).
+
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow and [`CLAUDE.md`](CLAUDE.md) for the
 conventions used when working with Claude Code.
 

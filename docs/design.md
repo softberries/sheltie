@@ -274,7 +274,9 @@ struct HeadEvent {
 }
 ```
 
-`ChangeState` adds `Pending` (open, not yet ready) and `Closed` (closed or superseded) to the pipeline states; allowed transitions are defined in `sheltie-core`. A push to a PR creates a new `ChangeId`. The resolution tier is an enum rather than `u8` because tier 4 has two variants (4a, 4b).
+`ChangeState` adds `Pending` (open, not yet ready) and `Closed` (closed or superseded) to the pipeline states; allowed transitions are defined in `sheltie-core`. `Landed` is terminal; `Closed` returns to `Pending` only when the PR is reopened at the same head. A push to a PR creates a new `ChangeId` and closes the previous head's change. The resolution tier is an enum rather than `u8` because tier 4 has two variants (4a, 4b).
+
+**Intake.** Every webhook is verified (HMAC-SHA256) before parsing, then stored in one transaction with its delivery id, which drops GitHub's redeliveries. GitHub does not guarantee delivery order, so lifecycle events are ordered by the PR's `updated_at`; an event older than one already applied is logged but changes nothing. Check runs are not posted from the webhook handler: intake marks the change's check run as out of date (an outbox row), and a worker claims rows with a short lease and posts them, retrying with backoff. Intake therefore keeps working while GitHub's API is down, and several replicas can run the worker.
 
 **Interfaces**
 
