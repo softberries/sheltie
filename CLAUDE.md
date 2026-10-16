@@ -75,7 +75,8 @@ Before saying a task is done, run fmt, clippy and tests. All must pass.
 
 ## Security-sensitive areas
 
-- Webhook signature verification and GitHub App private key handling (`sheltie-github`).
+- Webhook signature verification, GitHub App private key handling and OIDC token verification for
+  footprint uploads (`sheltie-github`, `sheltie-api`).
 - The commit path that pushes to protected branches (`sheltie-commit`).
 - Agent replay jobs: they run with user-provided API keys; keys come only from runner secrets,
   never stored in the database or logs.

@@ -130,6 +130,10 @@ fn footprint(base: &GraphSnapshot, head: &GraphSnapshot, changed: &Set<RepoPath>
 
 **Where adapters run:** never in the control plane. Each adapter is a small CLI (`sheltie-cargo`, `sheltie-bsp`, `sheltie-maven`) run as a step on the customer's CI runner, where the toolchain already exists. It uploads a compact footprint file; the control plane only does set math and stays language-agnostic. Self-hosted worker pools get container images with each toolchain preinstalled.
 
+**Upload.** The reusable workflow `.github/workflows/footprint.yml` runs the adapter on `pull_request` and posts the report to `POST /v1/footprints` with a GitHub Actions OIDC token (audience `sheltie` by default). Sheltie verifies the token against GitHub's published keys (RS256, issuer `https://token.actions.githubusercontent.com`) and accepts the upload only for the repository named in the token, and only if the App is installed there. Reports are stored by repository and head commit, so an upload can arrive before the webhook, and are validated (bounded sizes, writes ⊆ reads). The change's check run then shows the footprint.
+
+*Open security question:* a token proves which repository's workflow ran, not that the workflow is trusted. Workflows of `pull_request` runs come from the PR's merge commit, so if GitHub granted OIDC tokens to runs from forked PRs, a fork could upload a footprint that is too small. GitHub's OIDC reference does not say how forks are treated; this must be verified before Sheltie gets merge rights (M4). Until then footprints only drive shadow-mode predictions, and wrong ones show up as footprint misses.
+
 **Non-code hotspots** get explicit rules: lockfiles and generated files are *derived* (regenerate, never merge); migrations, OpenAPI specs and feature-flag configs are *global* (every writer conflicts with every reader).
 
 **Measuring leakage.** Every sweep failure traced to a pair that Sheltie judged independent is logged as a footprint miss with the pair and the targets involved. That rate decides where hermeticity work pays off.
