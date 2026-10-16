@@ -12,10 +12,15 @@
     "checks": "write",
     "contents": "read",
     "metadata": "read",
-    "pull_requests": "read"
+    "pull_requests": "read",
+    "statuses": "read"
   },
   "default_events": [
+    "check_run",
+    "check_suite",
     "pull_request",
-    "pull_request_review"
+    "pull_request_review",
+    "push",
+    "status"
   ]
 }

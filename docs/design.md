@@ -164,6 +164,13 @@ The scheduler runs in epochs of a few seconds: it rebuilds the conflict graph of
 
 **Capacity control.** Workers are a shared pool; independent singletons are cheap (often cache hits) and are always scheduled first, speculation gets what remains.
 
+**Implementation notes (M3).**
+
+- *Readiness* comes from GitHub, not from reimplementing branch protection: one GraphQL query per PR reads `reviewDecision` (approved, or no review required), the status-check rollup of the head (every check and status other than Sheltie's own finished successfully, and at least one exists), and the draft flag. Review, check, status and footprint events trigger a recheck; every live change is also re-polled (every minute while pending, five while ready), because GitHub does not document that an App receives check events created by other Apps. Only PRs targeting the default branch become ready.
+- *What landed since a change's base* comes from `push` events on the default branch (commit order) and merged-PR events (merge commit). The scheduler gets the union of the landed changes' write sets after the change's base (its footprint's merge base). If the base is not on the tracked history, or a landed change has no footprint, the set is unknown and the change is reverified rather than landed: Sheltie never guesses in the optimistic direction.
+- *Order of rules per epoch:* a change that writes something already landed goes to the merge engine; then changes sharing a written target with another ready change go to the merge engine; the rest form the semantic conflict graph, whose singletons land now (or reverify the intersected targets) and whose groups become speculative chains (≤ 8) or group-tested batches, ordered by priority plus minutes waited.
+- *Shadow mode* records each change's prediction (with a log of every change of prediction) and shows it as the title of the change's Sheltie check, which stays neutral and never blocks a merge.
+
 ## Merge engine
 
 Conflicts are resolved by the cheapest tier that succeeds, per file; every resolution is recorded with its tier and must pass verification like any other change.

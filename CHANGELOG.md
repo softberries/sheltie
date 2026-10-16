@@ -38,6 +38,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   The "Sheltie" check run shows each change's footprint. Reusable workflow
   `.github/workflows/footprint.yml` builds `sheltie-cargo`, computes and uploads it.
 
+- Shadow mode (M3): changes become ready when GitHub reports them approved and green and their
+  footprint is known; every `SHELTIE_EPOCH_SECONDS` (default 10) the scheduler plans the ready
+  changes and each Sheltie check shows what Sheltie would do ("would land now, together with
+  #12"). Nothing is merged. The App now also needs commit statuses (read) and the `check_suite`,
+  `check_run`, `status` and `push` events.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
