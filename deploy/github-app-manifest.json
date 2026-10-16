@@ -1,0 +1,21 @@
+{
+  "name": "Sheltie (dev)",
+  "url": "https://sheltie.dev",
+  "description": "Parallel merge engine for agent-generated pull requests. Development App.",
+  "public": false,
+  "hook_attributes": {
+    "url": "https://smee.io/REPLACE_WITH_YOUR_CHANNEL",
+    "active": true
+  },
+  "redirect_url": "http://127.0.0.1:8765/callback",
+  "default_permissions": {
+    "checks": "write",
+    "contents": "read",
+    "metadata": "read",
+    "pull_requests": "read"
+  },
+  "default_events": [
+    "pull_request",
+    "pull_request_review"
+  ]
+}
