@@ -17,6 +17,7 @@ sheltie-scheduler = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
+clap = { workspace = true }
 axum = { workspace = true }
 dotenvy = { workspace = true }
 serde_json = { workspace = true }

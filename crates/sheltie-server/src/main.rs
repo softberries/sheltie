@@ -1,8 +1,39 @@
 //! The Sheltie control-plane binary.
 
 use anyhow::Context as _;
+use chrono::Utc;
+use clap::{Parser, Subcommand};
+use sheltie_core::RepoFullName;
+use sheltie_scheduler::report::build_report;
 use sheltie_server::{Config, Server};
+use sheltie_store::Store;
 use tracing_subscriber::EnvFilter;
+
+/// The Sheltie control plane.
+#[derive(Parser)]
+#[command(version, about)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Runs the server (the default).
+    Serve,
+    /// Prints the shadow-mode report for a repository: predictions versus what happened.
+    ShadowReport {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// Report window in days.
+        #[arg(long, default_value_t = 7)]
+        days: u32,
+        /// Print JSON instead of Markdown.
+        #[arg(long)]
+        json: bool,
+    },
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -11,11 +42,36 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
+        .with_writer(std::io::stderr)
         .init();
 
-    let server = Server::start(Config::from_env()?).await?;
-    server.serve(shutdown_signal()).await?;
-    tracing::info!("sheltie-server stopped");
+    match Cli::parse().command.unwrap_or(Command::Serve) {
+        Command::Serve => {
+            let server = Server::start(Config::from_env()?).await?;
+            server.serve(shutdown_signal()).await?;
+            tracing::info!("sheltie-server stopped");
+        }
+        Command::ShadowReport { repo, days, json } => {
+            let repo = RepoFullName::parse(repo)?;
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            let since = Utc::now() - chrono::Duration::days(i64::from(days));
+            let input = store
+                .shadow_report_input(&repo, since)
+                .await?
+                .with_context(|| format!("Sheltie has no data for {repo}"))?;
+            let report = build_report(&input);
+            let out = if json {
+                serde_json::to_string_pretty(&report)?
+            } else {
+                report.to_markdown()
+            };
+            use std::io::Write as _;
+            writeln!(std::io::stdout(), "{out}")?;
+        }
+    }
     Ok(())
 }
 
