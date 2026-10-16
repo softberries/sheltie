@@ -34,9 +34,12 @@ M2 priority — module-level footprints for single-crate projects. Most Rust pro
 - [x] Cargo adapter: graph from `cargo metadata`
 - [x] Interface hashing (syn-based; replaces `cargo-public-api`, see design doc)
 - [x] Footprint algorithm + `leaky` flag
-- [ ] Footprint cache by `(base_tree, diff_hash)` (server side, with upload)
+- [x] Footprints stored by repository and head, indexed by `(base_tree, diff_hash)` for reuse
 - [x] `sheltie-cargo` CLI (`footprint`, `graph`)
-- [ ] Upload endpoint with GitHub Actions OIDC, and reusable `workflows/footprint.yml`
+- [x] Upload endpoint (`POST /v1/footprints`) authenticated with GitHub Actions OIDC
+- [x] Reusable workflow `.github/workflows/footprint.yml`
+- [ ] Run the workflow on the playground against a reachable Sheltie (needs a deployment or tunnel)
+- [ ] Verify whether runs for PRs from forks can obtain OIDC tokens (see design doc, Upload)
 - [x] Snapshot tests on fixtures
 
 **M3 — Shadow mode**
