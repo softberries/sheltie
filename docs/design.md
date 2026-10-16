@@ -234,12 +234,12 @@ State lives in Postgres (relational records and the commit CAS) plus the existin
 
 ```rust
 struct Change {
-    id: ChangeId,              // GitHub PR number + head sha
+    id: ChangeId,              // GitHub repo id + PR number + head sha
     base: CommitSha,
-    diff_hash: Hash,
+    diff_hash: DiffHash,
     intent: Option<IntentRef>, // intent.json blob
-    state: ChangeState,        // Ready | Merging | Verifying | Committable | Landed | Returned
-    risk: f32,
+    state: ChangeState,        // Pending | Ready | Merging | Verifying | Committable | Landed | Returned | Closed
+    risk: Score,               // 0.0..=1.0
     priority: i64,
 }
 
@@ -261,9 +261,9 @@ struct Verification {
 
 struct Resolution {
     changes: Vec<ChangeId>,
-    tier: u8,
-    files: Vec<Path>,
-    similarity: Option<f32>,
+    tier: ResolutionTier,      // Commute | Structural | Regenerate | Declared | ReplayHunks (4a) | ReplayFull (4b) | Human
+    files: Vec<RepoPath>,
+    similarity: Option<Score>, // replay tiers only
 }
 
 struct HeadEvent {
@@ -273,6 +273,8 @@ struct HeadEvent {
     tier: GuaranteeTier,
 }
 ```
+
+`ChangeState` adds `Pending` (open, not yet ready) and `Closed` (closed or superseded) to the pipeline states; allowed transitions are defined in `sheltie-core`. A push to a PR creates a new `ChangeId`. The resolution tier is an enum rather than `u8` because tier 4 has two variants (4a, 4b).
 
 **Interfaces**
 

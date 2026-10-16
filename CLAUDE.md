@@ -39,7 +39,7 @@ Before saying a task is done, run fmt, clippy and tests. All must pass.
 
 ## Rust conventions
 
-- Edition 2024. MSRV is `rust-version` in the root `Cargo.toml` (1.85) and is checked in CI;
+- Edition 2024. MSRV is `rust-version` in the root `Cargo.toml` (1.94, set by sqlx 0.9) and is checked in CI;
   the development toolchain is pinned in `rust-toolchain.toml`. Stable only.
 - `unsafe_code = "forbid"` via `[workspace.lints]`; every crate has `[lints] workspace = true`.
   No exceptions without an issue and review.

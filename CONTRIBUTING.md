@@ -13,7 +13,7 @@ Thanks for your interest. Sheltie is pre-alpha; the best place to start is
 ```sh
 rustup show                                          # installs the pinned toolchain
 cargo install cargo-nextest cargo-deny sqlx-cli --locked
-cp .env.example .env
+cp .env.example .env                                 # DATABASE_URL is also used by the DB tests
 docker compose -f deploy/docker-compose.yml up -d
 cargo build --workspace
 ```
