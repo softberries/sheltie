@@ -72,7 +72,7 @@ impl CheckRunSync {
     }
 
     async fn sync(&self, job: CheckRunJob) -> Result<(), StoreError> {
-        let spec = spec_for(job.state, &job.change.head);
+        let spec = spec_for(job.state, &job.change.head, job.footprint);
         let result = match job.github_id {
             Some(id) => self
                 .github
