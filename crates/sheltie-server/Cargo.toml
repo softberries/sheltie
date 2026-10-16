@@ -10,8 +10,19 @@ authors.workspace = true
 publish.workspace = true
 
 [dependencies]
-sheltie-core = { workspace = true }
+sheltie-api = { workspace = true }
+sheltie-store = { workspace = true }
 anyhow = { workspace = true }
+axum = { workspace = true }
+dotenvy = { workspace = true }
+sqlx = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+reqwest = { workspace = true }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true
