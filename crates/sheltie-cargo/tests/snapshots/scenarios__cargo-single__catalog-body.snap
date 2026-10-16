@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a function body in catalog: only catalog is written and read.",
+  "footprint": {
+    "writes": [
+      "shop::catalog"
+    ],
+    "reads": [
+      "shop::catalog"
+    ],
+    "tests": [
+      "shop::catalog"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

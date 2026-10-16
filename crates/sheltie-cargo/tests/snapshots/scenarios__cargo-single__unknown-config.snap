@@ -1,0 +1,37 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "A file outside the module graph that the build might read: leaky.",
+  "footprint": {
+    "writes": [
+      "file:config/flags.txt"
+    ],
+    "reads": [
+      "$lockfile",
+      "$workspace",
+      "file:config/flags.txt",
+      "shop",
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::macros",
+      "shop::pricing",
+      "shop::shipping",
+      "shop::shipping::rates",
+      "shop::util"
+    ],
+    "tests": [
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::pricing",
+      "shop::shipping::rates"
+    ],
+    "leaky": true
+  },
+  "leak_reasons": [
+    "config/flags.txt is outside the module graph"
+  ]
+}

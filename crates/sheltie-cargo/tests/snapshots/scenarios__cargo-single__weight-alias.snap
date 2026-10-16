@@ -1,0 +1,24 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change shipping::Weight, used by rates through a glob import.",
+  "footprint": {
+    "writes": [
+      "shop::shipping"
+    ],
+    "reads": [
+      "shop",
+      "shop/test/checkout",
+      "shop::shipping",
+      "shop::shipping::rates"
+    ],
+    "tests": [
+      "shop/test/checkout",
+      "shop::shipping::rates"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

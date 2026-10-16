@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a function body in a nested module (shipping::rates).",
+  "footprint": {
+    "writes": [
+      "shop::shipping::rates"
+    ],
+    "reads": [
+      "shop::shipping::rates"
+    ],
+    "tests": [
+      "shop::shipping::rates"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

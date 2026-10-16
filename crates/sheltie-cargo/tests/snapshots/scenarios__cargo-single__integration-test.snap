@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit the integration test only.",
+  "footprint": {
+    "writes": [
+      "shop/test/checkout"
+    ],
+    "reads": [
+      "shop/test/checkout"
+    ],
+    "tests": [
+      "shop/test/checkout"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

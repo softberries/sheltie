@@ -1,0 +1,27 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a field to catalog::Product: an interface change reaching every module that names Product.",
+  "footprint": {
+    "writes": [
+      "shop::catalog"
+    ],
+    "reads": [
+      "shop",
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::pricing"
+    ],
+    "tests": [
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::catalog",
+      "shop::pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

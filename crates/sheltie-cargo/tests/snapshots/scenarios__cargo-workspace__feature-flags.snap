@@ -1,0 +1,38 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit the feature-flag registry, which no module owns: leaky until merge rules declare it.",
+  "footprint": {
+    "writes": [
+      "file:config/feature_flags.txt"
+    ],
+    "reads": [
+      "$lockfile",
+      "$workspace",
+      "file:config/feature_flags.txt",
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "tests": [
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "leaky": true
+  },
+  "leak_reasons": [
+    "config/feature_flags.txt is outside the module graph"
+  ]
+}

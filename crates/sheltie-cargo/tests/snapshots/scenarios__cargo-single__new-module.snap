@@ -1,0 +1,23 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a module: the crate root and the new module are written.",
+  "footprint": {
+    "writes": [
+      "shop",
+      "shop::discounts"
+    ],
+    "reads": [
+      "shop",
+      "shop/test/checkout",
+      "shop::discounts"
+    ],
+    "tests": [
+      "shop/test/checkout"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

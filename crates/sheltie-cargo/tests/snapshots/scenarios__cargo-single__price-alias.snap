@@ -1,0 +1,25 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change the Price type alias: cart's signatures use it, so cart and the crate root (pub use cart::Cart) change; the integration test reads the crate.",
+  "footprint": {
+    "writes": [
+      "shop::pricing"
+    ],
+    "reads": [
+      "shop",
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::pricing"
+    ],
+    "tests": [
+      "shop/test/checkout",
+      "shop::cart",
+      "shop::pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
