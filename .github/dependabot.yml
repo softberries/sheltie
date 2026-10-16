@@ -15,5 +15,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # The ref is the Rust toolchain (`@stable`, `@<MSRV>`), not an action version.
+      - dependency-name: dtolnay/rust-toolchain
     commit-message:
       prefix: ci
