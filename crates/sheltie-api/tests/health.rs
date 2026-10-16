@@ -12,7 +12,10 @@ use tower::ServiceExt;
 
 async fn get_healthz(store: Store) -> (StatusCode, serde_json::Value) {
     let request = Request::get("/healthz").body(Body::empty()).unwrap();
-    let response = sheltie_api::router(store).oneshot(request).await.unwrap();
+    let response = sheltie_api::router(store, None)
+        .oneshot(request)
+        .await
+        .unwrap();
     let status = response.status();
     let body = response.into_body().collect().await.unwrap().to_bytes();
     (status, serde_json::from_slice(&body).unwrap())
