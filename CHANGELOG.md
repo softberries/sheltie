@@ -28,6 +28,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `deploy/github-app-manifest.json` and `scripts/register-github-app.py` to register a
   development App with least-privilege permissions in one step.
 
+- Footprints (M2): `sheltie-graph` computes write and read sets from two build-graph snapshots;
+  `sheltie-cargo footprint --base <rev>` computes module-level footprints for Cargo
+  workspaces from git, with no build and no nightly toolchain. `sheltie-cargo graph` prints the
+  graph Sheltie sees. Golden tests cover a single-crate and a multi-crate fixture.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
