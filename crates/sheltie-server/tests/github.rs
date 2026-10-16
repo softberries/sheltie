@@ -100,6 +100,7 @@ async fn check_run_is_created_and_shows_the_uploaded_footprint(
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        epoch: std::time::Duration::from_secs(1),
         github: Some(GitHubConfig {
             app_id: 123456,
             private_key_path: key_path.clone(),
@@ -184,6 +185,7 @@ async fn missing_private_key_fails_startup(_: PgPoolOptions, database: PgConnect
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        epoch: std::time::Duration::from_secs(1),
         github: Some(GitHubConfig {
             app_id: 1,
             private_key_path: "/nonexistent/sheltie-app.pem".into(),
@@ -197,4 +199,154 @@ async fn missing_private_key_fails_startup(_: PgPoolOptions, database: PgConnect
         format!("{err:#}").contains("reading GitHub App private key"),
         "{err:#}"
     );
+}
+
+/// M3a: once approved and green with a footprint, the change becomes ready, the shadow
+/// scheduler predicts it, and the check run shows the prediction.
+#[sqlx::test(migrations = false)]
+async fn ready_pull_request_shows_a_shadow_prediction(
+    _: PgPoolOptions,
+    database: PgConnectOptions,
+) {
+    let head = "1".repeat(40);
+    let signer = OidcSigner::new("k1");
+    let github = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/.well-known/jwks"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(signer.jwks()))
+        .mount(&github)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/app/installations/77/access_tokens"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(json!({
+            "token": "ghs_e2e", "expires_at": "2099-01-01T00:00:00Z", "permissions": {}
+        })))
+        .mount(&github)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/repos/acme/widgets/check-runs"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(check_run(&head)))
+        .mount(&github)
+        .await;
+    Mock::given(method("PATCH"))
+        .and(path("/repos/acme/widgets/check-runs/31"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(check_run(&head)))
+        .mount(&github)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/graphql"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "data": { "repository": { "pullRequest": {
+            "headRefOid": head, "isDraft": false, "state": "OPEN", "reviewDecision": "APPROVED",
+            "commits": { "nodes": [ { "commit": { "statusCheckRollup": { "contexts": {
+                "pageInfo": { "hasNextPage": false },
+                "nodes": [ { "__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": "SUCCESS" } ]
+            } } } } ] }
+        } } } })))
+        .mount(&github)
+        .await;
+
+    let key_path = write_app_key();
+    let config = Config {
+        database,
+        bind: "127.0.0.1:0".parse().unwrap(),
+        pool: PoolConfig::default(),
+        epoch: Duration::from_millis(200),
+        github: Some(GitHubConfig {
+            app_id: 123456,
+            private_key_path: key_path.clone(),
+            webhook_secret: WebhookSecret::new(SECRET).unwrap(),
+            api_url: Some(github.uri()),
+            oidc: OidcConfig {
+                issuer: GITHUB_ACTIONS_ISSUER.into(),
+                audience: "sheltie".into(),
+                jwks_url: format!("{}/.well-known/jwks", github.uri()),
+            },
+        }),
+    };
+    let server = Server::start(config).await.unwrap();
+    std::fs::remove_file(key_path).unwrap();
+    let addr = server.local_addr().unwrap();
+    let (stop, stopped) = oneshot::channel::<()>();
+    let handle = tokio::spawn(server.serve(async {
+        stopped.await.ok();
+    }));
+    let client = reqwest::Client::new();
+
+    let body = std::fs::read(format!(
+        "{}/../sheltie-github/tests/fixtures/pull_request.opened.json",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    let response = client
+        .post(format!("http://{addr}/webhooks/github"))
+        .header("x-github-event", "pull_request")
+        .header("x-github-delivery", "e2e-shadow-1")
+        .header(
+            "x-hub-signature-256",
+            WebhookSecret::new(SECRET).unwrap().sign(&body),
+        )
+        .body(body)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::ACCEPTED);
+
+    let report = json!({
+        "adapter": "sheltie-cargo/test",
+        "base": "0".repeat(40),
+        "head": head,
+        "base_tree": "e".repeat(40),
+        "diff_hash": "sha256:abc",
+        "footprint": { "writes": ["shop::cart"], "reads": ["shop::cart"], "tests": [], "leaky": false },
+        "leak_reasons": []
+    });
+    let response = client
+        .post(format!("http://{addr}/v1/footprints"))
+        .bearer_auth(signer.sign(&actions_claims("acme/widgets", 1001)))
+        .json(&report)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::ACCEPTED);
+
+    // The base commit is not on the tracked branch yet, so the first prediction is
+    // "reverify"; once main's history is known it becomes "would land now".
+    wait_for(&github, "a reverify prediction", |r| {
+        r.method.as_str() == "PATCH"
+            && String::from_utf8_lossy(&r.body).contains("Shadow: would reverify")
+    })
+    .await;
+    let push = std::fs::read(format!(
+        "{}/../sheltie-github/tests/fixtures/push.main.json",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    let mut push: serde_json::Value = serde_json::from_slice(&push).unwrap();
+    push["commits"] = json!([{ "id": "0".repeat(40) }]);
+    push["after"] = json!("0".repeat(40));
+    let push = serde_json::to_vec(&push).unwrap();
+    client
+        .post(format!("http://{addr}/webhooks/github"))
+        .header("x-github-event", "push")
+        .header("x-github-delivery", "e2e-shadow-push")
+        .header(
+            "x-hub-signature-256",
+            WebhookSecret::new(SECRET).unwrap().sign(&push),
+        )
+        .body(push)
+        .send()
+        .await
+        .unwrap();
+    wait_for(&github, "a land-now prediction", |r| {
+        r.method.as_str() == "PATCH"
+            && String::from_utf8_lossy(&r.body).contains("Shadow: would land now")
+    })
+    .await;
+
+    stop.send(()).unwrap();
+    tokio::time::timeout(Duration::from_secs(5), handle)
+        .await
+        .expect("server did not shut down")
+        .unwrap()
+        .unwrap();
 }

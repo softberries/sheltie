@@ -12,10 +12,14 @@ publish.workspace = true
 [dependencies]
 sheltie-api = { workspace = true }
 sheltie-github = { workspace = true }
+sheltie-core = { workspace = true }
+sheltie-scheduler = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }
+chrono = { workspace = true }
 axum = { workspace = true }
 dotenvy = { workspace = true }
+serde_json = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
@@ -23,10 +27,8 @@ tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
 sheltie-github = { workspace = true, features = ["test-support"] }
-sheltie-core = { workspace = true }
 wiremock = { workspace = true }
 reqwest = { workspace = true }
-serde_json = { workspace = true }
 
 [lints]
 workspace = true
