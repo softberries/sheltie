@@ -11,12 +11,14 @@ mod epochs;
 mod footprints;
 mod intake;
 mod readiness;
+mod reality;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
 pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
 pub use intake::Ingested;
 pub use readiness::{Readiness, ReadinessJob};
+pub use reality::{BranchCiJob, CiState, RedWindow};
 
 use sqlx::migrate::{MigrateError, Migrator};
 use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};
