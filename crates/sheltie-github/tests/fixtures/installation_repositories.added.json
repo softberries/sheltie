@@ -1,0 +1,38 @@
+{
+  "action": "added",
+  "installation": {
+    "id": 77,
+    "account": {
+      "login": "acme",
+      "id": 99,
+      "type": "Organization"
+    },
+    "repository_selection": "selected",
+    "app_id": 123456,
+    "permissions": {
+      "checks": "write",
+      "pull_requests": "read",
+      "contents": "read",
+      "metadata": "read"
+    },
+    "events": [
+      "pull_request",
+      "pull_request_review"
+    ]
+  },
+  "repository_selection": "selected",
+  "repositories_added": [
+    {
+      "id": 1003,
+      "name": "gizmos",
+      "full_name": "acme/gizmos",
+      "private": true
+    }
+  ],
+  "repositories_removed": [],
+  "sender": {
+    "login": "maintainer",
+    "id": 7,
+    "type": "User"
+  }
+}

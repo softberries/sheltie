@@ -1,0 +1,62 @@
+{
+  "action": "submitted",
+  "review": {
+    "id": 555,
+    "user": {
+      "login": "maintainer",
+      "id": 7,
+      "type": "User"
+    },
+    "body": "LGTM",
+    "commit_id": "2222222222222222222222222222222222222222",
+    "submitted_at": "2026-10-16T10:30:00Z",
+    "state": "approved"
+  },
+  "pull_request": {
+    "url": "https://api.github.com/repos/acme/widgets/pulls/7",
+    "id": 2000000007,
+    "number": 7,
+    "state": "open",
+    "draft": false,
+    "title": "Add retry to the billing client",
+    "user": {
+      "login": "agent-bot[bot]",
+      "id": 4242,
+      "type": "Bot"
+    },
+    "created_at": "2026-10-16T10:00:00Z",
+    "updated_at": "2026-10-16T10:30:00Z",
+    "merged": false,
+    "head": {
+      "label": "acme:agent/billing-retry",
+      "ref": "agent/billing-retry",
+      "sha": "2222222222222222222222222222222222222222"
+    },
+    "base": {
+      "label": "acme:main",
+      "ref": "main",
+      "sha": "0000000000000000000000000000000000000000"
+    }
+  },
+  "repository": {
+    "id": 1001,
+    "name": "widgets",
+    "full_name": "acme/widgets",
+    "private": true,
+    "owner": {
+      "login": "acme",
+      "id": 99,
+      "type": "Organization"
+    },
+    "default_branch": "main"
+  },
+  "installation": {
+    "id": 77,
+    "node_id": "MDIzOkludGVncmF0aW9uSW5zdGFsbGF0aW9uNzc="
+  },
+  "sender": {
+    "login": "maintainer",
+    "id": 7,
+    "type": "User"
+  }
+}

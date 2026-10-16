@@ -11,6 +11,25 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+sheltie-store = { workspace = true }
+chrono = { workspace = true }
+hex = { workspace = true }
+hmac = { workspace = true }
+octocrab = { workspace = true }
+secrecy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+aws-lc-rs = { workspace = true }
+base64 = { workspace = true }
+sqlx = { workspace = true }
+proptest = { workspace = true }
+wiremock = { workspace = true }
 
 [lints]
 workspace = true
