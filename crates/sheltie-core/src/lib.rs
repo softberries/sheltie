@@ -65,7 +65,7 @@ mod score;
 mod verification;
 
 pub use change::{Change, ChangeState};
-pub use footprint::{ChangeFootprint, Footprint, Relation};
+pub use footprint::{ChangeFootprint, Footprint, FootprintReport, InvalidReport, Relation, limits};
 pub use head::{GuaranteeTier, HeadEvent};
 pub use ids::{
     ChangeId, CommitSha, DeliveryId, DiffHash, InstallationId, IntentRef, InvalidOid,

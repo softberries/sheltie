@@ -12,8 +12,8 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
-use sheltie_core::{CommitSha, Footprint, RepoPath, TargetId, TreeHash};
+pub use sheltie_core::FootprintReport;
+use sheltie_core::{DiffHash, RepoPath, TargetId};
 
 mod git;
 mod lockfile;
@@ -49,25 +49,6 @@ pub enum Error {
 
 /// Version of the footprint format and algorithm; part of every report.
 pub const ADAPTER_VERSION: &str = concat!("sheltie-cargo/", env!("CARGO_PKG_VERSION"));
-
-/// The footprint of one change, as uploaded to Sheltie.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FootprintReport {
-    /// Adapter name and version.
-    pub adapter: String,
-    /// The commit the footprint was computed against: the merge base of base and head.
-    pub base: CommitSha,
-    /// The change's head commit.
-    pub head: CommitSha,
-    /// Tree of `base`.
-    pub base_tree: TreeHash,
-    /// Hash of the diff from `base` to `head`.
-    pub diff_hash: String,
-    /// The write and read sets.
-    pub footprint: Footprint,
-    /// Why the footprint is leaky, if it is.
-    pub leak_reasons: Vec<String>,
-}
 
 /// Builds the graph snapshot of one revision, for inspection and debugging.
 pub fn graph(
@@ -210,7 +191,10 @@ pub fn compute(
     Ok(FootprintReport {
         adapter: ADAPTER_VERSION.to_owned(),
         base_tree: git.tree(&base)?,
-        diff_hash: format!("sha256:{}", snapshot::sha256(&git.raw_diff(&base, &head)?)),
+        diff_hash: DiffHash::new(format!(
+            "sha256:{}",
+            snapshot::sha256(&git.raw_diff(&base, &head)?)
+        )),
         base,
         head,
         footprint,
