@@ -5,6 +5,7 @@
 //! pushes each change's state to its "Sheltie" check run through [`GitHubApp`].
 
 pub mod check_run;
+pub mod ci;
 mod client;
 pub mod oidc;
 pub mod payload;

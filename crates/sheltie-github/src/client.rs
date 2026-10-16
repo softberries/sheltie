@@ -13,6 +13,7 @@ use octocrab::models::{AppId, CheckRunId};
 use octocrab::params::checks::{CheckRunConclusion, CheckRunOutput, CheckRunStatus};
 use sheltie_core::{CommitSha, InstallationId, PrNumber, RepoFullName};
 
+use crate::ci;
 use crate::readiness::{self, PullRequestData};
 
 use crate::check_run::{CHECK_NAME, CheckConclusion, CheckRunSpec, CheckStatus};
@@ -146,6 +147,21 @@ impl GitHubApp {
         let payload = serde_json::json!({
             "query": readiness::QUERY,
             "variables": { "owner": repo.owner(), "name": repo.name(), "number": pr.0 },
+        });
+        Ok(client.graphql(&payload).await?)
+    }
+
+    /// Fetches the CI rollup of a commit (see [`crate::ci`]).
+    pub async fn commit_ci(
+        &self,
+        installation: InstallationId,
+        repo: &RepoFullName,
+        sha: &CommitSha,
+    ) -> Result<ci::CommitData, GitHubError> {
+        let client = self.installation(installation)?;
+        let payload = serde_json::json!({
+            "query": ci::QUERY,
+            "variables": { "owner": repo.owner(), "name": repo.name(), "oid": sha.as_str() },
         });
         Ok(client.graphql(&payload).await?)
     }
