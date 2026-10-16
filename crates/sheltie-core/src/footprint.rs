@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::ids::{ChangeId, TargetId, TestId, TreeHash};
+use crate::ids::{ChangeId, CommitSha, DiffHash, TargetId, TestId, TreeHash};
 
 /// The write and read sets of one change, computed against its base tree.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +54,93 @@ pub struct ChangeFootprint {
     pub base_tree: TreeHash,
     /// The write and read sets.
     pub footprint: Footprint,
+}
+
+/// Limits on an uploaded [`FootprintReport`]; uploads come from CI and are untrusted.
+pub mod limits {
+    /// Most targets (or tests) in one set.
+    pub const MAX_SET: usize = 100_000;
+    /// Longest target, test or adapter name.
+    pub const MAX_NAME: usize = 512;
+    /// Most leak reasons.
+    pub const MAX_REASONS: usize = 1_000;
+}
+
+/// The footprint of one change as an adapter uploads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FootprintReport {
+    /// Adapter name and version, e.g. `sheltie-cargo/0.1.0`.
+    pub adapter: String,
+    /// The commit the footprint was computed against: the merge base of base and head.
+    pub base: CommitSha,
+    /// The change's head commit.
+    pub head: CommitSha,
+    /// Tree of `base`.
+    pub base_tree: TreeHash,
+    /// Hash of the diff from `base` to `head`.
+    pub diff_hash: DiffHash,
+    /// The write and read sets.
+    pub footprint: Footprint,
+    /// Why the footprint is leaky, if it is.
+    pub leak_reasons: Vec<String>,
+}
+
+/// Why an uploaded report was rejected.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("invalid footprint report: {0}")]
+pub struct InvalidReport(pub String);
+
+impl FootprintReport {
+    /// Checks sizes and invariants: names are short printable text, sets are bounded,
+    /// and every written target is also read.
+    pub fn validate(&self) -> Result<(), InvalidReport> {
+        use limits::*;
+        let name_ok =
+            |s: &str| !s.is_empty() && s.len() <= MAX_NAME && !s.chars().any(char::is_control);
+        let fail = |m: String| Err(InvalidReport(m));
+        if !name_ok(&self.adapter) {
+            return fail("adapter name".into());
+        }
+        if !name_ok(self.diff_hash.as_str()) {
+            return fail("diff hash".into());
+        }
+        let fp = &self.footprint;
+        for (what, len) in [
+            ("writes", fp.writes.len()),
+            ("reads", fp.reads.len()),
+            ("tests", fp.tests.len()),
+        ] {
+            if len > MAX_SET {
+                return fail(format!("{what} has {len} entries (max {MAX_SET})"));
+            }
+        }
+        if let Some(bad) = fp
+            .writes
+            .iter()
+            .chain(&fp.reads)
+            .find(|t| !name_ok(t.as_str()))
+        {
+            return fail(format!(
+                "target name {:?}",
+                bad.as_str().chars().take(80).collect::<String>()
+            ));
+        }
+        if let Some(bad) = fp.tests.iter().find(|t| !name_ok(t.as_str())) {
+            return fail(format!(
+                "test name {:?}",
+                bad.as_str().chars().take(80).collect::<String>()
+            ));
+        }
+        if !fp.writes.is_subset(&fp.reads) {
+            return fail("writes must be a subset of reads".into());
+        }
+        if self.leak_reasons.len() > MAX_REASONS
+            || self.leak_reasons.iter().any(|r| r.len() > MAX_NAME * 2)
+        {
+            return fail("too many or too long leak reasons".into());
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -108,6 +195,43 @@ mod tests {
             tests: BTreeSet::new(),
             leaky,
         })
+    }
+
+    fn report() -> FootprintReport {
+        let sha = |c: char| c.to_string().repeat(40);
+        FootprintReport {
+            adapter: "sheltie-cargo/0.0.0".into(),
+            base: CommitSha::parse(sha('a')).unwrap(),
+            head: CommitSha::parse(sha('b')).unwrap(),
+            base_tree: TreeHash::parse(sha('c')).unwrap(),
+            diff_hash: DiffHash::new("sha256:00"),
+            footprint: fp(&["x"], &["x", "y"]),
+            leak_reasons: vec![],
+        }
+    }
+
+    #[test]
+    fn valid_report_passes() {
+        assert_eq!(report().validate(), Ok(()));
+    }
+
+    #[test]
+    fn writes_outside_reads_are_rejected() {
+        let mut r = report();
+        r.footprint = fp(&["x"], &["y"]);
+        assert!(r.validate().is_err());
+    }
+
+    #[test]
+    fn oversized_or_odd_names_are_rejected() {
+        let mut r = report();
+        r.footprint
+            .reads
+            .insert(TargetId::new("a".repeat(limits::MAX_NAME + 1)));
+        assert!(r.validate().is_err());
+        let mut r = report();
+        r.adapter = "bad\nname".into();
+        assert!(r.validate().is_err());
     }
 
     proptest! {
