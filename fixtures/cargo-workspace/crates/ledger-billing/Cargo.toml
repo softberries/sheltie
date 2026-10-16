@@ -1,0 +1,9 @@
+[package]
+name = "ledger-billing"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+ledger-core = { workspace = true }
+ledger-store = { workspace = true }

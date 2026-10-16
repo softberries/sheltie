@@ -1,0 +1,128 @@
+# Scenarios for fixtures/cargo-single (one crate, modules as targets).
+
+# Body-only changes in different modules must commute: the single-crate case from M2.
+independent = [
+    ["catalog-body", "pricing-body", "cart-body", "rates-body"],
+]
+
+[[scenarios]]
+name = "catalog-body"
+description = "Change a function body in catalog: only catalog is written and read."
+[[scenarios.replace]]
+path = "src/catalog.rs"
+find = "cents: 100 + u64::from(n),"
+replace = "cents: 99 + u64::from(n) + 1,"
+
+[[scenarios]]
+name = "pricing-body"
+description = "Change a function body in pricing."
+[[scenarios.replace]]
+path = "src/pricing.rs"
+find = "round5(p.cents * 120 / 100)"
+replace = "round5(p.cents * 12 / 10)"
+
+[[scenarios]]
+name = "cart-body"
+description = "Change a method body in cart."
+[[scenarios.replace]]
+path = "src/cart.rs"
+find = "self.items.iter().map(|p| p.grams).sum()"
+replace = "self.items.iter().fold(0, |g, p| g + p.grams)"
+
+[[scenarios]]
+name = "rates-body"
+description = "Change a function body in a nested module (shipping::rates)."
+[[scenarios.replace]]
+path = "src/shipping/rates.rs"
+find = "300 + u64::from(w / 1000) * 150"
+replace = "300 + u64::from(w / 1000) * 160"
+
+[[scenarios]]
+name = "pricing-tests"
+description = "Add a unit test inside pricing's #[cfg(test)] module: still only pricing."
+[[scenarios.replace]]
+path = "src/pricing.rs"
+find = "    fn includes_vat() {"
+replace = "    fn zero_is_zero() {\n        assert_eq!(round5(0), 0);\n    }\n\n    #[test]\n    fn includes_vat() {"
+
+[[scenarios]]
+name = "price-alias"
+description = "Change the Price type alias: cart's signatures use it, so cart and the crate root (pub use cart::Cart) change; the integration test reads the crate."
+[[scenarios.replace]]
+path = "src/pricing.rs"
+find = "pub type Price = u64;"
+replace = "pub type Price = u128;"
+
+[[scenarios]]
+name = "product-field"
+description = "Add a field to catalog::Product: an interface change reaching every module that names Product."
+[[scenarios.replace]]
+path = "src/catalog.rs"
+find = "    pub grams: u32,\n}"
+replace = "    pub grams: u32,\n    pub vegan: bool,\n}"
+
+[[scenarios]]
+name = "weight-alias"
+description = "Change shipping::Weight, used by rates through a glob import."
+[[scenarios.replace]]
+path = "src/shipping/mod.rs"
+find = "pub type Weight = u32;"
+replace = "pub type Weight = u64;"
+
+[[scenarios]]
+name = "util-private-helper"
+description = "Change a crate-private helper's signature; pricing imports it with a glob, so pricing is read, but pricing's own signatures don't mention it, so it stops there."
+[[scenarios.replace]]
+path = "src/util.rs"
+find = "pub(crate) fn round5(cents: u64) -> u64 {"
+replace = "pub(crate) fn round5(cents: impl Into<u64>) -> u64 {\n    let cents: u64 = cents.into();"
+
+[[scenarios]]
+name = "macro-change"
+description = "Change a macro_rules! body: macros expand at the use site, so every module reads it."
+[[scenarios.replace]]
+path = "src/macros.rs"
+find = "format!(\"{}-{:04}\", $cat, $n)"
+replace = "format!(\"{}-{:05}\", $cat, $n)"
+
+[[scenarios]]
+name = "new-module"
+description = "Add a module: the crate root and the new module are written."
+[[scenarios.replace]]
+path = "src/lib.rs"
+find = "mod util;"
+replace = "mod util;\npub mod discounts;"
+[[scenarios.write]]
+path = "src/discounts.rs"
+content = "//! Discounts.\n\n/// Percent off.\npub fn off(cents: u64, pct: u64) -> u64 {\n    cents * (100 - pct) / 100\n}\n"
+
+[[scenarios]]
+name = "integration-test"
+description = "Edit the integration test only."
+[[scenarios.replace]]
+path = "tests/checkout.rs"
+find = "assert_eq!(cart.total() + rate(cart.grams()), 125 + 300);"
+replace = "let total = cart.total() + rate(cart.grams());\n    assert_eq!(total, 425);"
+
+[[scenarios]]
+name = "readme"
+description = "Docs only: the footprint is empty."
+[[scenarios.replace]]
+path = "README.md"
+find = "Single-crate fixture"
+replace = "A single-crate fixture"
+
+[[scenarios]]
+name = "unknown-config"
+description = "A file outside the module graph that the build might read: leaky."
+[[scenarios.write]]
+path = "config/flags.txt"
+content = "fast_checkout\n"
+
+[[scenarios]]
+name = "manifest"
+description = "Change the package manifest: the crate root's interface changes."
+[[scenarios.replace]]
+path = "Cargo.toml"
+find = "publish = false"
+replace = "publish = false\ndescription = \"A tiny shop\""
