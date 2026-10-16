@@ -89,6 +89,41 @@ pub struct PrEvent {
     pub kind: PrEventKind,
     /// The forge's last-update time of the pull request; orders out-of-order deliveries.
     pub at: DateTime<Utc>,
+    /// The branch the pull request targets, e.g. `main`.
+    pub base_ref: String,
+    /// The repository's default branch, when the payload names it.
+    pub default_branch: Option<String>,
+    /// For [`PrEventKind::Merged`]: the commit that landed on the target branch.
+    pub merge_commit: Option<CommitSha>,
+}
+
+/// Checks or commit statuses on a commit changed; readiness of changes at `head` must be
+/// re-evaluated.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ChecksEvent {
+    /// The installation the event came through.
+    pub installation: InstallationId,
+    /// The repository.
+    pub repo: RepoRef,
+    /// The commit whose checks changed.
+    pub head: CommitSha,
+}
+
+/// Commits were pushed to a branch.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PushEvent {
+    /// The installation the event came through.
+    pub installation: InstallationId,
+    /// The repository.
+    pub repo: RepoRef,
+    /// The branch name (without `refs/heads/`).
+    pub branch: String,
+    /// The repository's default branch.
+    pub default_branch: String,
+    /// The new branch head.
+    pub after: CommitSha,
+    /// The pushed commits, oldest first (at most 2048, per GitHub).
+    pub commits: Vec<CommitSha>,
 }
 
 /// A change to where the App is installed.
@@ -138,6 +173,10 @@ pub enum Intake {
     Pr(PrEvent),
     /// An installation event.
     Installation(InstallationEvent),
+    /// Checks or statuses changed on a commit.
+    Checks(ChecksEvent),
+    /// A push to a branch.
+    Push(PushEvent),
 }
 
 #[cfg(test)]

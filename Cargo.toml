@@ -36,7 +36,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tokio = { version = "1.47", features = ["macros", "rt-multi-thread", "net", "signal"] }
 axum = "0.8"
 # No TLS feature yet: local and in-cluster Postgres only. Add `tls-rustls-ring-webpki` when needed.
-sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "migrate", "macros", "chrono"] }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "migrate", "macros", "chrono", "json"] }
 dotenvy = "0.15"
 octocrab = "0.54"
 # Same major as octocrab uses, so one copy is built.
