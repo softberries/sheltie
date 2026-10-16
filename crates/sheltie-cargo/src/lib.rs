@@ -1,4 +1,219 @@
-//! Cargo build-graph adapter (library and sheltie-cargo CLI).
+//! Cargo build-graph adapter: computes a change's footprint at module granularity.
 //!
-//! See `docs/design.md` for the role of this crate. Implementation starts in the
-//! milestone listed in `docs/backlog.md`.
+//! Runs on CI runners, never in the control plane. It reads both trees straight from git,
+//! takes the workspace layout from `cargo metadata --no-deps --offline`, parses sources
+//! with `syn` (no build needed) and hands two [`GraphSnapshot`](sheltie_graph::GraphSnapshot)s
+//! to [`sheltie_graph::footprint`].
+//!
+//! Targets are modules (`pkg::billing::tax`), crate roots (`pkg`), other crates of a package
+//! (`pkg/bin/name`, `pkg/test/name`), plus `$workspace` (workspace build settings),
+//! `$lockfile`, `pkg/files` (other files in a package; not hermetic) and `file:<path>`.
+
+use std::collections::BTreeSet;
+use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+use sheltie_core::{CommitSha, Footprint, RepoPath, TargetId, TreeHash};
+
+mod git;
+mod lockfile;
+mod metadata;
+mod modules;
+mod policy;
+mod snapshot;
+
+pub use git::Git;
+pub use policy::{DEFAULT_IGNORE, DEFAULT_PLAIN, PathPolicy};
+
+/// Errors from the adapter.
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    /// A git command failed.
+    #[error("git {args} failed: {stderr}")]
+    Git {
+        /// The arguments.
+        args: String,
+        /// What git printed.
+        stderr: String,
+    },
+    /// `cargo metadata` failed.
+    #[error("cargo metadata failed: {0}")]
+    Metadata(String),
+    /// Invalid configuration.
+    #[error("invalid configuration: {0}")]
+    Config(String),
+    /// Any other I/O problem.
+    #[error("{0}")]
+    Io(String),
+}
+
+/// Version of the footprint format and algorithm; part of every report.
+pub const ADAPTER_VERSION: &str = concat!("sheltie-cargo/", env!("CARGO_PKG_VERSION"));
+
+/// The footprint of one change, as uploaded to Sheltie.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FootprintReport {
+    /// Adapter name and version.
+    pub adapter: String,
+    /// The commit the footprint was computed against: the merge base of base and head.
+    pub base: CommitSha,
+    /// The change's head commit.
+    pub head: CommitSha,
+    /// Tree of `base`.
+    pub base_tree: TreeHash,
+    /// Hash of the diff from `base` to `head`.
+    pub diff_hash: String,
+    /// The write and read sets.
+    pub footprint: Footprint,
+    /// Why the footprint is leaky, if it is.
+    pub leak_reasons: Vec<String>,
+}
+
+/// Builds the graph snapshot of one revision, for inspection and debugging.
+pub fn graph(
+    git: &Git,
+    rev: &str,
+    policy: &PathPolicy,
+    scratch: &Path,
+) -> Result<sheltie_graph::GraphSnapshot, Error> {
+    let commit = git.commit(rev)?;
+    let files = git.files(&commit)?;
+    let layout = {
+        let wt = git::Worktree::add(git, &commit, scratch)?;
+        metadata::layout(wt.path())?
+    };
+    Ok(snapshot::build(git, &files, &layout, policy, &BTreeSet::new())?.snapshot)
+}
+
+/// Computes the footprint of `head` against `base` in the repository `git`.
+///
+/// `scratch` is where temporary worktrees for `cargo metadata` are created.
+pub fn compute(
+    git: &Git,
+    base: &str,
+    head: &str,
+    policy: &PathPolicy,
+    scratch: &Path,
+) -> Result<FootprintReport, Error> {
+    let head = git.commit(head)?;
+    let base = git.merge_base(&git.commit(base)?, &head)?;
+    let base_files = git.files(&base)?;
+    let head_files = git.files(&head)?;
+    let changed: BTreeSet<RepoPath> = git.changed_paths(&base, &head)?.into_iter().collect();
+
+    let head_layout = {
+        let wt = git::Worktree::add(git, &head, scratch)?;
+        metadata::layout(wt.path())?
+    };
+    let manifests_changed = changed
+        .iter()
+        .any(|p| p.as_str() == "Cargo.toml" || p.as_str().ends_with("/Cargo.toml"));
+    let base_layout = if manifests_changed {
+        let wt = git::Worktree::add(git, &base, scratch)?;
+        metadata::layout(wt.path())?
+    } else {
+        head_layout.clone()
+    };
+
+    let b = snapshot::build(git, &base_files, &base_layout, policy, &changed)?;
+    let h = snapshot::build(git, &head_files, &head_layout, policy, &changed)?;
+
+    // Paths nobody owns and the policy ignores do not count.
+    let relevant: BTreeSet<RepoPath> = changed
+        .iter()
+        .filter(|p| {
+            b.snapshot.owners.contains_key(*p)
+                || h.snapshot.owners.contains_key(*p)
+                || !policy.is_ignored(p)
+        })
+        .cloned()
+        .collect();
+
+    let mut extra_reads = BTreeSet::new();
+    let mut leak_reasons = Vec::new();
+    if changed.contains(&RepoPath::new("Cargo.lock")) {
+        let read = |files: &git::TreeFiles| -> Result<Option<String>, Error> {
+            files
+                .oid("Cargo.lock")
+                .map(|oid| {
+                    git.blob(oid)
+                        .map(|b| String::from_utf8_lossy(&b).into_owned())
+                })
+                .transpose()
+        };
+        match lockfile::affected_packages(
+            read(&base_files)?.as_deref(),
+            read(&head_files)?.as_deref(),
+        ) {
+            Some(pkgs) => {
+                for pkg in pkgs {
+                    for built in [&b, &h] {
+                        extra_reads.extend(
+                            built
+                                .package_targets
+                                .get(&pkg)
+                                .into_iter()
+                                .flatten()
+                                .cloned(),
+                        );
+                    }
+                }
+            }
+            None => {
+                leak_reasons.push("Cargo.lock could not be parsed".into());
+                extra_reads.extend(h.snapshot.targets.keys().cloned());
+            }
+        }
+    }
+
+    let mut footprint = sheltie_graph::footprint(&b.snapshot, &h.snapshot, &relevant, &extra_reads);
+    if !leak_reasons.is_empty() {
+        footprint.leaky = true;
+    }
+    if footprint.leaky {
+        let read_packages: BTreeSet<&String> = h
+            .package_targets
+            .iter()
+            .chain(&b.package_targets)
+            .filter(|(_, ts)| ts.iter().any(|t| footprint.reads.contains(t)))
+            .map(|(p, _)| p)
+            .collect();
+        for built in [&b, &h] {
+            for (pkg, reasons) in &built.leaks {
+                if read_packages.contains(pkg) {
+                    leak_reasons.extend(reasons.iter().map(|r| format!("{pkg}: {r}")));
+                }
+            }
+        }
+        for p in &relevant {
+            let owned =
+                |s: &sheltie_graph::GraphSnapshot| s.owners.get(p).cloned().unwrap_or_default();
+            let owners: BTreeSet<TargetId> = owned(&b.snapshot)
+                .into_iter()
+                .chain(owned(&h.snapshot))
+                .collect();
+            if owners.iter().any(|o| {
+                h.snapshot
+                    .targets
+                    .get(o)
+                    .or_else(|| b.snapshot.targets.get(o))
+                    .is_some_and(|t| !t.hermetic)
+                    && (o.as_str().starts_with("file:") || o.as_str().ends_with("/files"))
+            }) {
+                leak_reasons.push(format!("{p} is outside the module graph"));
+            }
+        }
+        leak_reasons.sort();
+        leak_reasons.dedup();
+    }
+
+    Ok(FootprintReport {
+        adapter: ADAPTER_VERSION.to_owned(),
+        base_tree: git.tree(&base)?,
+        diff_hash: format!("sha256:{}", snapshot::sha256(&git.raw_diff(&base, &head)?)),
+        base,
+        head,
+        footprint,
+        leak_reasons,
+    })
+}

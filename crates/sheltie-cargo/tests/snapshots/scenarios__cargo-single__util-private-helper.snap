@@ -1,0 +1,21 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a crate-private helper's signature; pricing imports it with a glob, so pricing is read, but pricing's own signatures don't mention it, so it stops there.",
+  "footprint": {
+    "writes": [
+      "shop::util"
+    ],
+    "reads": [
+      "shop::pricing",
+      "shop::util"
+    ],
+    "tests": [
+      "shop::pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

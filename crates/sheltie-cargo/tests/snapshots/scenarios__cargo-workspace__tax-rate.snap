@@ -1,0 +1,25 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a public constant: an interface change that reaches invoice and, through the crate's public surface, ledger-api.",
+  "footprint": {
+    "writes": [
+      "ledger-billing::tax"
+    ],
+    "reads": [
+      "ledger-api",
+      "ledger-billing",
+      "ledger-billing::invoice",
+      "ledger-billing::tax"
+    ],
+    "tests": [
+      "ledger-api",
+      "ledger-billing::invoice",
+      "ledger-billing::tax"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

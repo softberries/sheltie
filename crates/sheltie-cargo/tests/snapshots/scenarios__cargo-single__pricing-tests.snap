@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a unit test inside pricing's #[cfg(test)] module: still only pricing.",
+  "footprint": {
+    "writes": [
+      "shop::pricing"
+    ],
+    "reads": [
+      "shop::pricing"
+    ],
+    "tests": [
+      "shop::pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

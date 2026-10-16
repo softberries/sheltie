@@ -1,0 +1,34 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change the workspace manifest: every target reads $workspace.",
+  "footprint": {
+    "writes": [
+      "$workspace"
+    ],
+    "reads": [
+      "$workspace",
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "tests": [
+      "ledger-api",
+      "ledger-auth",
+      "ledger-billing::discount",
+      "ledger-billing::invoice",
+      "ledger-billing::tax",
+      "ledger-core",
+      "ledger-store"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

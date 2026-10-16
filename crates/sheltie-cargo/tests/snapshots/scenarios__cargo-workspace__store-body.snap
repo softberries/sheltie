@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-cargo/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in ledger-store: no other crate is affected.",
+  "footprint": {
+    "writes": [
+      "ledger-store"
+    ],
+    "reads": [
+      "ledger-store"
+    ],
+    "tests": [
+      "ledger-store"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
