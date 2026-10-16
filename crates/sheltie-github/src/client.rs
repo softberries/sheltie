@@ -11,7 +11,9 @@ use chrono::Utc;
 use octocrab::Octocrab;
 use octocrab::models::{AppId, CheckRunId};
 use octocrab::params::checks::{CheckRunConclusion, CheckRunOutput, CheckRunStatus};
-use sheltie_core::{CommitSha, InstallationId, RepoFullName};
+use sheltie_core::{CommitSha, InstallationId, PrNumber, RepoFullName};
+
+use crate::readiness::{self, PullRequestData};
 
 use crate::check_run::{CHECK_NAME, CheckConclusion, CheckRunSpec, CheckStatus};
 
@@ -129,6 +131,23 @@ impl GitHubApp {
         };
         request.send().await?;
         Ok(())
+    }
+}
+
+impl GitHubApp {
+    /// Fetches what readiness needs about a pull request (see [`crate::readiness`]).
+    pub async fn pull_request_readiness(
+        &self,
+        installation: InstallationId,
+        repo: &RepoFullName,
+        pr: PrNumber,
+    ) -> Result<PullRequestData, GitHubError> {
+        let client = self.installation(installation)?;
+        let payload = serde_json::json!({
+            "query": readiness::QUERY,
+            "variables": { "owner": repo.owner(), "name": repo.name(), "number": pr.0 },
+        });
+        Ok(client.graphql(&payload).await?)
     }
 }
 

@@ -6,7 +6,9 @@
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use sheltie_core::intake::{InstallationEvent, Intake, PrEvent, PrEventKind, RepoRef};
+use sheltie_core::intake::{
+    ChecksEvent, InstallationEvent, Intake, PrEvent, PrEventKind, PushEvent, RepoRef,
+};
 use sheltie_core::{CommitSha, InstallationId, Login, PrNumber, RepoFullName, RepoId};
 
 /// A payload Sheltie handles but could not accept.
@@ -109,7 +111,82 @@ pub fn parse(event: &str, body: &[u8]) -> Result<Option<Intake>, PayloadError> {
                 },
             )))
         }
+        "check_suite" | "check_run" => {
+            let p: CheckPayload = serde_json::from_slice(body).map_err(json)?;
+            let Some(check) = p.check_suite.or(p.check_run) else {
+                return Err(invalid("missing check_suite / check_run".into()));
+            };
+            // Only finished checks change readiness; Sheltie's own check never does.
+            if p.action != "completed"
+                || check.name.as_deref() == Some(crate::check_run::CHECK_NAME)
+            {
+                return Ok(None);
+            }
+            checks_event(p.installation, p.repository, check.head_sha)
+                .map(Some)
+                .map_err(invalid)
+        }
+        "status" => {
+            let p: StatusPayload = serde_json::from_slice(body).map_err(json)?;
+            checks_event(p.installation, p.repository, p.sha)
+                .map(Some)
+                .map_err(invalid)
+        }
+        "push" => {
+            let p: PushPayload = serde_json::from_slice(body).map_err(json)?;
+            let Some(branch) = p.git_ref.strip_prefix("refs/heads/") else {
+                return Ok(None); // tags
+            };
+            if p.deleted {
+                return Ok(None);
+            }
+            let installation = p
+                .installation
+                .ok_or_else(|| invalid("missing installation".into()))?;
+            let default_branch = p
+                .repository
+                .default_branch
+                .clone()
+                .ok_or_else(|| invalid("missing repository.default_branch".into()))?;
+            Ok(Some(Intake::Push(PushEvent {
+                installation: InstallationId(installation.id),
+                branch: branch_name(branch.to_owned()).map_err(invalid)?,
+                default_branch: branch_name(default_branch).map_err(invalid)?,
+                after: CommitSha::parse(p.after).map_err(|e| invalid(e.to_string()))?,
+                commits: p
+                    .commits
+                    .into_iter()
+                    .map(|c| CommitSha::parse(c.id))
+                    .collect::<Result<_, _>>()
+                    .map_err(|e| invalid(e.to_string()))?,
+                repo: repo_ref(p.repository).map_err(invalid)?,
+            })))
+        }
         _ => Ok(None),
+    }
+}
+
+fn checks_event(
+    installation: Option<InstallationRef>,
+    repository: Repository,
+    head: String,
+) -> Result<Intake, String> {
+    let installation = installation.ok_or("missing installation; is this an App webhook?")?;
+    Ok(Intake::Checks(ChecksEvent {
+        installation: InstallationId(installation.id),
+        repo: repo_ref(repository)?,
+        head: CommitSha::parse(head).map_err(|e| e.to_string())?,
+    }))
+}
+
+/// Git branch names: no control characters or spaces, at most 255 bytes.
+fn branch_name(name: String) -> Result<String, String> {
+    let valid =
+        (1..=255).contains(&name.len()) && !name.chars().any(|c| c.is_control() || c == ' ');
+    if valid {
+        Ok(name)
+    } else {
+        Err(format!("invalid branch name {name:?}"))
     }
 }
 
@@ -121,6 +198,11 @@ fn pr_event(
     sender: User,
 ) -> Result<Intake, String> {
     let installation = installation.ok_or("missing installation; is this an App webhook?")?;
+    let repository_default_branch = repository
+        .default_branch
+        .clone()
+        .map(branch_name)
+        .transpose()?;
     if pr.number == 0 {
         return Err("pull request number 0".into());
     }
@@ -133,6 +215,14 @@ fn pr_event(
         actor: login(sender.login)?,
         kind,
         at: pr.updated_at,
+        base_ref: branch_name(pr.base.git_ref)?,
+        default_branch: repository_default_branch,
+        merge_commit: match (kind, pr.merge_commit_sha) {
+            (PrEventKind::Merged, Some(sha)) => {
+                Some(CommitSha::parse(sha).map_err(|e| e.to_string())?)
+            }
+            _ => None,
+        },
     }))
 }
 
@@ -202,12 +292,57 @@ struct PullRequest {
     head: GitRef,
     base: GitRef,
     merged: Option<bool>,
+    #[serde(default)]
+    merge_commit_sha: Option<String>,
     updated_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize)]
 struct GitRef {
     sha: String,
+    #[serde(rename = "ref")]
+    git_ref: String,
+}
+
+#[derive(Deserialize)]
+struct CheckPayload {
+    action: String,
+    check_suite: Option<Check>,
+    check_run: Option<Check>,
+    repository: Repository,
+    installation: Option<InstallationRef>,
+}
+
+#[derive(Deserialize)]
+struct Check {
+    head_sha: String,
+    /// Check runs have a name; check suites do not.
+    name: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct StatusPayload {
+    sha: String,
+    repository: Repository,
+    installation: Option<InstallationRef>,
+}
+
+#[derive(Deserialize)]
+struct PushPayload {
+    #[serde(rename = "ref")]
+    git_ref: String,
+    after: String,
+    #[serde(default)]
+    deleted: bool,
+    #[serde(default)]
+    commits: Vec<PushCommit>,
+    repository: Repository,
+    installation: Option<InstallationRef>,
+}
+
+#[derive(Deserialize)]
+struct PushCommit {
+    id: String,
 }
 
 #[derive(Deserialize)]
@@ -219,6 +354,8 @@ struct Review {
 struct Repository {
     id: u64,
     full_name: String,
+    #[serde(default)]
+    default_branch: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -253,8 +390,8 @@ mod tests {
                 .unwrap()
                 .is_none()
         );
-        assert!(parse("push", b"{}").unwrap().is_none());
-        let labeled = br#"{"action":"labeled","pull_request":{"number":1,"head":{"sha":""},"base":{"sha":""},"updated_at":"2026-01-01T00:00:00Z"},"repository":{"id":1,"full_name":"a/b"},"sender":{"login":"x"}}"#;
+        assert!(parse("deployment", b"{}").unwrap().is_none());
+        let labeled = br#"{"action":"labeled","pull_request":{"number":1,"head":{"sha":"","ref":"x"},"base":{"sha":"","ref":"main"},"updated_at":"2026-01-01T00:00:00Z"},"repository":{"id":1,"full_name":"a/b"},"sender":{"login":"x"}}"#;
         assert!(parse("pull_request", labeled).unwrap().is_none());
     }
 
