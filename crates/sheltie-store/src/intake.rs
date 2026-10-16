@@ -260,6 +260,15 @@ async fn apply_checks_event(conn: &mut PgConnection, e: &ChecksEvent) -> Result<
     let repo_id = to_db_id(e.repo.id.0, "repository id")?;
     upsert_installation(conn, e.installation, &Login::new(e.repo.full_name.owner())).await?;
     upsert_repo(conn, &e.repo, Some(e.installation)).await?;
+    // A default-branch commit's CI changed: look again (a re-run may have turned it green).
+    sqlx::query(
+        "UPDATE branch_commits SET ci_state = NULL, ci_next_at = now()
+         WHERE repo_id = $1 AND sha = $2",
+    )
+    .bind(repo_id)
+    .bind(e.head.as_str())
+    .execute(&mut *conn)
+    .await?;
     request_readiness_at(conn, repo_id, e.head.as_str()).await
 }
 

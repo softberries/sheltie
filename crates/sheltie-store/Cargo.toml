@@ -11,6 +11,7 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+sheltie-scheduler = { workspace = true }
 chrono = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
