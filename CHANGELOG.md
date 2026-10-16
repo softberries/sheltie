@@ -44,6 +44,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   #12"). Nothing is merged. The App now also needs commit statuses (read) and the `check_suite`,
   `check_run`, `status` and `push` events.
 
+- Shadow report: Sheltie tracks CI on the default branch, records suspected footprint misses
+  (independent pairs that landed before a red commit) and `sheltie-server shadow-report --repo
+  owner/name` prints predictions versus reality.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
