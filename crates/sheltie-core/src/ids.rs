@@ -57,6 +57,78 @@ id_newtype!(
     /// The CI runner (or worker) that produced a verification.
     RunnerId
 );
+id_newtype!(
+    /// A GitHub user or bot login, as reported by the forge.
+    Login
+);
+id_newtype!(
+    /// A webhook delivery id (`X-GitHub-Delivery`); used to drop redeliveries.
+    DeliveryId
+);
+
+/// Error returned when a repository name is not `owner/name` with GitHub's allowed characters.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("invalid repository name {0:?}: expected owner/name")]
+pub struct InvalidRepoName(String);
+
+/// A repository's `owner/name`, validated so it is safe to put in an API path.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(try_from = "String", into = "String")]
+pub struct RepoFullName(String);
+
+impl RepoFullName {
+    /// Parses `owner/name`. Each part is 1–100 ASCII letters, digits, `-`, `_` or `.`, and
+    /// neither is `.` or `..`.
+    pub fn parse(value: impl Into<String>) -> Result<Self, InvalidRepoName> {
+        let value = value.into();
+        let valid_part = |p: &str| {
+            (1..=100).contains(&p.len())
+                && p != "."
+                && p != ".."
+                && p.bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.'))
+        };
+        match value.split_once('/') {
+            Some((owner, name)) if valid_part(owner) && valid_part(name) => Ok(Self(value)),
+            _ => Err(InvalidRepoName(value)),
+        }
+    }
+
+    /// The owner (user or organization) part.
+    pub fn owner(&self) -> &str {
+        self.0.split_once('/').map_or("", |(owner, _)| owner)
+    }
+
+    /// The repository name part.
+    pub fn name(&self) -> &str {
+        self.0.split_once('/').map_or("", |(_, name)| name)
+    }
+
+    /// Returns `owner/name`.
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for RepoFullName {
+    type Error = InvalidRepoName;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::parse(value)
+    }
+}
+
+impl From<RepoFullName> for String {
+    fn from(value: RepoFullName) -> Self {
+        value.0
+    }
+}
+
+impl fmt::Display for RepoFullName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 /// Error returned when a git object id is not valid hex of the right length.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -133,6 +205,17 @@ oid_newtype!(
 #[serde(transparent)]
 pub struct RepoId(pub u64);
 
+/// A GitHub App installation: one account (user or organization) that installed the App.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct InstallationId(pub u64);
+
+impl fmt::Display for InstallationId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 /// A pull request number within a repository.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -201,6 +284,23 @@ mod tests {
         let ok: CommitSha = serde_json::from_str(&format!("\"{SHA1}\"")).unwrap();
         assert_eq!(ok.as_str(), SHA1);
         assert!(serde_json::from_str::<CommitSha>("\"nope\"").is_err());
+    }
+
+    #[test]
+    fn repo_full_name_validates() {
+        let name = RepoFullName::parse("acme/widgets.rs").unwrap();
+        assert_eq!((name.owner(), name.name()), ("acme", "widgets.rs"));
+        for bad in [
+            "acme",
+            "acme/",
+            "/x",
+            "a/b/c",
+            "acme/..",
+            "acme/wid gets",
+            "acme/w%2Fx",
+        ] {
+            assert!(RepoFullName::parse(bad).is_err(), "accepted {bad:?}");
+        }
     }
 
     #[test]

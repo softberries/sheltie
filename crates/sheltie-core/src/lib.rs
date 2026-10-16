@@ -59,6 +59,7 @@ mod change;
 mod footprint;
 mod head;
 mod ids;
+pub mod intake;
 mod resolution;
 mod score;
 mod verification;
@@ -67,8 +68,9 @@ pub use change::{Change, ChangeState};
 pub use footprint::{ChangeFootprint, Footprint, Relation};
 pub use head::{GuaranteeTier, HeadEvent};
 pub use ids::{
-    ChangeId, CommitSha, DiffHash, IntentRef, InvalidOid, PrNumber, RepoId, RepoPath, RunnerId,
-    TargetId, TestId, TreeHash,
+    ChangeId, CommitSha, DeliveryId, DiffHash, InstallationId, IntentRef, InvalidOid,
+    InvalidRepoName, Login, PrNumber, RepoFullName, RepoId, RepoPath, RunnerId, TargetId, TestId,
+    TreeHash,
 };
 pub use resolution::{Resolution, ResolutionTier};
 pub use score::{InvalidScore, Score};
