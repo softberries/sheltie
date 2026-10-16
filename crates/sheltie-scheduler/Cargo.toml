@@ -11,6 +11,10 @@ publish.workspace = true
 
 [dependencies]
 sheltie-core = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
 
 [lints]
 workspace = true
