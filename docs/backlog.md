@@ -22,6 +22,13 @@ One GitHub issue per task, labelled with its milestone; Claude Code can create t
 
 **M2 — Footprints (Cargo)**
 
+M2 priority — module-level footprints for single-crate projects. Most Rust projects are a single crate. With crate-level targets, every PR writes the same target, so all PRs conflict and Sheltie falls back to batching and speculation. Resolve this at the start of M2, not later:
+
+- [ ] Decide footprint granularity inside a crate: modules / files as targets (e.g. via rust-analyzer's module graph or rustdoc JSON per module)
+- [ ] Interface hashing per module (public and `pub(crate)` items), so a change inside a module with an unchanged surface doesn't affect other modules
+- [ ] Map tests to modules (unit tests in-module; integration tests as readers of the public API)
+- [ ] Fixture: a single-crate project with several modules and scripted PRs, proving independent module changes land in parallel
+
 - [ ] `BuildGraph` trait
 - [ ] Cargo adapter: graph from `cargo metadata`
 - [ ] Interface hashing via `cargo-public-api`
