@@ -176,7 +176,10 @@ async fn close_live(
 }
 
 /// Marks the change's check run as needing a sync with GitHub.
-async fn request_check_run(conn: &mut PgConnection, change_id: i64) -> Result<(), StoreError> {
+pub(crate) async fn request_check_run(
+    conn: &mut PgConnection,
+    change_id: i64,
+) -> Result<(), StoreError> {
     sqlx::query(
         "INSERT INTO check_runs (change_id) VALUES ($1)
          ON CONFLICT (change_id) DO UPDATE

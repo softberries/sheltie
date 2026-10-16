@@ -7,9 +7,11 @@
 use std::time::Duration;
 
 mod checks;
+mod footprints;
 mod intake;
 
-pub use checks::CheckRunJob;
+pub use checks::{CheckRunJob, FootprintSummary};
+pub use footprints::StoredFootprint;
 pub use intake::Ingested;
 
 use sqlx::migrate::{MigrateError, Migrator};

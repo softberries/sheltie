@@ -32,6 +32,21 @@ pub struct CheckRunJob {
     pub version: i64,
     /// How many times this sync has been attempted, including this one.
     pub attempts: i32,
+    /// The latest footprint uploaded for the change's head, if any.
+    pub footprint: Option<FootprintSummary>,
+}
+
+/// Sizes of a footprint, for display.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FootprintSummary {
+    /// Targets written.
+    pub writes: usize,
+    /// Targets read.
+    pub reads: usize,
+    /// Test groups to run.
+    pub tests: usize,
+    /// Whether a non-hermetic target widened it.
+    pub leaky: bool,
 }
 
 impl Store {
@@ -69,10 +84,19 @@ impl Store {
              )
              SELECT claimed.change_id, claimed.github_id, claimed.desired_version,
                     claimed.attempts, c.repo_id, c.pr_number, c.head_sha, c.state,
-                    r.full_name, r.installation_id
+                    r.full_name, r.installation_id,
+                    fp.writes_n, fp.reads_n, fp.tests_n, fp.leaky
              FROM claimed
              JOIN changes c ON c.id = claimed.change_id
              JOIN repositories r ON r.id = c.repo_id
+             LEFT JOIN LATERAL (
+                 SELECT cardinality(writes) AS writes_n, cardinality(reads) AS reads_n,
+                        cardinality(tests) AS tests_n, leaky
+                 FROM footprint_reports f
+                 WHERE f.repo_id = c.repo_id AND f.head_sha = c.head_sha
+                 ORDER BY f.uploaded_at DESC
+                 LIMIT 1
+             ) fp ON true
              ORDER BY claimed.change_id",
         )
         .bind(limit)
@@ -141,6 +165,19 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
     let full_name: String = row.try_get("full_name")?;
     let installation: i64 = row.try_get("installation_id")?;
     let github_id: Option<i64> = row.try_get("github_id")?;
+    let count = |name: &str| -> Result<Option<usize>, StoreError> {
+        let n: Option<i32> = row.try_get(name)?;
+        Ok(n.map(|n| usize::try_from(n).unwrap_or(0)))
+    };
+    let footprint = match (count("writes_n")?, count("reads_n")?, count("tests_n")?) {
+        (Some(writes), Some(reads), Some(tests)) => Some(FootprintSummary {
+            writes,
+            reads,
+            tests,
+            leaky: row.try_get::<Option<bool>, _>("leaky")?.unwrap_or(false),
+        }),
+        _ => None,
+    };
     Ok(CheckRunJob {
         change_db_id: row.try_get("change_id")?,
         change: ChangeId {
@@ -161,5 +198,6 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
             .transpose()?,
         version: row.try_get("desired_version")?,
         attempts: row.try_get("attempts")?,
+        footprint,
     })
 }
