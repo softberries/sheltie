@@ -2393,6 +2393,7 @@ dependencies = [
 name = "sheltie-scheduler"
 version = "0.0.0"
 dependencies = [
+ "chrono",
  "proptest",
  "serde",
  "sheltie-core",
@@ -2405,6 +2406,7 @@ dependencies = [
  "anyhow",
  "axum",
  "chrono",
+ "clap",
  "dotenvy",
  "reqwest",
  "serde_json",
@@ -2427,6 +2429,7 @@ dependencies = [
  "chrono",
  "serde_json",
  "sheltie-core",
+ "sheltie-scheduler",
  "sqlx",
  "thiserror",
  "tokio",
