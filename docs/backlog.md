@@ -8,8 +8,9 @@ One GitHub issue per task, labelled with its milestone; Claude Code can create t
 
 - [x] Workspace with all crates, `rust-toolchain.toml`, workspace dependencies *(scaffolded)*
 - [x] CI: fmt, clippy, nextest, cargo-deny, MSRV *(scaffolded)*
-- [ ] Core domain types with newtype IDs *(started: IDs, `Footprint`, `Relation` in `sheltie-core`)*
-- [ ] Postgres schema + migrations; docker-compose *(compose file in `deploy/` exists; schema to do)*
+- [x] Core domain types with newtype IDs
+- [x] Postgres schema + migrations; docker-compose
+- [x] `sheltie-server` starts, migrates and serves `GET /healthz`
 - [x] README, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, CHANGELOG, templates *(scaffolded)*
 
 **M1 — GitHub App intake**
