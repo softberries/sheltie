@@ -22,6 +22,9 @@ allow = [
     "Zlib",
     "CC0-1.0",
     "MPL-2.0",
+    # Permissive data license of Mozilla's CA certificate bundle (webpki-root-certs, used by
+    # rustls for TLS to GitHub's OIDC key endpoint).
+    "CDLA-Permissive-2.0",
 ]
 
 [licenses.private]
