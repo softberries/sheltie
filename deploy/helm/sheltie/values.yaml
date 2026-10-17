@@ -1,0 +1,83 @@
+# Sheltie control plane. Postgres is not included: point `database.secretName` at a Secret with
+# a `url` key (postgres://...), e.g. from CloudNativePG or a managed database.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/softberries/sheltie
+  # Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+database:
+  # Secret holding the connection URL.
+  secretName: sheltie-database
+  key: url
+
+github:
+  # Secret with the GitHub App's id, webhook secret and private key (see docs/self-hosting.md):
+  #   kubectl create secret generic sheltie-github \
+  #     --from-literal=app-id=123 --from-literal=webhook-secret=... \
+  #     --from-file=private-key.pem=sheltie-github-app.pem
+  # Leave empty to run without GitHub (only /healthz is served).
+  secretName: sheltie-github
+  # GitHub Enterprise Server API URL; empty means api.github.com.
+  apiUrl: ""
+
+oidc:
+  audience: sheltie
+  # Empty means GitHub Actions on github.com.
+  issuer: ""
+
+# Seconds between scheduler epochs.
+epochSeconds: 10
+# Hours an agent's lease lasts unless renewed.
+leaseTtlHours: 4
+# Public host names of the server, accepted by the MCP endpoint. Filled from the ingress hosts
+# when empty.
+publicHosts: []
+
+extraEnv: []
+#  - name: RUST_LOG
+#    value: info
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: sheltie.example.com
+  tls: []
+  #  - secretName: sheltie-tls
+  #    hosts: [sheltie.example.com]
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

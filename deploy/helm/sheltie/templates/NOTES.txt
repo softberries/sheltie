@@ -1,0 +1,7 @@
+Sheltie is starting. Check it with:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "sheltie.fullname" . }} 8080:{{ .Values.service.port }}
+  curl localhost:8080/healthz
+
+GitHub must reach https://<your host>/webhooks/github (the App's webhook URL), and your CI must
+reach https://<your host>/v1/*. Next steps: docs/self-hosting.md.
