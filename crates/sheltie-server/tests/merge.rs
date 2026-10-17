@@ -676,6 +676,30 @@ async fn merge_engine_resolution_is_verified_and_lands(_: PgPoolOptions, db: PgC
         env.store.resolution_tier(id).await.unwrap(),
         Some(sheltie_core::ResolutionTier::Regenerate)
     );
+
+    // Time saved: both landings count, one of them with a conflict the engine resolved.
+    let since = chrono::Utc::now() - chrono::Duration::days(30);
+    let input = env.store.savings_input(RepoId(1001), since).await.unwrap();
+    assert_eq!(input.landings.len(), 2);
+    assert!(input.landings.iter().all(|l| l.landed_at >= l.ready_at));
+    assert_eq!((input.conflicts_resolved, input.replays), (1, 0));
+    assert_eq!(
+        (input.minutes_per_conflict, input.minutes_per_replay),
+        (15, 30),
+        "defaults"
+    );
+    env.store
+        .set_estimates(RepoId(1001), Some(20), None)
+        .await
+        .unwrap();
+    let input = env.store.savings_input(RepoId(1001), since).await.unwrap();
+    assert_eq!(
+        (input.minutes_per_conflict, input.minutes_per_replay),
+        (20, 30)
+    );
+    let daily = env.store.landed_daily(RepoId(1001), 7).await.unwrap();
+    assert_eq!(daily.len(), 7);
+    assert_eq!(daily.iter().sum::<u32>(), 2, "{daily:?}");
     env.stop().await;
 }
 

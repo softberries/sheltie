@@ -103,6 +103,12 @@ pub(crate) enum Context {
         name: String,
         status: String,
         conclusion: Option<String>,
+        /// Only requested by [`crate::ci`].
+        #[serde(rename = "startedAt", default)]
+        started_at: Option<chrono::DateTime<chrono::Utc>>,
+        /// Only requested by [`crate::ci`].
+        #[serde(rename = "completedAt", default)]
+        completed_at: Option<chrono::DateTime<chrono::Utc>>,
     },
     StatusContext {
         state: String,

@@ -28,6 +28,7 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
+insta = { workspace = true }
 sheltie-github = { workspace = true, features = ["test-support"] }
 wiremock = { workspace = true }
 http-body-util = { workspace = true }

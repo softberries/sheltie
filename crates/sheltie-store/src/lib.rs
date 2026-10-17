@@ -17,6 +17,7 @@ mod merges;
 mod readiness;
 mod reality;
 mod replays;
+mod savings;
 mod speculation;
 mod stats;
 mod sweeps;
@@ -25,7 +26,8 @@ pub use checks::{CheckRunJob, FootprintSummary, Landing, MAX_LISTED, ReadinessFl
 pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
 pub use coordination::{Claim, IssueNotice, IssueRow, Lease, PendingNotice, Waiter};
 pub use dashboard::{
-    DashboardSession, LandingItem, LeaseItem, QueueItem, RepoDetail, RepoOverview, ReturnedItem,
+    CARD_DAYS, DETAIL_DAYS, DashboardSession, LandingItem, LeaseItem, QueueItem, RepoCard,
+    RepoDetail, RepoOverview, ReturnedItem,
 };
 pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
@@ -34,6 +36,7 @@ pub use merges::{MergeOutcome, MergeReportOutcome, MergeRun};
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
 pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
+pub use sheltie_scheduler::savings::{MIN_LANDINGS, Savings};
 pub use speculation::{SpecBuild, SpecGroup};
 pub use stats::Stats;
 pub use sweeps::{Culprit, LandedChange, Tip};
