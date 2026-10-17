@@ -99,8 +99,10 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 
 **M8 — Release**
 
-- [ ] Helm chart and Docker image
-- [ ] Docs site
-- [ ] Opt-in anonymous telemetry
-- [ ] Public demo repositories and benchmark run
-- [ ] License decision and `LICENSE`
+- [x] Helm chart and Docker image (`deploy/`, `compose.yaml`; chart tested on kind in CI)
+- [x] Docs site (`mdbook build docs`; publish to GitHub Pages once the repository is public)
+- [x] Telemetry: deferred (no endpoint to run); `sheltie-server stats` prints anonymous counts instead
+- [ ] Public demo repositories and benchmark run (deferred: "demo later")
+- [x] License decision and `LICENSE` (Apache-2.0)
+- [x] Release workflow (binaries, SHA256SUMS, GHCR image); tag `v0.1.0` when the repository is public
+- [ ] A self-host walkthrough by someone new to the project (timed, from the README)

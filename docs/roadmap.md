@@ -12,6 +12,8 @@ What comes after M8, in three tracks.
 - [ ] GitLab and Bitbucket support
 - [ ] Cross-repo atomic changes (changes that must land together)
 - [ ] Learned risk model trained on real merge history
+- [ ] Opt-in anonymous telemetry, once there is an endpoint to receive it (deferred from M8; `sheltie-server stats` covers sharing by hand)
+- [ ] Publish crates to crates.io (the workspace is `publish = false`)
 
 **Business (hosted / enterprise layer)**
 
