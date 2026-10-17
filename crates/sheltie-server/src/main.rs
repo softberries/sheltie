@@ -51,6 +51,15 @@ enum RepoCommand {
         #[arg(long, value_parser = ["shadow", "merge"])]
         mode: String,
     },
+    /// Turns the merge engine on or off; it needs the `sheltie-merge` workflow in the repository.
+    SetMergeEngine {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// `on` or `off`.
+        #[arg(long, value_parser = ["on", "off"])]
+        state: String,
+    },
 }
 
 #[tokio::main]
@@ -106,6 +115,19 @@ async fn main() -> anyhow::Result<()> {
                 anyhow::bail!("Sheltie does not know {repo}; install the App on it first");
             }
             tracing::info!(%repo, mode = mode.as_str(), "repository mode set");
+        }
+        Command::Repo {
+            command: RepoCommand::SetMergeEngine { repo, state },
+        } => {
+            let repo = RepoFullName::parse(repo)?;
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            if !store.set_merge_engine(&repo, state == "on").await? {
+                anyhow::bail!("Sheltie does not know {repo}; install the App on it first");
+            }
+            tracing::info!(%repo, merge_engine = %state, "merge engine set");
         }
     }
     Ok(())
