@@ -95,6 +95,19 @@ docker compose exec sheltie sheltie-server repo set-mode --repo your-org/your-re
 Switch back at any time with `--mode shadow`. To turn on the merge engine for a repository
 that has the merge workflow: `sheltie-server repo set-merge-engine --repo your-org/your-repo --state on`.
 
+## Dashboard
+
+Open `https://sheltie.example.com/dashboard` and sign in with GitHub. You see the
+repositories where the App is installed and you have access: the queue, what landed and how
+it was proven, pull requests returned to their authors, and agents' claimed issues.
+
+![The dashboard for a repository (example data)](images/dashboard.png)
+
+The registration script sets it up (`SHELTIE_PUBLIC_URL` and the App's OAuth client id and
+secret). For an App registered before, add `https://sheltie.example.com/auth/callback` as a
+callback URL in the App's settings, generate a client secret there, and set the three
+variables (see [Configuration](configuration.md)).
+
 ## Kubernetes
 
 A Helm chart is in `deploy/helm/sheltie`. Postgres is not included: use a managed database or

@@ -102,6 +102,8 @@ def main() -> int:
         # App names are unique on GitHub and at most 34 characters.
         manifest["name"] = f"Sheltie {host}"[:34]
         manifest["description"] = "Parallel merge engine for agent-generated pull requests."
+        # Users sign in to the dashboard with the App's own OAuth credentials.
+        manifest["callback_urls"] = [f"{base_url}/auth/callback"]
     if args.name:
         manifest["name"] = args.name
     if base_url:
@@ -152,6 +154,9 @@ def main() -> int:
         extra = {
             "SHELTIE_POSTGRES_PASSWORD": secrets.token_urlsafe(24),
             "SHELTIE_PUBLIC_HOSTS": urllib.parse.urlparse(base_url).netloc,
+            "SHELTIE_PUBLIC_URL": base_url,
+            "SHELTIE_GITHUB_CLIENT_ID": result["app"]["client_id"],
+            "SHELTIE_GITHUB_CLIENT_SECRET": result["app"]["client_secret"],
             # compose.yaml runs the server as this user so it can read the mode-600 key.
             "SHELTIE_UID": str(os.getuid()),
         }
