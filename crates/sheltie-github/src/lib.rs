@@ -7,6 +7,9 @@
 pub mod check_run;
 pub mod ci;
 mod client;
+#[cfg(feature = "test-support")]
+pub mod fake;
+pub mod git;
 pub mod oidc;
 pub mod payload;
 pub mod readiness;

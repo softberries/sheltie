@@ -52,6 +52,10 @@ pub struct CheckContext<'a> {
     pub readiness: Option<ReadinessFlags>,
     /// The shadow-mode prediction, for ready changes.
     pub prediction: Option<&'a str>,
+    /// Why the change was returned, if it was.
+    pub returned_reason: Option<&'a str>,
+    /// Whether Sheltie lands changes in this repository (otherwise it only predicts).
+    pub merge_mode: bool,
 }
 
 /// Renders the check run for a change.
@@ -69,12 +73,16 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
         ),
         ChangeState::Ready => (
             CheckStatus::Queued,
-            match ctx.prediction {
-                Some(p) => format!("Shadow: {p}"),
-                None => "Ready, waiting for the next epoch".into(),
+            match (ctx.prediction, ctx.merge_mode) {
+                (Some(p), false) => format!("Shadow: {p}"),
+                (Some(p), true) => format!("Queued: {}", p.replacen("would ", "will ", 1)),
+                (None, _) => "Ready, waiting for the next epoch".into(),
             },
-            "Shadow mode: Sheltie records what it would do with this change but does not merge it."
-                .into(),
+            if ctx.merge_mode {
+                "Sheltie will land this change; no need to merge it by hand.".into()
+            } else {
+                "Shadow mode: Sheltie records what it would do with this change but does not merge it.".into()
+            },
         ),
         ChangeState::Merging => (
             CheckStatus::InProgress,
@@ -83,8 +91,8 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
         ),
         ChangeState::Verifying => (
             CheckStatus::InProgress,
-            "Verifying".into(),
-            "Building and testing the targets this change affects.".into(),
+            "Verifying on the current head".into(),
+            "The change is merged onto the default branch on a `sheltie/verify/` branch; it lands when the repository's CI passes there.".into(),
         ),
         ChangeState::Committable => (
             CheckStatus::InProgress,
@@ -99,7 +107,10 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
         ChangeState::Returned => (
             CheckStatus::Completed(CheckConclusion::Failure),
             "Needs attention".into(),
-            "Sheltie could not land this change automatically.".into(),
+            match ctx.returned_reason {
+                Some(reason) => format!("Sheltie could not land this change: {reason}"),
+                None => "Sheltie could not land this change automatically.".into(),
+            },
         ),
         ChangeState::Closed => (
             CheckStatus::Completed(CheckConclusion::Neutral),
@@ -167,6 +178,8 @@ mod tests {
             footprint: None,
             readiness: None,
             prediction: None,
+            returned_reason: None,
+            merge_mode: false,
         }
     }
 
@@ -203,6 +216,15 @@ mod tests {
         let mut c = ctx(ChangeState::Ready, &h);
         c.prediction = Some("would land now with #12");
         assert_eq!(spec_for(&c).title, "Shadow: would land now with #12");
+    }
+
+    #[test]
+    fn merge_mode_says_will() {
+        let h = head();
+        let mut c = ctx(ChangeState::Ready, &h);
+        c.prediction = Some("would land now");
+        c.merge_mode = true;
+        assert_eq!(spec_for(&c).title, "Queued: will land now");
     }
 
     #[test]
