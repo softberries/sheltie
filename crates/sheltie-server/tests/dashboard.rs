@@ -187,12 +187,11 @@ async fn sign_in_and_see_your_repositories(_: PgPoolOptions, db: PgConnectOption
         .send()
         .await
         .unwrap();
-    assert_eq!(
+    assert!(
         overview.headers()["content-security-policy"]
             .to_str()
             .unwrap()
-            .contains("default-src 'none'"),
-        true
+            .contains("default-src 'none'")
     );
     let overview = overview.text().await.unwrap();
     assert!(
