@@ -121,11 +121,16 @@ impl Store {
         Ok(out)
     }
 
-    /// Records the verified prefix; returns whether it changed.
+    /// Records the verified prefix; returns whether it changed. It only moves forward along the
+    /// branch: a re-run of CI on a newer commit must not send it back to an older one.
     pub async fn set_verified(&self, repo: RepoId, commit: &CommitSha) -> Result<bool, StoreError> {
         let n = sqlx::query(
-            "UPDATE repositories SET verified_sha = $2, updated_at = now()
-             WHERE id = $1 AND verified_sha IS DISTINCT FROM $2",
+            "UPDATE repositories r SET verified_sha = $2, updated_at = now()
+             WHERE r.id = $1 AND r.verified_sha IS DISTINCT FROM $2
+               AND NOT EXISTS (
+                   SELECT 1 FROM branch_commits old, branch_commits new
+                   WHERE old.repo_id = r.id AND old.sha = r.verified_sha
+                     AND new.repo_id = r.id AND new.sha = $2 AND new.seq < old.seq)",
         )
         .bind(to_db_id(repo.0, "repository id")?)
         .bind(commit.as_str())

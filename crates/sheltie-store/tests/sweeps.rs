@@ -87,6 +87,10 @@ async fn tips_and_the_verified_prefix(pool: PgPool) {
         !store.set_verified(REPO, &green.sha).await.unwrap(),
         "unchanged"
     );
+    assert!(
+        !store.set_verified(REPO, &sha('0')).await.unwrap(),
+        "never moves back to an older commit"
+    );
     let states = store
         .ci_states(REPO, &[sha('2'), sha('3'), sha('9')])
         .await
