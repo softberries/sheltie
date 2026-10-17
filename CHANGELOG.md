@@ -113,6 +113,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Files matching a `[[sequence]]` rule share a `seq:` target, so two changes adding
   migrations always go through the merge engine and are renumbered instead of both landing.
 - `demo/cargo-shop`: the demo project and its pull request generator.
+- `deploy/Dockerfile` takes a `BUILD_JOBS` build argument to cap compile jobs on shared hosts.
+- `deploy/demo/`: deployment files and runbook for the public demo instance.
 
 ### Changed
 
