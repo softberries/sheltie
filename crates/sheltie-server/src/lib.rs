@@ -21,9 +21,11 @@ use tokio::sync::{Notify, watch};
 
 mod committer;
 mod shadow;
+mod sweeper;
 
 pub use committer::Committer;
 pub use shadow::{BranchCiWorker, ShadowScheduler};
+pub use sweeper::{Sweeper, VERIFIED_BRANCH};
 
 /// Default time between scheduler epochs.
 pub const DEFAULT_EPOCH_SECONDS: u64 = 10;
@@ -184,6 +186,7 @@ struct GitHub {
     readiness: ReadinessSync,
     shadow: ShadowScheduler,
     branch_ci: BranchCiWorker,
+    sweeper: Sweeper,
 }
 
 impl Server {
@@ -224,6 +227,7 @@ impl Server {
                     check_runs: CheckRunSync::new(store.clone(), Arc::clone(&app)),
                     readiness: ReadinessSync::new(store.clone(), Arc::clone(&app)),
                     branch_ci: BranchCiWorker::new(store.clone(), Arc::clone(&app)),
+                    sweeper: Sweeper::new(store.clone(), Arc::clone(&app), config.epoch),
                     shadow: ShadowScheduler::new(
                         store.clone(),
                         config.epoch,
@@ -273,7 +277,9 @@ impl Server {
                 readiness,
                 shadow,
                 branch_ci,
+                sweeper,
             }) => {
+                workers.push(tokio::spawn(sweeper.run(stopped(stop_rx.clone()))));
                 let check_runs_wake = Arc::clone(&shadow.changed);
                 let readiness_wake = Arc::new(Notify::new());
                 let branch_ci_wake = Arc::new(Notify::new());

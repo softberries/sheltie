@@ -2418,6 +2418,7 @@ dependencies = [
  "sheltie-github",
  "sheltie-scheduler",
  "sheltie-store",
+ "sheltie-sweeper",
  "sqlx",
  "tokio",
  "tracing",
@@ -2442,7 +2443,7 @@ dependencies = [
 name = "sheltie-sweeper"
 version = "0.0.0"
 dependencies = [
- "sheltie-core",
+ "proptest",
 ]
 
 [[package]]
