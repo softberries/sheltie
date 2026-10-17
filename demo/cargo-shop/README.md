@@ -12,4 +12,5 @@ pull requests, and Sheltie lands them. The footprints and conflicts below were c
 | Migrations | two PRs adding `0002_…` | shared `seq:` target: the merge engine renumbers the later one (tier 3) |
 | Semantic conflict | a rename, and a new caller of the old name | merges cleanly but fails CI; re-derived from its intent (tier 4b) |
 
-Watch it on the pull requests (the **Sheltie** check) and on the dashboard.
+Watch it on the pull requests (the **Sheltie** check) and on the
+[dashboard](https://demo.sheltie.dev/dashboard).
