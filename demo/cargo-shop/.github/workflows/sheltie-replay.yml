@@ -1,0 +1,18 @@
+on:
+  repository_dispatch:
+    types: [sheltie-replay]
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: read
+jobs:
+  replay:
+    uses: softberries/sheltie/.github/workflows/replay.yml@main
+    with:
+      sheltie-url: ${{ vars.SHELTIE_URL }}
+      pr: ${{ github.event.client_payload.pr }}
+      head: ${{ github.event.client_payload.head }}
+      onto: ${{ github.event.client_payload.onto }}
+      mode: ${{ github.event.client_payload.mode }}
+    secrets:
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

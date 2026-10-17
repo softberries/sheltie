@@ -1,0 +1,15 @@
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  footprint:
+    uses: softberries/sheltie/.github/workflows/footprint.yml@main
+    with:
+      sheltie-url: ${{ vars.SHELTIE_URL }}
+      plain: |
+        config/**
+        migrations/**

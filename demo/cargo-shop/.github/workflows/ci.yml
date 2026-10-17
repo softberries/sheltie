@@ -1,0 +1,13 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main, "sheltie/**"]   # Sheltie verifies changes on sheltie/* branches
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
