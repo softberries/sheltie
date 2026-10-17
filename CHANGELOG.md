@@ -55,6 +55,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`Sheltie-Verified: speculation`); changes that cannot land are returned with a comment. The App
   now needs contents (write) and pull requests (write).
 
+- Sweeps (M4): Sheltie keeps `sheltie/verified` at the newest green commit of the default branch
+  (the deploy gate). When the branch turns red and stays red, it bisects the commits since the
+  last green one, opens a revert PR for the culprit and lands it, comments on the culprit's PR,
+  and marks footprint misses involving a footprint-proven culprit as confirmed.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.

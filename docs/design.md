@@ -242,7 +242,9 @@ The resulting history is linear along first parents: each landing is a merge com
 3. If the culprit has an intent, open a re-derivation PR on the new head; otherwise notify the author.
 4. If the culprit was footprint-proven, log a footprint miss naming the pair of changes involved.
 
-**Deploy gate.** Release pipelines read from the verified prefix, never from the optimistic tip.
+*Implementation (M4).* The repository's CI on each push to the default branch is the sweep (Sheltie fast-forwards one merge commit per push, so each landing is swept). The newest green tip is the verified prefix, kept in the branch `sheltie/verified`. When the newest tip is red, the first-parent commits since the last green tip are analysed: commits whose CI never ran are probed by pointing `sheltie/bisect/<sha>` at them; the first red commit preceded only by green ones is the culprit. Until flaky-test quarantine exists, "a test must fail twice" is approximated by requiring the red to persist to a later commit: a lone red tip is not reverted. The revert is built without a checkout: a commit with the culprit's first parent's tree on top of the culprit, merged onto the head (three-way, base = culprit), is the head minus the culprit. Sheltie opens it as a PR for the record and lands it itself through the same compare-and-swap, without waiting for review, then comments on the culprit's PR. A revert that conflicts is reported on the culprit's PR instead. If the culprit had landed footprint-proven, the suspected misses involving it become confirmed.
+
+**Deploy gate.** Release pipelines read from the verified prefix (`sheltie/verified`), never from the optimistic tip.
 
 ## Data model and APIs
 
