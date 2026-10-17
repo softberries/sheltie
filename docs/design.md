@@ -158,6 +158,8 @@ The scheduler runs in epochs of a few seconds: it rebuilds the conflict graph of
 | Weighted speculation | size ≤ 8, mixed risk | Also build branches that skip the riskiest PR; spend compute in proportion to predicted success |
 | Group-tested batch | size > 8, low risk | Build the whole batch once; on failure, bisect; batch size about 1 / √p for failure rate p |
 
+*Implementation (M5).* Chains and batches share one mechanism: the group, in priority order, is merged member by member onto the head, and one `sheltie/spec/<group>-<length>` branch per prefix length points at the matching merge commit, so the repository's CI runs on each. Groups of up to 8 build every prefix (a speculative chain); larger groups build prefixes of length 1, 2, 4, …, n (the batch as a whole plus a bisection ladder). The longest green prefix below the first red one lands with one fast-forward; if the first red prefix is exactly one change longer, that change is returned, otherwise the changes in between are retried next epoch. Length 1 is always built, so every round lands or returns at least one change (property-tested, together with "every good change eventually lands").
+
 **Risk score** per PR, 0–1, learned from history: presubmit flakiness of touched tests, footprint size, `leaky` flag, the agent's own history, and whether intent replay was used.
 
 **Fairness.** Age raises priority so a PR in a busy region of the graph can't starve. A PR that has lost three epochs gets a lease on its read set: newer writers into that set wait one epoch.

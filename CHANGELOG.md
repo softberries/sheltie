@@ -60,6 +60,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   last green one, opens a revert PR for the culprit and lands it, comments on the culprit's PR,
   and marks footprint misses involving a footprint-proven culprit as confirmed.
 
+- Speculation (M5): changes with semantic conflicts are built together as prefixes on
+  `sheltie/spec/*` branches; the longest green prefix lands in one fast-forward and the change
+  that broke the build is returned with a comment naming what it was combined with.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
