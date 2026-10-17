@@ -141,6 +141,7 @@ impl ShadowScheduler {
             .into_iter()
             .collect();
         repos.extend(self.store.repos_with_verifying().await?);
+        repos.extend(self.store.repos_with_merging().await?);
         for repo in repos {
             let candidates = self.store.epoch_candidates(repo).await?;
             let now = Utc::now();
