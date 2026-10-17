@@ -75,8 +75,8 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 
 - [ ] mergiraf integration
 - [ ] `.sheltie/merge.toml`: derived, set, sequence
-- [ ] Speculative chains
-- [ ] Group-tested batches
+- [x] Speculative chains (every prefix of groups up to 8)
+- [x] Group-tested batches (prefixes 1, 2, 4, …, n with bisection)
 
 **M6 — Intent replay**
 
