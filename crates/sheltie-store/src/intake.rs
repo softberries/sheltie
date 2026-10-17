@@ -49,6 +49,20 @@ impl Store {
             Intake::Installation(e) => apply_installation_event(&mut tx, e).await?,
             Intake::Checks(e) => apply_checks_event(&mut tx, e).await?,
             Intake::Push(e) => apply_push_event(&mut tx, e).await?,
+            Intake::Issue(e) => {
+                upsert_installation(
+                    &mut tx,
+                    e.installation,
+                    &Login::new(e.repo.full_name.owner()),
+                )
+                .await?;
+                upsert_repo(&mut tx, &e.repo, Some(e.installation)).await?;
+                if let Some(branch) = &e.default_branch {
+                    set_default_branch(&mut tx, to_db_id(e.repo.id.0, "repository id")?, branch)
+                        .await?;
+                }
+                crate::coordination::apply_issue_event(&mut tx, e).await?;
+            }
         }
         tx.commit().await?;
         Ok(Ingested::Applied)
@@ -112,6 +126,9 @@ async fn apply_pr_event(
         .bind(e.at)
         .execute(&mut *conn)
         .await?;
+    }
+    if let Some(closes) = &e.closes {
+        crate::coordination::set_pr_closes(conn, repo_id, pr, closes).await?;
     }
     // Keep the latest intent of the PR's live changes (the description belongs to the PR).
     let (intent, intent_error) = match &e.intent {
