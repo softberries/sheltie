@@ -124,8 +124,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - CI durations of default-branch commits are recorded (`branch_commits.ci_seconds`).
 - sheltie.dev and the docs use the dashboard's Shetland palette and Geist (self-hosted), with an
   animated aurora hero and call-to-action band, gradient accents and hover glows.
-- A new logo: a sheltie in profile on a Shetland sea badge with an aurora arc, and a matching
-  social card (source in `scripts/social-card/`).
+- A new logo: an illustrated sheltie in profile under the Shetland aurora, as PNGs (favicon, touch
+  icon, 128/256/512 px), and a matching social card (source in `scripts/social-card/`).
 
 ### Changed
 
