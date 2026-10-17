@@ -10,9 +10,9 @@
   "redirect_url": "http://127.0.0.1:8765/callback",
   "default_permissions": {
     "checks": "write",
-    "contents": "read",
+    "contents": "write",
     "metadata": "read",
-    "pull_requests": "read",
+    "pull_requests": "write",
     "statuses": "read"
   },
   "default_events": [
