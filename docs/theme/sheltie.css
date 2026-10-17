@@ -1,61 +1,72 @@
-/* Sheltie brand for mdBook: navy, sable and cream, matching sheltie.dev. */
+/* Sheltie for mdBook, matching sheltie.dev and the dashboard: a Shetland palette (the flag's sky
+   blue, the North Atlantic, aurora, heather) and Geist. The fonts are served by the site at
+   /assets/fonts; without them (mdbook serve) the system font is used. */
+@font-face { font-family: "Geist"; src: url("/assets/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("/assets/fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
-  --sheltie-navy: #14213d;
-  --sheltie-sable: #cf8a34;
+  --sheltie-atlantic: #0b2440;
+  --sheltie-flag: #1f6fd1;
+  --sheltie-aurora: #2bd4a8;
   --content-max-width: 820px;
+  --mono-font: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 .light, .rust {
   --bg: #ffffff;
-  --fg: #1f2328;
-  --sidebar-bg: #f7f5f1;
-  --sidebar-fg: #3b4252;
-  --sidebar-non-existant: #a0a7b4;
-  --sidebar-active: #a8661e;
-  --sidebar-header-border-color: #cf8a34;
-  --sidebar-spacer: #e4e0d8;
-  --links: #a8661e;
-  --inline-code-color: #14213d;
+  --fg: #0f2236;
+  --sidebar-bg: #f3f6f8;
+  --sidebar-fg: #33475b;
+  --sidebar-non-existant: #9aa8b6;
+  --sidebar-active: #1a63bf;
+  --sidebar-header-border-color: #2bd4a8;
+  --sidebar-spacer: #e0e7ee;
+  --links: #1a63bf;
+  --inline-code-color: #0b2440;
   --theme-popup-bg: #ffffff;
-  --theme-hover: #f3efe8;
-  --quote-bg: #fbf7f0;
-  --quote-border: #e9dcc6;
-  --table-header-bg: #f3efe8;
-  --table-alternate-bg: #faf8f4;
-  --searchbar-border-color: #e4e0d8;
+  --theme-hover: #eaf1f8;
+  --quote-bg: #f1f7fb;
+  --quote-border: #cfe0f0;
+  --table-header-bg: #edf2f6;
+  --table-alternate-bg: #f8fafc;
+  --searchbar-border-color: #e0e7ee;
 }
 
 .navy, .coal, .ayu {
-  --bg: #0e1424;
-  --fg: #e6e3dc;
-  --sidebar-bg: #0b1020;
-  --sidebar-fg: #c3c7d0;
-  --sidebar-active: #e3a65a;
-  --sidebar-header-border-color: #cf8a34;
-  --sidebar-spacer: #26304a;
-  --links: #e3a65a;
-  --inline-code-color: #f3dfc0;
-  --theme-popup-bg: #161f35;
-  --theme-hover: #1d2742;
-  --quote-bg: #131b2e;
-  --quote-border: #26304a;
-  --table-header-bg: #161f35;
-  --table-alternate-bg: #121a2c;
-  --searchbar-bg: #131b2e;
+  --bg: #050d17;
+  --fg: #e3ecf4;
+  --sidebar-bg: #08121f;
+  --sidebar-fg: #b9c8d6;
+  --sidebar-active: #74b3ff;
+  --sidebar-header-border-color: #36e0b0;
+  --sidebar-spacer: #172a40;
+  --links: #74b3ff;
+  --inline-code-color: #c6e4ff;
+  --theme-popup-bg: #0b1726;
+  --theme-hover: #112235;
+  --quote-bg: #0a1625;
+  --quote-border: #172a40;
+  --table-header-bg: #0b1726;
+  --table-alternate-bg: #08131f;
+  --searchbar-bg: #0a1625;
 }
 
-html { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+html { font-family: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: -0.006em; }
 .content { font-size: 1.65rem; line-height: 1.65; }
-.content h1, .content h2, .content h3 { letter-spacing: -0.015em; }
-.light .content h1, .light .content h2, .rust .content h1, .rust .content h2 { color: var(--sheltie-navy); }
+.content h1, .content h2, .content h3 { letter-spacing: -0.03em; font-weight: 650; }
+.light .content h1, .light .content h2, .rust .content h1, .rust .content h2 { color: var(--sheltie-atlantic); }
 .content h1 { font-size: 2.6em; margin-top: 0.6em; }
-.content h2 { margin-top: 1.8em; padding-bottom: 0.25em; border-bottom: 1px solid var(--sidebar-spacer); }
-.content pre { border-radius: 10px; }
-.content code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-.content table { border-radius: 8px; overflow: hidden; }
+.content h2 { margin-top: 1.8em; padding-bottom: 0.3em; border-bottom: 1px solid var(--sidebar-spacer); }
+.content pre { border-radius: 12px; }
+.content code { font-family: var(--mono-font); }
+.content table { border-radius: 10px; overflow: hidden; }
+.content img { border-radius: 12px; box-shadow: 0 1px 2px rgb(11 36 64 / .06), 0 12px 32px -10px rgb(11 36 64 / .2); }
+#menu-bar { border-bottom: 1px solid var(--sidebar-spacer); }
+#menu-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; opacity: .55;
+  background: linear-gradient(90deg, transparent, var(--sheltie-flag) 30%, var(--sheltie-aurora) 50%, var(--sheltie-flag) 70%, transparent); }
+::selection { background: rgb(43 212 168 / .3); }
 
 /* Logo before the book title in the top bar. */
-.light .menu-title, .rust .menu-title { color: var(--sheltie-navy); }
+.light .menu-title, .rust .menu-title { color: var(--sheltie-atlantic); }
 .menu-title {
   display: inline-flex;
   align-items: center;

@@ -122,6 +122,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Dashboard redesign: Geist typography (self-hosted, SIL OFL), a Shetland palette, landings-per-day
   charts, a landing timeline, CSS-only motion that respects reduced-motion settings.
 - CI durations of default-branch commits are recorded (`branch_commits.ci_seconds`).
+- sheltie.dev and the docs use the dashboard's Shetland palette and Geist (self-hosted), with an
+  animated aurora hero and call-to-action band, gradient accents and hover glows.
 
 ### Changed
 
