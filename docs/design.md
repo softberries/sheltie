@@ -388,7 +388,7 @@ The plan is open source first, with no monetization on day one. Customers self-h
 - A closed enterprise edition requires a CLA from every contributor, and some won't sign.
 - It doesn't fully stop large clouds from hosting it, as long as they publish their changes.
 
-**Alternatives:** Apache 2.0 with a closed enterprise layer (open core), or the Business Source License, which converts to Apache after a few years. Suggestion, not yet decided: Apache plus a closed enterprise layer, because it hurts adoption least for self-hosted infrastructure.
+**Alternatives:** Apache 2.0 with a closed enterprise layer (open core), or the Business Source License, which converts to Apache after a few years. **Decided (M8): Apache-2.0**, leaving room for a closed enterprise layer later, because it hurts adoption least for self-hosted infrastructure. mergiraf (GPL-3.0) is only ever run as a separate program, so it does not affect this.
 
 ## Implementation plan (for Claude Code)
 
