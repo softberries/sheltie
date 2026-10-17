@@ -876,6 +876,40 @@ async fn without_an_intent_the_change_is_returned(_: PgPoolOptions, db: PgConnec
     env.stop().await;
 }
 
+/// The returned comment asks for an intent; adding one to the description retries the change.
+#[sqlx::test(migrations = false)]
+async fn adding_an_intent_retries_a_returned_change(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("");
+    let h1 = env.semantic_conflict(None).await;
+    env.wait_state(1, &h1, ChangeState::Returned).await;
+    env.wait_comment(1, "sheltie-intent").await;
+
+    let root = env.root.clone();
+    let edited = |updated_at: &str| {
+        json!({
+            "action": "edited", "number": 1,
+            "pull_request": {
+                "number": 1, "merged": false, "updated_at": updated_at,
+                "head": { "sha": h1, "ref": "agent/1" }, "base": { "sha": root, "ref": "main" },
+                "body": INTENT_BODY
+            },
+            "repository": Env::repository(), "installation": { "id": 77 }, "sender": { "login": "agent" }
+        })
+    };
+    env.webhook("pull_request", edited("2026-10-18T11:00:00Z"))
+        .await;
+    let payload = env.wait_replays(1).await;
+    assert_eq!(payload["head"], h1);
+
+    // Editing again with the same intent does not start another attempt.
+    env.webhook("pull_request", edited("2026-10-18T11:05:00Z"))
+        .await;
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    assert_eq!(env.replay_dispatches().len(), 1);
+    env.stop().await;
+}
+
 /// An unresolved textual conflict goes to 4a; a failed 4a escalates to 4b; after the attempt
 /// cap a human takes over.
 #[sqlx::test(migrations = false)]
