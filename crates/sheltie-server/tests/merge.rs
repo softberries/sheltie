@@ -1,4 +1,4 @@
-//! M4 "done when" (automated part): independent PRs land in parallel through the
+//! M4-M6 "done when" (automated parts): independent PRs land in parallel through the
 //! compare-and-swap, conflicting ones are verified or returned. Real server, throwaway
 //! database, stateful fake GitHub.
 
@@ -113,6 +113,11 @@ impl Env {
 
     /// Opens PR `n` with a head commit on top of the root.
     async fn open_pr(&mut self, n: u64, title: &str) -> String {
+        self.open_pr_with_body(n, title, None).await
+    }
+
+    /// Opens PR `n` with a description.
+    async fn open_pr_with_body(&mut self, n: u64, title: &str, body: Option<&str>) -> String {
         let head = {
             let mut st = self.fake.state();
             let root = self.root.clone();
@@ -132,7 +137,8 @@ impl Env {
             "pull_request": {
                 "number": n, "merged": false, "updated_at": format!("2026-10-18T10:00:{n:02}Z"),
                 "head": { "sha": head, "ref": format!("agent/{n}") },
-                "base": { "sha": self.root, "ref": "main" }
+                "base": { "sha": self.root, "ref": "main" },
+                "body": body
             },
             "repository": Self::repository(), "installation": { "id": 77 }, "sender": { "login": "agent" }
         }))
@@ -632,5 +638,258 @@ async fn unresolved_merge_returns_the_change(_: PgPoolOptions, db: PgConnectOpti
     assert_eq!(status, reqwest::StatusCode::ACCEPTED);
     env.wait_state(2, &h2, ChangeState::Returned).await;
     env.wait_comment(2, "`src/billing.rs`").await;
+    env.stop().await;
+}
+
+const INTENT_BODY: &str = "Doubles the billing rate.\n\n```sheltie-intent\n{\"task\": \"Add doubled()\", \"acceptance\": [\"billing::tests::doubled\"]}\n```\n";
+
+impl Env {
+    async fn replay_report(&self, report: Value) -> reqwest::StatusCode {
+        reqwest::Client::new()
+            .post(format!("http://{}/v1/replays", self.addr))
+            .bearer_auth(self.signer.sign(&actions_claims("acme/widgets", 1001)))
+            .json(&report)
+            .send()
+            .await
+            .unwrap()
+            .status()
+    }
+
+    fn enable_replay(&self, extra: &str) {
+        self.fake.state().files.insert(
+            ".sheltie/merge.toml".into(),
+            format!(
+                "[replay]\nenabled = true\ntest_command = \"cargo test -- {{tests}}\"\n{extra}"
+            ),
+        );
+    }
+
+    /// PR 1 with an intent that breaks CI once merged onto the head (a seeded semantic
+    /// conflict); merge mode on. Returns its head once the replay was requested.
+    async fn semantic_conflict(&mut self, body: Option<&str>) -> String {
+        // The base is not on the tracked history, so the change is verified before landing.
+        let h1 = self.open_pr_with_body(1, "Billing doubled", body).await;
+        self.fake.state().failing_heads.insert(h1.clone());
+        assert!(
+            self.store
+                .set_repo_mode(
+                    &RepoFullName::parse("acme/widgets").unwrap(),
+                    RepoMode::Merge
+                )
+                .await
+                .unwrap()
+        );
+        self.footprint(&h1, &["billing"]).await;
+        h1
+    }
+
+    fn replay_dispatches(&self) -> Vec<Value> {
+        self.fake
+            .state()
+            .dispatches
+            .iter()
+            .filter(|(e, _)| e == sheltie_server::REPLAY_EVENT)
+            .map(|(_, p)| p.clone())
+            .collect()
+    }
+
+    async fn wait_replays(&self, n: usize) -> Value {
+        self.wait_fake(&format!("{n} replay dispatches"), |st| {
+            st.dispatches
+                .iter()
+                .filter(|(e, _)| e == sheltie_server::REPLAY_EVENT)
+                .count()
+                >= n
+        })
+        .await;
+        // Sheltie dispatches, then records the run; a report is only accepted after that.
+        let deadline = Instant::now() + Duration::from_secs(20);
+        loop {
+            let runs: i64 = sqlx::query_scalar("SELECT count(*) FROM replay_runs")
+                .fetch_one(self.store.pool())
+                .await
+                .unwrap();
+            if runs >= n as i64 {
+                break;
+            }
+            assert!(Instant::now() < deadline, "replay run {n} not recorded");
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        self.replay_dispatches()[n - 1].clone()
+    }
+
+    /// A passing runner report for `payload` with `similarity`; the result's CI is green.
+    async fn passing_replay(&self, payload: &Value, similarity: f64) -> String {
+        let (onto, head) = (
+            payload["onto"].as_str().unwrap(),
+            payload["head"].as_str().unwrap(),
+        );
+        let result = {
+            let mut st = self.fake.state();
+            let sha = st.commit(&[onto, head], "Merge #1: Billing doubled");
+            st.ci.insert(sha.clone(), "SUCCESS".into());
+            sha
+        };
+        let status = self
+            .replay_report(json!({
+                "pr": 1, "head": head, "onto": onto, "tier": "replay_full", "result": result,
+                "checks": { "outside_scope": [], "acceptance_passed": true, "similarity": similarity },
+                "cost_usd": 0.4, "turns": 7, "error": null
+            }))
+            .await;
+        assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+        result
+    }
+}
+
+/// M6 "done when": a seeded semantic conflict is re-derived from its intent and lands.
+#[sqlx::test(migrations = false)]
+async fn a_semantic_conflict_is_replayed_and_lands(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("");
+    let h1 = env.semantic_conflict(Some(INTENT_BODY)).await;
+    let payload = env.wait_replays(1).await;
+    assert_eq!(
+        (payload["pr"].clone(), payload["mode"].clone()),
+        (json!(1), json!("full"))
+    );
+    assert_eq!(payload["head"], h1);
+    env.wait_state(1, &h1, ChangeState::Merging).await;
+
+    let result = env.passing_replay(&payload, 0.8).await;
+    env.wait_state(1, &h1, ChangeState::Landed).await;
+    assert_eq!(env.main_head(), result, "the replayed merge commit landed");
+    assert!(
+        env.fake
+            .state()
+            .labels
+            .contains(&(1, sheltie_server::REPLAYED_LABEL.into())),
+        "{:?}",
+        env.fake.state().labels
+    );
+    let id: i64 = sqlx::query_scalar("SELECT id FROM changes WHERE pr_number = 1")
+        .fetch_one(env.store.pool())
+        .await
+        .unwrap();
+    assert_eq!(
+        env.store.resolution_tier(id).await.unwrap(),
+        Some(sheltie_core::ResolutionTier::ReplayFull)
+    );
+    // Reported again: nothing is waiting for it any more.
+    assert_eq!(
+        env.replay_report(json!({
+            "pr": 1, "head": h1, "onto": payload["onto"], "tier": "replay_full", "result": null,
+            "checks": null, "cost_usd": 0.0, "turns": 0, "error": "late"
+        }))
+        .await,
+        reqwest::StatusCode::CONFLICT
+    );
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn a_dissimilar_replay_needs_re_approval(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("similarity_threshold = 0.6\n");
+    let h1 = env.semantic_conflict(Some(INTENT_BODY)).await;
+    let payload = env.wait_replays(1).await;
+    let result = env.passing_replay(&payload, 0.3).await;
+    env.wait_state(1, &h1, ChangeState::Returned).await;
+    env.wait_comment(1, "similarity 0.30").await;
+    {
+        let st = env.fake.state();
+        assert_eq!(st.first_parents("main").len(), 1, "nothing landed");
+        let branch = format!("sheltie/replay/1-{}", &h1[..12]);
+        assert_eq!(st.refs.get(&branch), Some(&result), "kept for review");
+        assert!(
+            st.labels
+                .contains(&(1, sheltie_server::REAPPROVAL_LABEL.into()))
+        );
+    }
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn without_an_intent_the_change_is_returned(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("");
+    let h1 = env.semantic_conflict(None).await;
+    env.wait_state(1, &h1, ChangeState::Returned).await;
+    env.wait_comment(1, "sheltie-intent").await;
+    assert!(env.replay_dispatches().is_empty());
+    env.stop().await;
+}
+
+/// An unresolved textual conflict goes to 4a; a failed 4a escalates to 4b; after the attempt
+/// cap a human takes over.
+#[sqlx::test(migrations = false)]
+async fn failed_replays_escalate_then_stop(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("");
+    let (_, h2) = env.conflicting_pair().await;
+    // PR 2 needs an intent: the description is edited to add one.
+    env.webhook("pull_request", json!({
+        "action": "edited", "number": 2,
+        "pull_request": {
+            "number": 2, "merged": false, "updated_at": "2026-10-18T11:00:00Z",
+            "head": { "sha": h2, "ref": "agent/2" }, "base": { "sha": env.root, "ref": "main" },
+            "body": INTENT_BODY
+        },
+        "repository": Env::repository(), "installation": { "id": 77 }, "sender": { "login": "agent" }
+    }))
+    .await;
+    let onto = env.fake.state().dispatches[0].1["onto"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let status = env
+        .merge_report(json!({ "pr": 2, "head": h2, "onto": onto, "result": null, "files": [], "unresolved": ["src/billing.rs"] }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+
+    let hunks = env.wait_replays(1).await;
+    assert_eq!(hunks["mode"], "hunks");
+    // Later epochs must not act on the superseded merge run again.
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    assert_eq!(env.replay_dispatches().len(), 1);
+    let failed = |tier: &str| {
+        json!({
+            "pr": 2, "head": h2, "onto": onto, "tier": tier, "result": null, "checks": null,
+            "cost_usd": 1.5, "turns": 30, "error": "agent run failed (error_max_turns)"
+        })
+    };
+    assert_eq!(
+        env.replay_report(failed("replay_hunks")).await,
+        reqwest::StatusCode::ACCEPTED
+    );
+    let full = env.wait_replays(2).await;
+    assert_eq!(full["mode"], "full");
+    assert_eq!(
+        env.replay_report(failed("replay_full")).await,
+        reqwest::StatusCode::ACCEPTED
+    );
+    env.wait_state(2, &h2, ChangeState::Returned).await;
+    env.wait_comment(2, "2 replay attempts").await;
+    assert_eq!(env.replay_dispatches().len(), 2);
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn the_daily_budget_stops_replays(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("daily_budget_usd = 1.0\nmax_attempts = 3\n");
+    let h1 = env.semantic_conflict(Some(INTENT_BODY)).await;
+    let payload = env.wait_replays(1).await;
+    // An expensive failure spends the budget; no second replay follows.
+    let status = env
+        .replay_report(json!({
+            "pr": 1, "head": h1, "onto": payload["onto"], "tier": "replay_full", "result": null,
+            "checks": null, "cost_usd": 2.0, "turns": 12, "error": "agent run failed (error_max_budget_usd)"
+        }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+    env.wait_state(1, &h1, ChangeState::Returned).await;
+    env.wait_comment(1, "error_max_budget_usd").await;
+    assert_eq!(env.replay_dispatches().len(), 1);
     env.stop().await;
 }

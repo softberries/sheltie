@@ -23,7 +23,7 @@ mod committer;
 mod shadow;
 mod sweeper;
 
-pub use committer::{Committer, MERGE_EVENT};
+pub use committer::{Committer, MERGE_EVENT, REAPPROVAL_LABEL, REPLAY_EVENT, REPLAYED_LABEL};
 pub use shadow::{BranchCiWorker, ShadowScheduler};
 pub use sweeper::{Sweeper, VERIFIED_BRANCH};
 

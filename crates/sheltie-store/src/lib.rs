@@ -14,6 +14,7 @@ mod intake;
 mod merges;
 mod readiness;
 mod reality;
+mod replays;
 mod speculation;
 mod sweeps;
 
@@ -25,6 +26,7 @@ pub use intake::Ingested;
 pub use merges::{MergeOutcome, MergeReportOutcome, MergeRun};
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
+pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
 pub use speculation::{SpecBuild, SpecGroup};
 pub use sweeps::{Culprit, LandedChange, Tip};
 

@@ -93,6 +93,7 @@ impl H {
             base_ref: base_ref.into(),
             default_branch: Some("main".into()),
             merge_commit: merge.map(sha),
+            intent: sheltie_core::intake::IntentField::Unknown,
         }))
         .await;
     }

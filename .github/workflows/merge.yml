@@ -109,7 +109,7 @@ jobs:
           printf 'Merge #%s: %s\n\nSheltie-Verified: speculation S=%s\nSheltie-Change: #%s\n' \
             "$PR" "$title" "${ONTO:0:12}" "$PR" > "$RUNNER_TEMP/message"
           rm -rf .sheltie-src
-          sheltie-merge --pr "$PR" --onto "$ONTO" --head "$HEAD" \
+          sheltie-merge merge --pr "$PR" --onto "$ONTO" --head "$HEAD" \
             --message-file "$RUNNER_TEMP/message" --out "$RUNNER_TEMP/report.json"
           jq '{result, tier: [.files[].tier] | unique, unresolved}' "$RUNNER_TEMP/report.json"
           result=$(jq -r '.result // empty' "$RUNNER_TEMP/report.json")
