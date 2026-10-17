@@ -100,6 +100,9 @@ pub struct PrEvent {
     pub merge_commit: Option<CommitSha>,
     /// The intent block of the description, when the event carries the description.
     pub intent: IntentField,
+    /// Issues the description closes, when the event carries the description.
+    #[serde(default)]
+    pub closes: Option<std::collections::BTreeSet<crate::IssueNumber>>,
 }
 
 /// The intent block of a pull request description.
@@ -207,6 +210,52 @@ pub enum Intake {
     Checks(ChecksEvent),
     /// A push to a branch.
     Push(PushEvent),
+    /// An issue event.
+    Issue(IssueEvent),
+}
+
+/// What happened to an issue.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum IssueEventKind {
+    /// Opened.
+    Opened,
+    /// Title or description edited.
+    Edited,
+    /// Reopened.
+    Reopened,
+    /// Closed.
+    Closed,
+    /// Someone (an agent) was assigned: they claim it.
+    Assigned(Login),
+    /// Someone was unassigned: they release it.
+    Unassigned(Login),
+}
+
+/// An event on one issue.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IssueEvent {
+    /// The installation the event came through.
+    pub installation: InstallationId,
+    /// The repository.
+    pub repo: RepoRef,
+    /// The issue.
+    pub issue: crate::IssueNumber,
+    /// What happened.
+    pub kind: IssueEventKind,
+    /// Title.
+    pub title: String,
+    /// Description, truncated to [`IssueEvent::MAX_BODY`] characters.
+    pub body: String,
+    /// The forge's last-update time of the issue.
+    pub at: DateTime<Utc>,
+    /// The repository's default branch, when the payload names it.
+    pub default_branch: Option<String>,
+}
+
+impl IssueEvent {
+    /// Longest description kept.
+    pub const MAX_BODY: usize = 65_536;
 }
 
 #[cfg(test)]

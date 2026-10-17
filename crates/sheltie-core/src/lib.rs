@@ -56,6 +56,7 @@ macro_rules! text_enum {
 }
 
 mod change;
+pub mod coordination;
 mod footprint;
 mod head;
 mod ids;
@@ -66,6 +67,7 @@ mod score;
 mod verification;
 
 pub use change::{Change, ChangeState};
+pub use coordination::IssueNumber;
 pub use footprint::{ChangeFootprint, Footprint, FootprintReport, InvalidReport, Relation, limits};
 pub use head::{GuaranteeTier, HeadEvent};
 pub use ids::{
