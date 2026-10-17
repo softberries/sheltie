@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sheltie.fullname" . }}
+  labels:
+    {{- include "sheltie.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sheltie.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sheltie.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: sheltie
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["serve"]
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SHELTIE_BIND
+              value: "0.0.0.0:8080"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: {{ .Values.database.key }}
+            - name: SHELTIE_EPOCH_SECONDS
+              value: {{ .Values.epochSeconds | quote }}
+            - name: SHELTIE_LEASE_TTL_HOURS
+              value: {{ .Values.leaseTtlHours | quote }}
+            - name: SHELTIE_PUBLIC_HOSTS
+              value: {{ include "sheltie.publicHosts" . | quote }}
+            - name: SHELTIE_OIDC_AUDIENCE
+              value: {{ .Values.oidc.audience | quote }}
+            {{- with .Values.oidc.issuer }}
+            - name: SHELTIE_OIDC_ISSUER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.github.secretName }}
+            - name: SHELTIE_GITHUB_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.github.secretName }}
+                  key: app-id
+            - name: SHELTIE_GITHUB_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.github.secretName }}
+                  key: webhook-secret
+            - name: SHELTIE_GITHUB_PRIVATE_KEY_PATH
+              value: /etc/sheltie/github/private-key.pem
+            {{- with .Values.github.apiUrl }}
+            - name: SHELTIE_GITHUB_API_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.github.secretName }}
+          volumeMounts:
+            - name: github
+              mountPath: /etc/sheltie/github
+              readOnly: true
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.github.secretName }}
+      volumes:
+        - name: github
+          secret:
+            secretName: {{ .Values.github.secretName }}
+            items:
+              - key: private-key.pem
+                path: private-key.pem
+            defaultMode: 0400
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,11 @@
+target
+.git
+.github
+.env
+.env.*
+*.pem
+docs
+fixtures
+scripts
+workflows
+deploy/helm

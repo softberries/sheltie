@@ -14,13 +14,15 @@ within 3 working days and to agree on a disclosure timeline with you.
 
 ## Supported versions
 
-Sheltie is pre-release. Only the latest `main` receives fixes.
+Sheltie is 0.x. Only the latest release and `main` receive fixes.
 
 ## Scope
 
 Of particular interest:
 
-- Webhook signature verification and GitHub App key handling
+- Webhook signature verification, GitHub App key handling, and OIDC verification of CI uploads
 - Anything that lets a PR bypass verification or land on a protected branch
-- Parsing of `.sheltie/merge.toml` and `intent.json` from untrusted PRs
+- Parsing of `.sheltie/merge.toml` and `sheltie-intent` blocks from untrusted PRs
+- The intent replay job: escaping its sandbox, or reaching the API key or a write token
+- Agent tokens, leases and the MCP endpoint
 - Leakage of API keys, tokens or private repository content

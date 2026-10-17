@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: main
+      sheltie-version:
+        description: Release of Sheltie to download (e.g. v0.1.0); empty builds from sheltie-ref.
+        required: false
+        type: string
+        default: ""
     secrets:
       sheltie-repo-token:
         description: Token that can read softberries/sheltie; only needed while it is private.
@@ -61,6 +66,7 @@ jobs:
           persist-credentials: false
 
       - name: Check out sheltie-cargo
+        if: inputs.sheltie-version == ''
         uses: actions/checkout@v7
         with:
           repository: softberries/sheltie
@@ -72,12 +78,34 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        if: inputs.sheltie-version == ''
         with:
           workspaces: .sheltie-src
           key: sheltie-cargo
 
-      - name: Build sheltie-cargo
-        run: cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+      - name: Install sheltie-cargo
+        env:
+          SHELTIE_VERSION: ${{ inputs.sheltie-version }}
+          GH_TOKEN: ${{ secrets.sheltie-repo-token || github.token }}
+        run: |
+          SHELTIE_VERSION="${SHELTIE_VERSION:-}"
+          if [ -n "$SHELTIE_VERSION" ]; then
+            [[ "$SHELTIE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "bad sheltie-version"; exit 1; }
+            case "$(uname -m)" in
+              x86_64) target=x86_64-unknown-linux-gnu ;;
+              aarch64|arm64) target=aarch64-unknown-linux-gnu ;;
+              *) echo "unsupported runner architecture"; exit 1 ;;
+            esac
+            name="sheltie-$SHELTIE_VERSION-$target"
+            dl="$RUNNER_TEMP/sheltie-release"
+            mkdir -p "$dl" "$RUNNER_TEMP/sheltie/bin"
+            gh release download "$SHELTIE_VERSION" -R softberries/sheltie -D "$dl" --clobber -p "$name.tar.gz" -p SHA256SUMS
+            (cd "$dl" && grep " $name.tar.gz\$" SHA256SUMS | sha256sum --check -)
+            tar -xzf "$dl/$name.tar.gz" -C "$dl"
+            install "$dl/$name/sheltie-cargo" "$RUNNER_TEMP/sheltie/bin/"
+          else
+            cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+          fi
 
       - name: Compute the footprint
         env:
@@ -112,6 +140,7 @@ jobs:
           persist-credentials: false
 
       - name: Check out sheltie-cargo
+        if: inputs.sheltie-version == ''
         uses: actions/checkout@v7
         with:
           repository: softberries/sheltie
@@ -123,12 +152,34 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        if: inputs.sheltie-version == ''
         with:
           workspaces: .sheltie-src
           key: sheltie-cargo
 
-      - name: Build sheltie-cargo
-        run: cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+      - name: Install sheltie-cargo
+        env:
+          SHELTIE_VERSION: ${{ inputs.sheltie-version }}
+          GH_TOKEN: ${{ secrets.sheltie-repo-token || github.token }}
+        run: |
+          SHELTIE_VERSION="${SHELTIE_VERSION:-}"
+          if [ -n "$SHELTIE_VERSION" ]; then
+            [[ "$SHELTIE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "bad sheltie-version"; exit 1; }
+            case "$(uname -m)" in
+              x86_64) target=x86_64-unknown-linux-gnu ;;
+              aarch64|arm64) target=aarch64-unknown-linux-gnu ;;
+              *) echo "unsupported runner architecture"; exit 1 ;;
+            esac
+            name="sheltie-$SHELTIE_VERSION-$target"
+            dl="$RUNNER_TEMP/sheltie-release"
+            mkdir -p "$dl" "$RUNNER_TEMP/sheltie/bin"
+            gh release download "$SHELTIE_VERSION" -R softberries/sheltie -D "$dl" --clobber -p "$name.tar.gz" -p SHA256SUMS
+            (cd "$dl" && grep " $name.tar.gz\$" SHA256SUMS | sha256sum --check -)
+            tar -xzf "$dl/$name.tar.gz" -C "$dl"
+            install "$dl/$name/sheltie-cargo" "$RUNNER_TEMP/sheltie/bin/"
+          else
+            cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+          fi
 
       - name: Describe the build graph
         run: |

@@ -1,0 +1,39 @@
+# Deployment artifacts: the Docker image and the Helm chart, installed on a kind cluster.
+name: Deploy
+
+on:
+  pull_request:
+    paths: ["deploy/**", "crates/**", "Cargo.lock", "scripts/test-helm-kind.sh", ".github/workflows/deploy.yml"]
+  push:
+    branches: [main]
+    paths: ["deploy/**", "crates/**", "Cargo.lock", "scripts/test-helm-kind.sh", ".github/workflows/deploy.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  chart:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@v5
+      - uses: helm/kind-action@v1
+        with:
+          install_only: true
+      - uses: docker/setup-buildx-action@v4
+      - name: Lint the chart
+        run: helm lint deploy/helm/sheltie --strict
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/Dockerfile
+          load: true
+          tags: sheltie:ci
+          cache-from: type=gha,scope=linux/amd64
+          cache-to: type=gha,mode=max,scope=linux/amd64
+      - name: Install the chart on kind
+        run: scripts/test-helm-kind.sh sheltie:ci
