@@ -320,3 +320,132 @@ async fn failed_verification_returns_the_change(_: PgPoolOptions, db: PgConnectO
     }
     env.stop().await;
 }
+
+impl Env {
+    fn main_head(&self) -> String {
+        self.fake.state().refs["main"].clone()
+    }
+
+    async fn wait_fake(&self, what: &str, pred: impl Fn(&sheltie_github::fake::FakeState) -> bool) {
+        let deadline = Instant::now() + Duration::from_secs(20);
+        loop {
+            if pred(&self.fake.state()) {
+                return;
+            }
+            assert!(Instant::now() < deadline, "timed out waiting for {what}");
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+    }
+}
+
+/// M4 "done when", second half: a seeded bad commit is found and reverted automatically.
+#[sqlx::test(migrations = false)]
+async fn a_bad_landing_is_blamed_and_reverted(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let root = env.root.clone();
+    env.fake.state().ci.insert(root.clone(), "SUCCESS".into());
+    env.push_main().await;
+
+    // #1 lands: the seeded bad commit. CI on main turns red.
+    let h1 = env.open_pr(1, "Billing retries").await;
+    env.footprint(&h1, &["billing"]).await;
+    env.wait_state(1, &h1, ChangeState::Ready).await;
+    assert!(
+        env.store
+            .set_repo_mode(
+                &RepoFullName::parse("acme/widgets").unwrap(),
+                RepoMode::Merge
+            )
+            .await
+            .unwrap()
+    );
+    env.wait_state(1, &h1, ChangeState::Landed).await;
+    let m1 = env.main_head();
+    env.fake.state().ci.insert(m1.clone(), "FAILURE".into());
+    env.push_main().await;
+
+    // #2 (independent) lands on top; main stays red, so the failure is not a flake.
+    let h2 = env.open_pr(2, "Auth scopes").await;
+    env.footprint(&h2, &["auth"]).await;
+    env.wait_state(2, &h2, ChangeState::Landed).await;
+    let m2 = env.main_head();
+    env.fake.state().ci.insert(m2.clone(), "FAILURE".into());
+    env.push_main().await;
+
+    env.wait_fake("the revert to land", |st| {
+        st.refs
+            .get("main")
+            .and_then(|h| st.commits.get(h))
+            .is_some_and(|c| c.message.contains("Sheltie-Revert"))
+    })
+    .await;
+    {
+        let st = env.fake.state();
+        let head = &st.commits[&st.refs["main"]];
+        assert!(
+            head.message.contains(&format!("Sheltie-Revert: {m1}")),
+            "{}",
+            head.message
+        );
+        assert!(
+            head.message.starts_with("Revert #1: Billing retries"),
+            "{}",
+            head.message
+        );
+        assert_eq!(
+            head.parents[0], m2,
+            "the revert lands on top of the red head"
+        );
+        assert_eq!(
+            st.refs.get(sheltie_server::VERIFIED_BRANCH),
+            Some(&root),
+            "verified prefix stays at the last green commit"
+        );
+        assert!(
+            st.opened.iter().any(|(_, title, _)| title == "Revert #1"),
+            "{:?}",
+            st.opened
+        );
+        assert!(
+            st.comments
+                .iter()
+                .any(|(n, b)| *n == 1 && b.contains("reverted it in #1000")),
+            "{:?}",
+            st.comments
+        );
+        assert!(
+            st.refs.keys().all(|b| !b.starts_with("sheltie/bisect/")),
+            "probe branches cleaned up"
+        );
+    }
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn a_single_red_commit_is_not_reverted(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let root = env.root.clone();
+    env.fake.state().ci.insert(root, "SUCCESS".into());
+    env.push_main().await;
+    let h1 = env.open_pr(1, "Billing retries").await;
+    env.footprint(&h1, &["billing"]).await;
+    env.wait_state(1, &h1, ChangeState::Ready).await;
+    assert!(
+        env.store
+            .set_repo_mode(
+                &RepoFullName::parse("acme/widgets").unwrap(),
+                RepoMode::Merge
+            )
+            .await
+            .unwrap()
+    );
+    env.wait_state(1, &h1, ChangeState::Landed).await;
+    let m1 = env.main_head();
+    env.fake.state().ci.insert(m1.clone(), "FAILURE".into());
+    env.push_main().await;
+    // Give the sweeper several rounds: a lone red may be flaky, so nothing is reverted.
+    tokio::time::sleep(Duration::from_secs(2)).await;
+    assert_eq!(env.main_head(), m1);
+    assert!(env.fake.state().opened.is_empty());
+    env.stop().await;
+}
