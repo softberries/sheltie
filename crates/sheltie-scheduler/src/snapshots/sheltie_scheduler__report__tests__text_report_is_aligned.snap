@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-scheduler/src/report.rs
+expression: report.to_text(false)
+---
+Sheltie shadow report · acme/widgets
+since 2027-01-15 08:00 UTC
+
+  PRs merged                              12
+  …of which Sheltie judged ready first    10
+  Ready → merged, median                  14 min
+  Ready → merged, p95                     n/a
+  Minutes merges waited after "land now"  31
+  Average "land now" batch (k)            2.50
+  Red commits on the default branch       0
+  Suspected footprint misses              0
+  …confirmed by bisect                    0
+  …per 1,000 merges                       0.0
+
+Prediction at merge time
+      9  land_now
+
+Most-written targets
+      4  shop::cart
+
+Suspected footprint misses
+  none
