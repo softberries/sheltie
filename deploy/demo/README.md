@@ -24,7 +24,12 @@ sudo /opt/sheltie/deploy/demo/deploy.sh            # origin/main
 sudo /opt/sheltie/deploy/demo/deploy.sh <sha|tag>  # a specific ref
 ```
 
-Builds the image on the host (a few minutes cold), recreates changed containers and, if
+Run it detached when your SSH session might drop (a deploy killed halfway through can leave a
+renamed container behind):
+`sudo systemd-run --unit sheltie-deploy --wait /opt/sheltie/deploy/demo/deploy.sh`, and follow it
+with `journalctl -u sheltie-deploy -f`.
+
+It builds the image on the host (a few minutes cold), recreates changed containers and, if
 `sheltie.caddy` changed, validates and reloads the shared Caddy. The server applies migrations at
 start. To roll back, deploy the previous commit by sha; migrations only add, so an older binary
 runs against a newer schema, but check `crates/sheltie-store/migrations` first.
