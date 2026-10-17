@@ -66,3 +66,11 @@ cargo run -p sheltie-server -- repo set-mode --repo softberries/sheltie-playgrou
 ```
 
 Sheltie now lands ready PRs itself; switch back with `--mode shadow`.
+
+## Merge engine (M5)
+
+1. Add the caller workflow from the top of `.github/workflows/merge.yml` to the playground's
+   default branch (as `.github/workflows/sheltie-merge.yml`), with the Sheltie URL.
+2. Optionally add `.sheltie/merge.toml`, e.g. `Cargo.lock` as derived with
+   `regenerate = "cargo update -w --offline"` and `config/feature_flags.txt` as a set.
+3. `cargo run -p sheltie-server -- repo set-merge-engine --repo softberries/sheltie-playground-cargo --state on`
