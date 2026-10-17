@@ -95,6 +95,7 @@ impl H {
             merge_commit: merge.map(sha),
             intent: sheltie_core::intake::IntentField::Unknown,
             closes: None,
+            title: None,
         }))
         .await;
     }

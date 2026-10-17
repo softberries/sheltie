@@ -60,6 +60,7 @@ async fn setup(pool: &PgPool) -> (Store, i64) {
                 merge_commit: None,
                 intent: sheltie_core::intake::IntentField::Unknown,
                 closes: None,
+                title: None,
             }),
         )
         .await

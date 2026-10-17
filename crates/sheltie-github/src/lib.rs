@@ -12,6 +12,7 @@ pub mod comments;
 pub mod fake;
 pub mod git;
 pub mod labels;
+pub mod oauth;
 pub mod oidc;
 pub mod payload;
 pub mod readiness;
