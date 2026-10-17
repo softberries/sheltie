@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 use sheltie_core::RepoFullName;
 use sheltie_scheduler::report::build_report;
 use sheltie_server::{Config, Server};
-use sheltie_store::Store;
+use sheltie_store::{RepoMode, Store};
 use tracing_subscriber::EnvFilter;
 
 /// The Sheltie control plane.
@@ -32,6 +32,24 @@ enum Command {
         /// Print JSON instead of Markdown.
         #[arg(long)]
         json: bool,
+    },
+    /// Administers repositories.
+    Repo {
+        #[command(subcommand)]
+        command: RepoCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum RepoCommand {
+    /// Sets whether Sheltie only predicts (`shadow`) or lands changes (`merge`).
+    SetMode {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// `shadow` or `merge`.
+        #[arg(long, value_parser = ["shadow", "merge"])]
+        mode: String,
     },
 }
 
@@ -70,6 +88,24 @@ async fn main() -> anyhow::Result<()> {
             };
             use std::io::Write as _;
             writeln!(std::io::stdout(), "{out}")?;
+        }
+        Command::Repo {
+            command: RepoCommand::SetMode { repo, mode },
+        } => {
+            let repo = RepoFullName::parse(repo)?;
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            let mode = if mode == "merge" {
+                RepoMode::Merge
+            } else {
+                RepoMode::Shadow
+            };
+            if !store.set_repo_mode(&repo, mode).await? {
+                anyhow::bail!("Sheltie does not know {repo}; install the App on it first");
+            }
+            tracing::info!(%repo, mode = mode.as_str(), "repository mode set");
         }
     }
     Ok(())

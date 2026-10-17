@@ -14,6 +14,7 @@ sheltie-api = { workspace = true }
 sheltie-github = { workspace = true }
 sheltie-core = { workspace = true }
 sheltie-scheduler = { workspace = true }
+sheltie-commit = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
