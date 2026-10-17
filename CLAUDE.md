@@ -87,5 +87,5 @@ Before saying a task is done, run fmt, clippy and tests. All must pass.
 - License headers are not used; the license will be in `LICENSE` (to be decided, see `docs/design.md`).
   Until then the workspace is `publish = false`.
 - Keep `README.md`, `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md` current.
-- Docs for users live in `docs/`; examples must compile (`cargo test --doc`).
+- Docs for users live in `docs/` (e.g. `docs/agents.md`); examples must compile (`cargo test --doc`).
 - Never commit secrets, real customer data, or private repository content to `fixtures/`.
