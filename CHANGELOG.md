@@ -64,6 +64,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `sheltie/spec/*` branches; the longest green prefix lands in one fast-forward and the change
   that broke the build is returned with a comment naming what it was combined with.
 
+- Merge engine (M5): `sheltie-merge` resolves conflicts on the repository's runner with
+  mergiraf (tier 1), regenerated derived files such as `Cargo.lock` (tier 2) and declared rules in
+  `.sheltie/merge.toml` (tier 3: set union, sequence renumbering). Sheltie triggers it with
+  `repository_dispatch`, verifies the reported merge commit and lands it. Enable per repository
+  with `sheltie-server repo set-merge-engine --state on` after adding the workflow.
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
