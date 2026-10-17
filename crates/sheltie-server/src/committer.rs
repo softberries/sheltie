@@ -9,12 +9,13 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use anyhow::Context as _;
-use sheltie_commit::{CommitCheck, check, land_branch, merge_message, verify_branch};
+use sheltie_commit::speculation::{Build, Verdict, decide, prefix_lengths};
+use sheltie_commit::{CommitCheck, check, land_branch, merge_message, spec_branch, verify_branch};
 use sheltie_core::{CommitSha, GuaranteeTier, RepoId, TargetId};
 use sheltie_github::GitHubApp;
 use sheltie_github::git::{FastForward, MergeResult};
 use sheltie_scheduler::Decision;
-use sheltie_store::{CiState, CommitterChange, RepoAccess, Store, VerifyRun};
+use sheltie_store::{CiState, CommitterChange, RepoAccess, SpecBuild, SpecGroup, Store, VerifyRun};
 
 /// Lost compare-and-swaps tolerated per change and epoch before trying again next epoch.
 const MAX_CAS_RETRIES: usize = 3;
@@ -56,13 +57,21 @@ impl Committer {
         // them with the exact targets.
         let mut land_now = Vec::new();
         let mut verify = Vec::new();
+        let mut groups: Vec<Vec<i64>> = Vec::new();
         for (id, decision) in plan {
             match decision {
                 Decision::LandNow { .. } => land_now.push(*id),
-                Decision::Reverify { .. } | Decision::SpeculativeChain { position: 0, .. } => {
-                    verify.push(*id)
+                Decision::Reverify { .. } => verify.push(*id),
+                // Chains and batches: built as prefixes (once per group, from its first member).
+                Decision::SpeculativeChain {
+                    chain: group,
+                    position: 0,
                 }
-                Decision::GroupBatch { group } if group.first() == Some(id) => verify.push(*id),
+                | Decision::GroupBatch { group }
+                    if group.first() == Some(id) =>
+                {
+                    groups.push(group.clone());
+                }
                 Decision::MergeEngine { landed: true, .. } => land_now.push(*id),
                 // Until the merge engine (M5), of changes writing the same targets the one with
                 // the smallest id goes first; the others then meet a write conflict.
@@ -79,6 +88,9 @@ impl Committer {
         for id in verify {
             self.start_verification(repo, id).await?;
         }
+        for group in groups {
+            self.start_speculation(repo_id, repo, &group).await?;
+        }
         self.advance(repo, repo_id).await
     }
 
@@ -87,6 +99,160 @@ impl Committer {
         for id in self.store.verifying_changes(repo_id).await? {
             self.advance_verification(repo, id).await?;
         }
+        for group in self.store.spec_groups(repo_id).await? {
+            self.advance_speculation(repo_id, repo, &group).await?;
+        }
+        Ok(())
+    }
+
+    /// Builds a group's prefixes on the current head: merges the members one by one on a work
+    /// branch, then points one `sheltie/spec/<group>-<length>` branch per prefix length at the
+    /// matching merge commit, so the repository's CI runs on each.
+    async fn start_speculation(
+        &self,
+        repo_id: RepoId,
+        repo: &RepoAccess,
+        members: &[i64],
+    ) -> anyhow::Result<()> {
+        let (inst, name) = (repo.installation, &repo.full_name);
+        let head = self
+            .github
+            .branch_head(inst, name, &repo.default_branch)
+            .await?;
+        let group = self
+            .store
+            .create_spec_group(repo_id, members, &head)
+            .await?;
+        let work = format!("sheltie/spec/{group}-work");
+        self.github.reset_branch(inst, name, &work, &head).await?;
+        let mut member_shas = Vec::with_capacity(members.len());
+        for (i, id) in members.iter().enumerate() {
+            let Some(c) = self.store.committer_change(*id).await? else {
+                break;
+            };
+            let title = self.github.pr_title(inst, name, c.change.pr).await?;
+            let message = merge_message(
+                c.change.pr,
+                &title,
+                GuaranteeTier::SpeculationVerified,
+                &head,
+            );
+            match self
+                .github
+                .merge_into(inst, name, &work, &c.change.head, &message)
+                .await?
+            {
+                MergeResult::Merged(sha) => member_shas.push(sha),
+                MergeResult::AlreadyMerged | MergeResult::Conflict => {
+                    // Build what merged so far; the rest is planned again next epoch.
+                    if i == 0 {
+                        let reason = format!(
+                            "it does not merge cleanly onto `{}`; rebase it",
+                            repo.default_branch
+                        );
+                        self.return_change(repo, *id, &reason).await?;
+                    }
+                    break;
+                }
+            }
+        }
+        self.github.delete_branch(inst, name, &work).await?;
+        let builds: Vec<SpecBuild> = prefix_lengths(member_shas.len())
+            .into_iter()
+            .map(|length| SpecBuild {
+                length,
+                branch: spec_branch(group, length),
+                sha: member_shas[length - 1].clone(),
+            })
+            .collect();
+        for b in &builds {
+            self.github
+                .reset_branch(inst, name, &b.branch, &b.sha)
+                .await?;
+        }
+        self.store
+            .record_spec_builds(group, &member_shas, &builds)
+            .await?;
+        if builds.is_empty() {
+            self.store.end_spec_group(group).await?;
+        }
+        tracing::info!(repo = %name, group, members = members.len(), builds = builds.len(), "speculation started");
+        Ok(())
+    }
+
+    /// Reads the CI of a group's prefix builds and lands the longest green prefix.
+    async fn advance_speculation(
+        &self,
+        repo_id: RepoId,
+        repo: &RepoAccess,
+        group: &SpecGroup,
+    ) -> anyhow::Result<()> {
+        let (inst, name) = (repo.installation, &repo.full_name);
+        let mut results = Vec::with_capacity(group.builds.len());
+        for b in &group.builds {
+            results.push(
+                match sheltie_github::ci::evaluate(
+                    &self.github.commit_ci(inst, name, &b.sha).await?,
+                ) {
+                    CiState::Success => Build::Green,
+                    CiState::Failure | CiState::Error => Build::Red,
+                    CiState::Pending | CiState::None => Build::Pending,
+                },
+            );
+        }
+        let lengths: Vec<usize> = group.builds.iter().map(|b| b.length).collect();
+        let Verdict::Settle { land, culprit } = decide(&lengths, &results) else {
+            return Ok(());
+        };
+        if land > 0 {
+            match self
+                .github
+                .fast_forward(
+                    inst,
+                    name,
+                    &repo.default_branch,
+                    &group.member_shas[land - 1],
+                )
+                .await?
+            {
+                FastForward::Done => {
+                    for (id, sha) in group.members.iter().zip(&group.member_shas).take(land) {
+                        self.store
+                            .mark_landed(repo_id, *id, sha, GuaranteeTier::SpeculationVerified)
+                            .await?;
+                    }
+                    tracing::info!(repo = %name, group = group.id, landed = land, "speculation landed a prefix");
+                }
+                FastForward::Moved => {
+                    tracing::info!(repo = %name, group = group.id, "head moved; rebuilding the group next epoch");
+                }
+            }
+        }
+        if let Some(i) = culprit
+            && let Some(id) = group.members.get(i)
+        {
+            let mut before = Vec::new();
+            for m in &group.members[..i] {
+                if let Some(c) = self.store.committer_change(*m).await? {
+                    before.push(format!("#{}", c.change.pr.0));
+                }
+            }
+            let with = if before.is_empty() {
+                String::new()
+            } else {
+                format!(" together with {}", before.join(", "))
+            };
+            let reason = format!(
+                "CI failed when it was merged onto `{}`{with} (branch `{}`)",
+                repo.default_branch,
+                spec_branch(group.id, i + 1)
+            );
+            self.return_change(repo, *id, &reason).await?;
+        }
+        for b in &group.builds {
+            self.github.delete_branch(inst, name, &b.branch).await?;
+        }
+        self.store.end_spec_group(group.id).await?;
         Ok(())
     }
 
