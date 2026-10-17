@@ -38,6 +38,13 @@ on:
         required: false
         type: string
         default: main
+      plain:
+        description: >-
+          Globs, one per line, for data files outside the build (e.g. config/**, migrations/**):
+          edits to the same file conflict, but they do not make footprints leaky.
+        required: false
+        type: string
+        default: ""
       sheltie-version:
         description: Release of Sheltie to download (e.g. v0.1.0); empty builds from sheltie-ref.
         required: false
@@ -111,8 +118,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          PLAIN: ${{ inputs.plain }}
         run: |
-          "$RUNNER_TEMP/sheltie/bin/sheltie-cargo" footprint \
+          args=()
+          while IFS= read -r glob; do
+            [ -n "$glob" ] && args+=(--plain "$glob")
+          done <<< "$PLAIN"
+          "$RUNNER_TEMP/sheltie/bin/sheltie-cargo" footprint "${args[@]}" \
             --base "$BASE" --head "$HEAD" --out "$RUNNER_TEMP/footprint.json"
           jq '{writes: .footprint.writes | length, reads: .footprint.reads | length, leaky: .footprint.leaky}' "$RUNNER_TEMP/footprint.json"
 

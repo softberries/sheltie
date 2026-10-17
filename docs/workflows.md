@@ -32,6 +32,19 @@ On pull requests it computes the footprint with `sheltie-cargo` and uploads it. 
 the default branch it uploads the build graph, which predicts footprints of issues (see
 [Coordinating agents](agents.md)).
 
+Files outside every crate are assumed to affect the whole build, so a change to one conflicts
+with everything. Declare data files that do not, one glob per line:
+
+```yaml
+    with:
+      sheltie-url: https://sheltie.example.com
+      plain: |
+        config/**
+        migrations/**
+```
+
+Two changes to the same plain file still conflict (and go to the merge engine).
+
 ## Merge engine (optional)
 
 Resolves conflicts with tiers 1–3 (see [Merge rules](merge-rules.md)). Sheltie starts it with

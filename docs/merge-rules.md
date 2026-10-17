@@ -49,6 +49,10 @@ Numbered files, such as database migrations, where both sides added a file with 
 number. `key` is a regular expression whose first capture group is the number; the file the
 later side added is renumbered to the next free number.
 
+Two changes that each add a file matching the same rule conflict even when their file names
+differ (the adapter gives them a shared `seq:` target), so they always go through the merge
+engine and never land with the same number.
+
 When more than one rule matches a path, `[[derived]]` wins over `[[set]]`, which wins over
 `[[sequence]]`.
 
