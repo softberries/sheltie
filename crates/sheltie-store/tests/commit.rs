@@ -195,3 +195,51 @@ async fn verify_run_lifecycle(pool: PgPool) {
         .unwrap();
     assert_eq!(reason.as_deref(), Some("CI failed"));
 }
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn speculation_group_lifecycle(pool: PgPool) {
+    use sheltie_store::SpecBuild;
+    let (store, id) = setup(&pool).await;
+    // Only ready changes join a group.
+    sqlx::query("UPDATE changes SET state = 'ready'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let group = store
+        .create_spec_group(REPO, &[id], &sha('0'))
+        .await
+        .unwrap();
+    assert_eq!(
+        store
+            .change_state(REPO, PrNumber(1), &sha('a'))
+            .await
+            .unwrap(),
+        Some(ChangeState::Verifying)
+    );
+    let build = SpecBuild {
+        length: 1,
+        branch: "sheltie/spec/1-1".into(),
+        sha: sha('7'),
+    };
+    store
+        .record_spec_builds(group, &[sha('7')], std::slice::from_ref(&build))
+        .await
+        .unwrap();
+    let groups = store.spec_groups(REPO).await.unwrap();
+    assert_eq!(groups.len(), 1);
+    assert_eq!(
+        (groups[0].members.as_slice(), groups[0].builds.as_slice()),
+        ([id].as_slice(), [build].as_slice())
+    );
+    assert_eq!(groups[0].member_shas, [sha('7')]);
+    store.end_spec_group(group).await.unwrap();
+    assert!(store.spec_groups(REPO).await.unwrap().is_empty());
+    assert_eq!(
+        store
+            .change_state(REPO, PrNumber(1), &sha('a'))
+            .await
+            .unwrap(),
+        Some(ChangeState::Ready),
+        "back in the queue"
+    );
+}

@@ -13,6 +13,7 @@ mod footprints;
 mod intake;
 mod readiness;
 mod reality;
+mod speculation;
 mod sweeps;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
@@ -22,6 +23,7 @@ pub use footprints::StoredFootprint;
 pub use intake::Ingested;
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
+pub use speculation::{SpecBuild, SpecGroup};
 pub use sweeps::{Culprit, LandedChange, Tip};
 
 use sqlx::migrate::{MigrateError, Migrator};
