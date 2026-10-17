@@ -576,6 +576,17 @@ impl Env {
         self.wait_state(1, &h1, ChangeState::Landed).await;
         self.wait_fake("a merge dispatch", |st| !st.dispatches.is_empty())
             .await;
+        // Sheltie dispatches, then records the run; a report is only accepted after that.
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while sqlx::query_scalar::<_, i64>("SELECT count(*) FROM merge_runs")
+            .fetch_one(self.store.pool())
+            .await
+            .unwrap()
+            == 0
+        {
+            assert!(Instant::now() < deadline, "merge run not recorded");
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
         (h1, h2)
     }
 }
