@@ -2388,7 +2388,16 @@ dependencies = [
 name = "sheltie-merge"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
+ "clap",
+ "globset",
+ "proptest",
+ "regex",
+ "serde",
+ "serde_json",
  "sheltie-core",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]
