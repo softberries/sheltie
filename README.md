@@ -36,7 +36,7 @@ You need a host with Docker and a public HTTPS name, and a browser to register t
 ```sh
 git clone https://github.com/softberries/sheltie && cd sheltie
 scripts/register-github-app.py --url https://sheltie.example.com   # writes .env and the App key
-docker compose -f deploy/compose.yaml up -d --build
+docker compose up -d --build
 curl -s localhost:8080/healthz                                       # {"status":"ok"}
 ```
 

@@ -21,7 +21,7 @@ working directory if there is one.
 Set all three `SHELTIE_GITHUB_*` variables, or none of them. Without them the server serves
 only `/healthz`.
 
-`deploy/compose.yaml` also reads `SHELTIE_POSTGRES_PASSWORD`, `SHELTIE_UID`, `SHELTIE_PORT`,
+`compose.yaml` also reads `SHELTIE_POSTGRES_PASSWORD`, `SHELTIE_UID`, `SHELTIE_PORT`,
 `SHELTIE_IMAGE` and `SHELTIE_GITHUB_KEY_FILE` from `.env`.
 
 ## Per repository

@@ -12,7 +12,7 @@ printed.
 Usage:
   scripts/register-github-app.py --url https://sheltie.example.com [--org ORG] [--name NAME]
       A production App: webhooks go to <url>/webhooks/github. Also writes a random
-      SHELTIE_POSTGRES_PASSWORD and SHELTIE_PUBLIC_HOSTS to .env (for deploy/compose.yaml).
+      SHELTIE_POSTGRES_PASSWORD and SHELTIE_PUBLIC_HOSTS to .env (for compose.yaml).
   scripts/register-github-app.py [--org ORG] [--name NAME] [--webhook-url URL]
       A development App. Without --webhook-url a new smee.io channel forwards webhooks locally.
 """
@@ -152,12 +152,12 @@ def main() -> int:
         extra = {
             "SHELTIE_POSTGRES_PASSWORD": secrets.token_urlsafe(24),
             "SHELTIE_PUBLIC_HOSTS": urllib.parse.urlparse(base_url).netloc,
-            # deploy/compose.yaml runs the server as this user so it can read the mode-600 key.
+            # compose.yaml runs the server as this user so it can read the mode-600 key.
             "SHELTIE_UID": str(os.getuid()),
         }
         save(result["app"], extra)
         print("\nNext:")
-        print("  docker compose -f deploy/compose.yaml up -d")
+        print("  docker compose up -d --build")
         print(f"  curl {base_url}/healthz")
         print("Then install the App on your repositories from the App's page, and add the")
         print("workflows (docs/self-hosting.md).")

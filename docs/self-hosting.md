@@ -36,7 +36,7 @@ root. If you registered the App on another machine, set `SHELTIE_UID` in `.env` 
 output of `id -u` on the host: the server runs as that user so it can read the mode-600 key.
 
 ```sh
-docker compose -f deploy/compose.yaml up -d --build
+docker compose up -d --build
 curl -s localhost:8080/healthz      # {"status":"ok"}
 ```
 
@@ -75,7 +75,7 @@ After a few days in shadow mode, look at how often Sheltie's predictions would h
 wrong:
 
 ```sh
-docker compose -f deploy/compose.yaml exec sheltie sheltie-server shadow-report --repo your-org/your-repo
+docker compose exec sheltie sheltie-server shadow-report --repo your-org/your-repo
 ```
 
 Before switching a repository to merge mode:
@@ -89,7 +89,7 @@ Before switching a repository to merge mode:
 Then:
 
 ```sh
-docker compose -f deploy/compose.yaml exec sheltie sheltie-server repo set-mode --repo your-org/your-repo --mode merge
+docker compose exec sheltie sheltie-server repo set-mode --repo your-org/your-repo --mode merge
 ```
 
 Switch back at any time with `--mode shadow`. To turn on the merge engine for a repository
