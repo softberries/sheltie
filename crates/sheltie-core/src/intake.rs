@@ -39,6 +39,8 @@ text_enum! {
         ChangesRequested => "changes_requested",
         /// A review was dismissed.
         ReviewDismissed => "review_dismissed",
+        /// The title or description was edited (the intent may have changed).
+        Edited => "edited",
     }
 }
 
@@ -65,7 +67,8 @@ impl PrEventKind {
             | PrEventKind::ConvertedToDraft
             | PrEventKind::Approved
             | PrEventKind::ChangesRequested
-            | PrEventKind::ReviewDismissed => Lifecycle::Record,
+            | PrEventKind::ReviewDismissed
+            | PrEventKind::Edited => Lifecycle::Record,
         }
     }
 }
@@ -95,6 +98,33 @@ pub struct PrEvent {
     pub default_branch: Option<String>,
     /// For [`PrEventKind::Merged`]: the commit that landed on the target branch.
     pub merge_commit: Option<CommitSha>,
+    /// The intent block of the description, when the event carries the description.
+    pub intent: IntentField,
+}
+
+/// The intent block of a pull request description.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum IntentField {
+    /// The event does not carry the description (reviews).
+    #[default]
+    Unknown,
+    /// The description has no intent block.
+    Missing,
+    /// A valid intent.
+    Valid(crate::Intent),
+    /// An intent block that was rejected, and why.
+    Invalid(String),
+}
+
+impl IntentField {
+    /// Parses the description of a pull request.
+    pub fn from_description(body: Option<&str>) -> Self {
+        match crate::Intent::from_description(body.unwrap_or_default()) {
+            Ok(Some(i)) => IntentField::Valid(i),
+            Ok(None) => IntentField::Missing,
+            Err(e) => IntentField::Invalid(e.0),
+        }
+    }
 }
 
 /// Checks or commit statuses on a commit changed; readiness of changes at `head` must be

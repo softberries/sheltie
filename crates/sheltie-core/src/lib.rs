@@ -60,6 +60,7 @@ mod footprint;
 mod head;
 mod ids;
 pub mod intake;
+pub mod intent;
 mod resolution;
 mod score;
 mod verification;
@@ -72,6 +73,7 @@ pub use ids::{
     InvalidRepoName, Login, PrNumber, RepoFullName, RepoId, RepoPath, RunnerId, TargetId, TestId,
     TreeHash,
 };
+pub use intent::{Intent, InvalidIntent, ReplayChecks, ReplayReport};
 pub use resolution::{FileResolution, MergeReport, Resolution, ResolutionTier};
 pub use score::{InvalidScore, Score};
 pub use verification::{Outcome, Verification};
