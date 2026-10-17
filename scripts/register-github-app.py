@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Register a development GitHub App for Sheltie from deploy/github-app-manifest.json.
+"""Register a GitHub App for Sheltie from deploy/github-app-manifest.json.
 
 Uses GitHub's App manifest flow: opens a page that posts the manifest to GitHub, you confirm
 the App name in the browser, and GitHub redirects back here with a one-hour code that is
@@ -9,8 +9,12 @@ The private key is written to sheltie-github-app.pem (git-ignored, mode 600) and
 SHELTIE_GITHUB_* settings are appended to .env if they are not set there yet. Secrets are never
 printed.
 
-Usage: scripts/register-github-app.py [--org ORG] [--name NAME] [--webhook-url URL]
-Without --webhook-url a new smee.io channel is created for forwarding webhooks locally.
+Usage:
+  scripts/register-github-app.py --url https://sheltie.example.com [--org ORG] [--name NAME]
+      A production App: webhooks go to <url>/webhooks/github. Also writes a random
+      SHELTIE_POSTGRES_PASSWORD and SHELTIE_PUBLIC_HOSTS to .env (for deploy/compose.yaml).
+  scripts/register-github-app.py [--org ORG] [--name NAME] [--webhook-url URL]
+      A development App. Without --webhook-url a new smee.io channel forwards webhooks locally.
 """
 
 import argparse
@@ -48,7 +52,7 @@ def exchange(code: str) -> dict:
         return json.load(response)
 
 
-def save(app: dict) -> None:
+def save(app: dict, extra: dict) -> None:
     KEY_FILE.write_text(app["pem"])
     os.chmod(KEY_FILE, 0o600)
     existing = ENV_FILE.read_text() if ENV_FILE.exists() else ""
@@ -56,6 +60,7 @@ def save(app: dict) -> None:
         "SHELTIE_GITHUB_APP_ID": str(app["id"]),
         "SHELTIE_GITHUB_PRIVATE_KEY_PATH": f"./{KEY_FILE.name}",
         "SHELTIE_GITHUB_WEBHOOK_SECRET": app["webhook_secret"],
+        **extra,
     }
     missing = {k: v for k, v in settings.items() if f"\n{k}=" not in f"\n{existing}"}
     if missing:
@@ -76,16 +81,33 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--org", help="register under this organization instead of your account")
     parser.add_argument("--name", help="App name (must be unique on GitHub)")
-    parser.add_argument("--webhook-url", help="public URL that forwards to /webhooks/github")
+    parser.add_argument("--url", help="public https URL of your Sheltie server (production)")
+    parser.add_argument("--webhook-url", help="development: public URL that forwards to /webhooks/github")
     args = parser.parse_args()
+    if args.url and args.webhook_url:
+        sys.exit("give --url (production) or --webhook-url (development), not both")
+    base_url = None
+    if args.url:
+        parsed = urllib.parse.urlparse(args.url)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.path not in ("", "/"):
+            sys.exit("--url must be an https URL of the server, e.g. https://sheltie.example.com")
+        base_url = f"https://{parsed.netloc}"
 
     if KEY_FILE.exists():
         sys.exit(f"{KEY_FILE.name} already exists; move it away to register a new App.")
 
     manifest = json.loads(MANIFEST.read_text())
+    if base_url:
+        host = urllib.parse.urlparse(base_url).hostname or ""
+        # App names are unique on GitHub and at most 34 characters.
+        manifest["name"] = f"Sheltie {host}"[:34]
+        manifest["description"] = "Parallel merge engine for agent-generated pull requests."
     if args.name:
         manifest["name"] = args.name
-    webhook_url = args.webhook_url or new_smee_channel()
+    if base_url:
+        webhook_url = f"{base_url}/webhooks/github"
+    else:
+        webhook_url = args.webhook_url or new_smee_channel()
     manifest["hook_attributes"]["url"] = webhook_url
     manifest["redirect_url"] = f"http://127.0.0.1:{PORT}/callback"
 
@@ -126,10 +148,24 @@ def main() -> int:
     webbrowser.open(f"http://127.0.0.1:{PORT}/")
     while "app" not in result:
         server.handle_request()
-    save(result["app"])
-    print("\nNext: forward webhooks to the local server (keep it running):")
-    print(f"  npx smee-client --url {webhook_url} --target http://127.0.0.1:8080/webhooks/github")
-    print("Then install the App on a test repository from the App's page.")
+    if base_url:
+        extra = {
+            "SHELTIE_POSTGRES_PASSWORD": secrets.token_urlsafe(24),
+            "SHELTIE_PUBLIC_HOSTS": urllib.parse.urlparse(base_url).netloc,
+            # deploy/compose.yaml runs the server as this user so it can read the mode-600 key.
+            "SHELTIE_UID": str(os.getuid()),
+        }
+        save(result["app"], extra)
+        print("\nNext:")
+        print("  docker compose -f deploy/compose.yaml up -d")
+        print(f"  curl {base_url}/healthz")
+        print("Then install the App on your repositories from the App's page, and add the")
+        print("workflows (docs/self-hosting.md).")
+    else:
+        save(result["app"], {})
+        print("\nNext: forward webhooks to the local server (keep it running):")
+        print(f"  npx smee-client --url {webhook_url} --target http://127.0.0.1:8080/webhooks/github")
+        print("Then install the App on a test repository from the App's page.")
     return 0
 
 
