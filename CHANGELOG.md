@@ -118,6 +118,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The dashboard's empty state says to sign in again after installing the App, since the
+  repositories a user can see are read at sign-in.
+- The sweeper logs a red default branch with no known green commit once per tip, not every tick.
 - The Sheltie check run is redesigned: a clear headline per state, what happens next, the footprint's targets in a collapsible section, how a change landed and which tier resolved its conflict.
 - Every comment Sheltie posts follows one format: what happened, why, what to do next.
 - `shadow-report --json` is now `--format json`.
