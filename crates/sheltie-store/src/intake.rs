@@ -153,16 +153,38 @@ async fn apply_pr_event(
     };
     if let Some(intent) = intent {
         let intent = (!intent.is_null()).then_some(intent);
-        sqlx::query(
-            "UPDATE changes SET intent = $3, intent_error = $4, updated_at = now()
-             WHERE repo_id = $1 AND pr_number = $2 AND state NOT IN ('landed', 'closed')",
+        // A change returned at this head gets another try when a new, valid intent is added:
+        // the returned comment asks for one, so Sheltie can re-derive the change from it.
+        let retried: Vec<i64> = sqlx::query_scalar::<_, Option<i64>>(
+            "WITH old AS (
+                 SELECT id, state = 'returned' AND head_sha = $5 AND $3::jsonb IS NOT NULL
+                            AND intent IS DISTINCT FROM $3::jsonb AS retry
+                 FROM changes
+                 WHERE repo_id = $1 AND pr_number = $2 AND state NOT IN ('landed', 'closed')
+                 FOR UPDATE
+             )
+             UPDATE changes c
+             SET intent = $3, intent_error = $4, updated_at = now(),
+                 state = CASE WHEN old.retry THEN 'pending' ELSE c.state END,
+                 returned_reason = CASE WHEN old.retry THEN NULL ELSE c.returned_reason END
+             FROM old
+             WHERE c.id = old.id
+             RETURNING CASE WHEN old.retry THEN c.id END",
         )
         .bind(repo_id)
         .bind(pr)
         .bind(intent)
         .bind(intent_error)
-        .execute(&mut *conn)
-        .await?;
+        .bind(e.head.as_str())
+        .fetch_all(&mut *conn)
+        .await?
+        .into_iter()
+        .flatten()
+        .collect();
+        for change_id in retried {
+            request_check_run(conn, change_id).await?;
+            request_readiness(conn, change_id).await?;
+        }
     }
     if e.kind.lifecycle() == Lifecycle::Record {
         // Reviews and draft changes affect readiness.
