@@ -1,0 +1,46 @@
+# Publishes sheltie.dev (site/ plus the mdBook docs under /docs) to GitHub Pages.
+# Pages needs the repository to be public (or a paid plan): it runs on pushes to main only
+# once the repository variable PAGES_ENABLED is "true", and can always be started by hand.
+name: Site
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "docs/**", "scripts/build-site.sh", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || vars.PAGES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: "0.5.4"
+      - run: scripts/build-site.sh
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: target/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

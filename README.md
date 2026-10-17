@@ -1,6 +1,11 @@
-# Sheltie
+<p align="center">
+  <img src="site/assets/logo.svg" width="96" alt="">
+</p>
 
-**A parallel merge engine for agent-generated pull requests.**
+<h1 align="center">Sheltie</h1>
+
+<p align="center"><b>A parallel merge engine for agent-generated pull requests.</b><br>
+<a href="https://sheltie.dev">sheltie.dev</a> · <a href="docs/introduction.md">Docs</a> · <a href="docs/self-hosting.md">Self-hosting</a></p>
 
 Coding agents open more pull requests than a one-at-a-time merge queue can land. Sheltie runs as
 a GitHub App next to your existing CI. It computes a *footprint* for every pull request (which
