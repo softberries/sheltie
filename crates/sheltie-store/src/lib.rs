@@ -7,6 +7,7 @@
 use std::time::Duration;
 
 mod checks;
+mod commit;
 mod epochs;
 mod footprints;
 mod intake;
@@ -14,6 +15,7 @@ mod readiness;
 mod reality;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
+pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
 pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
 pub use intake::Ingested;
