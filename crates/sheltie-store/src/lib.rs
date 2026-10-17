@@ -13,6 +13,7 @@ mod footprints;
 mod intake;
 mod readiness;
 mod reality;
+mod sweeps;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
 pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
@@ -21,6 +22,7 @@ pub use footprints::StoredFootprint;
 pub use intake::Ingested;
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
+pub use sweeps::{Culprit, LandedChange, Tip};
 
 use sqlx::migrate::{MigrateError, Migrator};
 use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};

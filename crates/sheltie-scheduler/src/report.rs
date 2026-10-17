@@ -26,6 +26,8 @@ pub struct SuspectedMiss<K> {
     pub writes_a: BTreeSet<TargetId>,
     /// What `b` wrote.
     pub writes_b: BTreeSet<TargetId>,
+    /// Bisect later blamed one of the two changes (M4).
+    pub confirmed: bool,
 }
 
 /// Pairs of changes in a red window whose footprints say they commute.
@@ -49,6 +51,7 @@ pub fn suspected_misses<K: Ord + Clone>(landed: &[LandedInWindow<K>]) -> Vec<Sus
                     b: (*kb).clone(),
                     writes_a: fa.writes.clone(),
                     writes_b: fb.writes.clone(),
+                    confirmed: false,
                 });
             }
         }
@@ -116,6 +119,8 @@ pub struct ShadowReport {
     pub red_commits: usize,
     /// Suspected footprint misses.
     pub suspected_misses: usize,
+    /// Of those, how many bisect confirmed by blaming one of the pair.
+    pub confirmed_misses: usize,
     /// Suspected misses per 1,000 merges.
     pub misses_per_1000_merges: Option<f64>,
     /// Targets written by the most merged changes.
@@ -170,6 +175,7 @@ pub fn build_report(input: &ReportInput) -> ShadowReport {
         }),
         red_commits: input.red_commits,
         suspected_misses: input.misses.len(),
+        confirmed_misses: input.misses.iter().filter(|m| m.confirmed).count(),
         misses_per_1000_merges: (merged > 0)
             .then(|| input.misses.len() as f64 * 1000.0 / merged as f64),
         hot_targets,
@@ -220,6 +226,7 @@ impl ShadowReport {
                 "Suspected footprint misses",
                 self.suspected_misses.to_string(),
             ),
+            ("…confirmed by bisect", self.confirmed_misses.to_string()),
             (
                 "…per 1,000 merges",
                 self.misses_per_1000_merges
@@ -349,6 +356,7 @@ mod tests {
                 b: 3,
                 writes_a: BTreeSet::new(),
                 writes_b: BTreeSet::new(),
+                confirmed: true,
             }],
         };
         let r = build_report(&input);
@@ -362,6 +370,7 @@ mod tests {
         assert_eq!(r.predicted_at_merge.get("never_ready"), Some(&1));
         assert_eq!(r.hot_targets, vec![(TargetId::new("core"), 2)]);
         assert!((r.misses_per_1000_merges.unwrap() - 333.33).abs() < 0.01);
+        assert_eq!(r.confirmed_misses, 1);
         let md = r.to_markdown();
         assert!(md.contains("| PRs merged | 3 |"), "{md}");
         assert!(md.contains("- #1 () and #3 ()"), "{md}");

@@ -316,7 +316,7 @@ impl Store {
         .fetch_one(&self.pool)
         .await?;
         let misses = sqlx::query(
-            "SELECT a.pr_number AS pr_a, b.pr_number AS pr_b, m.writes_a, m.writes_b
+            "SELECT a.pr_number AS pr_a, b.pr_number AS pr_b, m.writes_a, m.writes_b, m.confirmed
              FROM footprint_misses m
              JOIN changes a ON a.id = m.change_a JOIN changes b ON b.id = m.change_b
              WHERE m.repo_id = $1 AND m.detected_at >= $2
@@ -334,6 +334,7 @@ impl Store {
                 b: from_db_id(r.try_get("pr_b")?, "pull request number")?,
                 writes_a: set(r.try_get("writes_a")?),
                 writes_b: set(r.try_get("writes_b")?),
+                confirmed: r.try_get("confirmed")?,
             })
         })
         .collect::<Result<_, _>>()?;

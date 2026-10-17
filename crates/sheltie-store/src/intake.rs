@@ -301,6 +301,11 @@ async fn apply_push_event(conn: &mut PgConnection, e: &PushEvent) -> Result<(), 
     .bind(&commits)
     .execute(&mut *conn)
     .await?;
+    sqlx::query("UPDATE branch_commits SET is_tip = true WHERE repo_id = $1 AND sha = $2")
+        .bind(repo_id)
+        .bind(e.after.as_str())
+        .execute(&mut *conn)
+        .await?;
     Ok(())
 }
 
