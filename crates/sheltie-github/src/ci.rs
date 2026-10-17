@@ -20,7 +20,7 @@ query($owner: String!, $name: String!, $oid: GitObjectID!) {
             pageInfo { hasNextPage }
             nodes {
               __typename
-              ... on CheckRun { name status conclusion }
+              ... on CheckRun { name status conclusion startedAt completedAt }
               ... on StatusContext { state }
             }
           }
@@ -101,6 +101,38 @@ pub fn evaluate(data: &CommitData) -> CiState {
     } else {
         CiState::Success
     }
+}
+
+/// How long the commit's CI took, in seconds: from the first check run's start to the last
+/// one's completion, Sheltie's own check left out. `None` while any is unfinished.
+pub fn duration_seconds(data: &CommitData) -> Option<i64> {
+    let contexts = &data
+        .repository
+        .as_ref()?
+        .object
+        .as_ref()?
+        .status_check_rollup
+        .as_ref()?
+        .contexts;
+    let mut start = None;
+    let mut end = None;
+    for ctx in &contexts.nodes {
+        if let Context::CheckRun {
+            name,
+            started_at,
+            completed_at,
+            ..
+        } = ctx
+        {
+            if name == CHECK_NAME {
+                continue;
+            }
+            let (s, e) = ((*started_at)?, (*completed_at)?);
+            start = Some(start.map_or(s, |x: chrono::DateTime<chrono::Utc>| x.min(s)));
+            end = Some(end.map_or(e, |x: chrono::DateTime<chrono::Utc>| x.max(e)));
+        }
+    }
+    Some((end? - start?).num_seconds().max(0))
 }
 
 /// A check suite of a commit, as `GET /repos/{repo}/commits/{sha}/check-suites` lists it.
@@ -198,6 +230,34 @@ mod tests {
         )
         .unwrap();
         assert_eq!(evaluate(&none), CiState::None);
+    }
+
+    #[test]
+    fn duration_spans_the_check_runs() {
+        let timed = |name: &str, start: &str, end: Option<&str>| {
+            json!({ "__typename": "CheckRun", "name": name, "status": "COMPLETED", "conclusion": "SUCCESS",
+                    "startedAt": start, "completedAt": end })
+        };
+        let d = data(
+            json!([
+                timed("test", "2026-10-17T10:00:00Z", Some("2026-10-17T10:04:00Z")),
+                timed("lint", "2026-10-17T10:00:30Z", Some("2026-10-17T10:05:00Z")),
+                timed(
+                    CHECK_NAME,
+                    "2026-10-17T09:00:00Z",
+                    Some("2026-10-17T11:00:00Z")
+                ),
+                status("SUCCESS")
+            ]),
+            false,
+        );
+        assert_eq!(duration_seconds(&d), Some(300));
+        let running = data(json!([timed("test", "2026-10-17T10:00:00Z", None)]), false);
+        assert_eq!(duration_seconds(&running), None);
+        assert_eq!(
+            duration_seconds(&data(json!([status("SUCCESS")]), false)),
+            None
+        );
     }
 
     #[test]

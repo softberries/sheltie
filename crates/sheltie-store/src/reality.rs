@@ -110,6 +110,22 @@ impl Store {
         rows.iter().map(ci_job_from_row).collect()
     }
 
+    /// Records how long a default-branch commit's CI took (for the time-saved estimate).
+    pub async fn record_ci_seconds(
+        &self,
+        repo: RepoId,
+        sha: &CommitSha,
+        seconds: i64,
+    ) -> Result<(), StoreError> {
+        sqlx::query("UPDATE branch_commits SET ci_seconds = $3 WHERE repo_id = $1 AND sha = $2")
+            .bind(to_db_id(repo.0, "repository id")?)
+            .bind(sha.as_str())
+            .bind(i32::try_from(seconds.clamp(0, 7 * 86_400)).unwrap_or(i32::MAX))
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
     /// Records a CI result. When a commit turns red, returns the window of changes that
     /// landed since the last green commit, for miss detection.
     pub async fn apply_branch_ci(
