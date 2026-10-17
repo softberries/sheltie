@@ -70,7 +70,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `repository_dispatch`, verifies the reported merge commit and lands it. Enable per repository
   with `sheltie-server repo set-merge-engine --state on` after adding the workflow.
 
+- Intent replay (tier 4): a `sheltie-intent` block in the PR description lets Sheltie re-derive a
+  change with Claude Code headless when the merge engine cannot resolve it (4a) or it breaks CI
+  once merged (4b). Configured by `[replay]` in `.sheltie/merge.toml` (off by default), run on
+  your runner by the reusable `.github/workflows/replay.yml` with your own API key, checked for
+  scope, acceptance tests and similarity, reported to `POST /v1/replays`, capped per PR and per
+  repository per day, and labelled `sheltie: replayed` or `sheltie: needs re-approval`.
+
 ### Changed
+
+- `sheltie-merge` now has subcommands: `sheltie-merge merge` (tiers 1-3) and `sheltie-merge replay`.
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
 - A closed change can be reopened (`Closed` → `Pending`); `Change.diff_hash` is optional until

@@ -11,17 +11,28 @@ use std::sync::Arc;
 use anyhow::Context as _;
 use sheltie_commit::speculation::{Build, Verdict, decide, prefix_lengths};
 use sheltie_commit::{CommitCheck, check, land_branch, merge_message, spec_branch, verify_branch};
-use sheltie_core::{CommitSha, GuaranteeTier, RepoId, TargetId};
+use sheltie_core::{CommitSha, GuaranteeTier, RepoId, ResolutionTier, Score, TargetId};
 use sheltie_github::GitHubApp;
 use sheltie_github::git::{FastForward, MergeResult};
+use sheltie_merge::rules::{ReplayConfig, Rules};
 use sheltie_scheduler::Decision;
 use sheltie_store::{
-    CiState, CommitterChange, MergeOutcome, RepoAccess, SpecBuild, SpecGroup, Store, VerifyRun,
+    CiState, CommitterChange, MergeOutcome, ReplayOutcome, RepoAccess, SpecBuild, SpecGroup, Store,
+    VerifyRun,
 };
 
 /// The `repository_dispatch` event type that starts the merge-engine workflow.
 pub const MERGE_EVENT: &str = "sheltie-merge";
 
+/// The `repository_dispatch` event type that starts the intent-replay workflow (tier 4).
+pub const REPLAY_EVENT: &str = "sheltie-replay";
+/// Label on a pull request that landed through a replay.
+pub const REPLAYED_LABEL: &str = "sheltie: replayed";
+/// Label on a pull request whose replay needs a human to approve it.
+pub const REAPPROVAL_LABEL: &str = "sheltie: needs re-approval";
+
+/// A replay that has not reported for this long is given up on (agent runs are slow).
+const REPLAY_TIMEOUT_MINUTES: i64 = 90;
 /// Lost compare-and-swaps tolerated per change and epoch before trying again next epoch.
 const MAX_CAS_RETRIES: usize = 3;
 /// A verify branch on which no CI reports for this long is given up on.
@@ -107,7 +118,8 @@ impl Committer {
         for group in self.store.spec_groups(repo_id).await? {
             self.advance_speculation(repo_id, repo, &group).await?;
         }
-        self.advance_merges(repo_id, repo).await
+        self.advance_merges(repo_id, repo).await?;
+        self.advance_replays(repo_id, repo).await
     }
 
     /// Builds a group's prefixes on the current head: merges the members one by one on a work
@@ -537,7 +549,10 @@ impl Committer {
                 self.github
                     .delete_branch(repo.installation, &repo.full_name, &run.branch)
                     .await?;
-                self.return_change(repo, id, &reason).await
+                // Its own CI was green (it was ready), so this is a semantic conflict with what
+                // landed: re-derive it on the new head (4b) if it can be.
+                self.try_replay(repo, id, ResolutionTier::ReplayFull, &run.onto, &reason)
+                    .await
             }
             CiState::Success => match self.handle(repo, id, Some(&run)).await? {
                 Outcome::Waiting => {
@@ -563,7 +578,9 @@ impl Committer {
             return Ok(Outcome::Waiting);
         };
         if !self.store.merge_engine_enabled(c.change.repo).await? {
-            return self.return_change(repo, id, reason).await;
+            return self
+                .try_replay(repo, id, ResolutionTier::ReplayHunks, onto, reason)
+                .await;
         }
         let payload = serde_json::json!({
             "pr": c.change.pr.0,
@@ -609,7 +626,14 @@ impl Committer {
                         "the merge engine could not resolve conflicts in {}; rebase it",
                         list.join(", ")
                     );
-                    self.return_change(repo, run.change_db_id, &reason).await?;
+                    self.try_replay(
+                        repo,
+                        run.change_db_id,
+                        ResolutionTier::ReplayHunks,
+                        &run.onto,
+                        &reason,
+                    )
+                    .await?;
                 }
                 None if chrono::Utc::now() - run.requested_at
                     > chrono::Duration::minutes(NO_CI_TIMEOUT_MINUTES) =>
@@ -618,6 +642,172 @@ impl Committer {
                     self.return_change(repo, run.change_db_id, reason).await?;
                 }
                 None => {}
+            }
+        }
+        Ok(())
+    }
+
+    /// The repository's replay settings from `.sheltie/merge.toml` on the default branch, or
+    /// why replay cannot be used.
+    async fn replay_config(
+        &self,
+        repo: &RepoAccess,
+    ) -> anyhow::Result<Result<ReplayConfig, String>> {
+        let text = self
+            .github
+            .file_at(
+                repo.installation,
+                &repo.full_name,
+                ".sheltie/merge.toml",
+                &repo.default_branch,
+            )
+            .await?;
+        Ok(match text.map(|t| Rules::parse(&t)) {
+            None => Err("replay is not enabled".into()),
+            Some(Err(e)) => Err(format!("`.sheltie/merge.toml` is invalid: {e}")),
+            Some(Ok(rules)) if !rules.replay.enabled => Err("replay is not enabled".into()),
+            Some(Ok(rules)) => Ok(rules.replay),
+        })
+    }
+
+    /// Tier 4: asks the runner to re-derive the change from its intent onto `onto`, within the
+    /// repository's attempt and budget limits; otherwise returns it with `reason`.
+    async fn try_replay(
+        &self,
+        repo: &RepoAccess,
+        id: i64,
+        tier: ResolutionTier,
+        onto: &CommitSha,
+        reason: &str,
+    ) -> anyhow::Result<Outcome> {
+        let Some(c) = self.store.committer_change(id).await? else {
+            return Ok(Outcome::Waiting);
+        };
+        let config = match self.replay_config(repo).await? {
+            Ok(config) => config,
+            Err(_) => return self.return_change(repo, id, reason).await,
+        };
+        if self.store.change_intent(id).await?.is_none() {
+            let reason = format!(
+                "{reason}. Add a valid `sheltie-intent` block to the description to let Sheltie re-derive it"
+            );
+            return self.return_change(repo, id, &reason).await;
+        }
+        let attempts = self.store.replay_attempts(id).await?;
+        if attempts >= config.max_attempts {
+            let reason = format!("{reason}; {attempts} replay attempts did not land it");
+            return self.return_change(repo, id, &reason).await;
+        }
+        if self.store.replay_cost_last_day(c.change.repo).await? >= config.daily_budget_usd {
+            let reason = format!("{reason}; the repository's daily replay budget is spent");
+            return self.return_change(repo, id, &reason).await;
+        }
+        let mode = if tier == ResolutionTier::ReplayHunks {
+            "hunks"
+        } else {
+            "full"
+        };
+        let payload = serde_json::json!({
+            "pr": c.change.pr.0,
+            "head": c.change.head.as_str(),
+            "onto": onto.as_str(),
+            "branch": repo.default_branch,
+            "mode": mode,
+        });
+        self.github
+            .dispatch(repo.installation, &repo.full_name, REPLAY_EVENT, payload)
+            .await?;
+        self.store
+            .start_replay(c.change.repo, id, tier, onto)
+            .await?;
+        tracing::info!(repo = %repo.full_name, change = %c.change, %tier, attempt = attempts + 1, "replaying from intent");
+        Ok(Outcome::Verifying)
+    }
+
+    /// Acts on replay reports: a replay that passed its checks and is close enough to the
+    /// original is verified like any merge; one that is not is kept on a branch for a human;
+    /// a failed one is replayed in full (4b) until the attempt cap or budget is reached.
+    async fn advance_replays(&self, repo_id: RepoId, repo: &RepoAccess) -> anyhow::Result<()> {
+        let runs = self.store.pending_replays(repo_id).await?;
+        if runs.is_empty() {
+            return Ok(());
+        }
+        let threshold = match self.replay_config(repo).await? {
+            Ok(config) => config.similarity_threshold,
+            // Disabled since: nothing below a perfect match lands without a human.
+            Err(_) => 1.0,
+        };
+        for run in runs {
+            let Some(c) = self.store.committer_change(run.change_db_id).await? else {
+                continue;
+            };
+            let pr = c.change.pr;
+            match &run.report {
+                None if chrono::Utc::now() - run.requested_at
+                    > chrono::Duration::minutes(REPLAY_TIMEOUT_MINUTES) =>
+                {
+                    self.store.handle_replay(&run, false).await?;
+                    let reason = "the replay did not report back; is the `sheltie-replay` workflow installed?";
+                    self.return_change(repo, run.change_db_id, reason).await?;
+                }
+                None => {}
+                Some(ReplayOutcome {
+                    result: Some(sha),
+                    checks_passed: true,
+                    similarity,
+                    ..
+                }) => {
+                    let similarity = similarity.map_or(0.0, Score::get);
+                    if similarity >= threshold {
+                        let branch = verify_branch(pr, &c.change.head);
+                        self.github
+                            .reset_branch(repo.installation, &repo.full_name, &branch, sha)
+                            .await?;
+                        self.store.handle_replay(&run, true).await?;
+                        let verify = VerifyRun {
+                            branch,
+                            verify_sha: sha.clone(),
+                            onto: run.onto.clone(),
+                        };
+                        self.store
+                            .start_verify_run(run.change_db_id, &verify)
+                            .await?;
+                        self.github
+                            .add_labels(repo.installation, &repo.full_name, pr, &[REPLAYED_LABEL])
+                            .await?;
+                        tracing::info!(repo = %repo.full_name, change = %c.change, similarity, "replay passed its checks; verifying");
+                    } else {
+                        let branch =
+                            format!("sheltie/replay/{}-{}", pr.0, &c.change.head.as_str()[..12]);
+                        self.github
+                            .reset_branch(repo.installation, &repo.full_name, &branch, sha)
+                            .await?;
+                        self.store.handle_replay(&run, false).await?;
+                        self.github
+                            .add_labels(repo.installation, &repo.full_name, pr, &[REAPPROVAL_LABEL])
+                            .await?;
+                        let reason = format!(
+                            "it was re-derived from its intent on branch `{branch}`, but the result differs from the reviewed change (similarity {similarity:.2}, below {threshold:.2}). Review that branch and push it to this pull request to land it"
+                        );
+                        self.return_change(repo, run.change_db_id, &reason).await?;
+                    }
+                }
+                Some(outcome) => {
+                    self.store.handle_replay(&run, false).await?;
+                    let why = outcome.error.clone().unwrap_or_else(|| {
+                        "the result failed its checks (files outside the change, or acceptance tests)".into()
+                    });
+                    let reason = format!("re-deriving it from its intent failed: {why}");
+                    // 4a escalates to 4b; 4b is retried. Attempts and budget cap both.
+                    self.try_replay(
+                        repo,
+                        run.change_db_id,
+                        ResolutionTier::ReplayFull,
+                        &run.onto,
+                        &reason,
+                    )
+                    .await?;
+                }
             }
         }
         Ok(())

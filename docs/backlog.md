@@ -82,10 +82,11 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 
 **M6 — Intent replay**
 
-- [ ] `intent.json` schema and validation
-- [ ] Replay workflow running Claude Code headless
-- [ ] Acceptance, diff-scope and similarity checks
-- [ ] Re-approval labels; budgets and per-PR caps
+- [x] Intent schema and validation (`sheltie-intent` block in the PR description)
+- [x] Replay workflow running Claude Code headless (`.github/workflows/replay.yml`)
+- [x] Acceptance, diff-scope and similarity checks
+- [x] Re-approval labels; budgets and per-PR caps
+- [ ] Run a replay with real Claude Code on the playground (needs the public deployment, #51, and an API key secret)
 
 **M7 — Coordination**
 
