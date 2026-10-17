@@ -67,6 +67,8 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+      # Tier-1 merge tests run mergiraf (GPL-3.0, invoked as a separate program).
+      - run: cargo install --locked mergiraf
       - run: cargo nextest run --workspace --all-features --no-tests=pass
       - run: cargo test --workspace --doc
 
