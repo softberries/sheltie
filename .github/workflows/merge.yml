@@ -141,7 +141,8 @@ jobs:
           jq '{result, tier: [.files[].tier] | unique, unresolved}' "$RUNNER_TEMP/report.json"
           result=$(jq -r '.result // empty' "$RUNNER_TEMP/report.json")
           if [ -n "$result" ]; then
-            git push origin "${result}:refs/heads/sheltie/merge/${PR}-${HEAD:0:12}"
+            # Sheltie's own branch: a retry onto a newer head replaces the earlier result.
+            git push --force origin "${result}:refs/heads/sheltie/merge/${PR}-${HEAD:0:12}"
           fi
 
       - name: Report to Sheltie

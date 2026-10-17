@@ -361,15 +361,13 @@ impl Committer {
                     self.github
                         .reset_branch(repo.installation, &repo.full_name, &branch, &head)
                         .await?;
+                    // A verified run lands what it verified: for a merge-engine or replay result
+                    // that is the resolution, not the pull request's head. Its first parent is
+                    // the run's `onto`, an ancestor of `head`, so merging it brings the change.
+                    let tip = verified.map_or(&c.change.head, |run| &run.verify_sha);
                     let merged = self
                         .github
-                        .merge_into(
-                            repo.installation,
-                            &repo.full_name,
-                            &branch,
-                            &c.change.head,
-                            &message,
-                        )
+                        .merge_into(repo.installation, &repo.full_name, &branch, tip, &message)
                         .await?;
                     let merge_commit = match merged {
                         MergeResult::Merged(sha) => sha,
