@@ -72,7 +72,7 @@ pub use ids::{
     InvalidRepoName, Login, PrNumber, RepoFullName, RepoId, RepoPath, RunnerId, TargetId, TestId,
     TreeHash,
 };
-pub use resolution::{Resolution, ResolutionTier};
+pub use resolution::{FileResolution, MergeReport, Resolution, ResolutionTier};
 pub use score::{InvalidScore, Score};
 pub use verification::{Outcome, Verification};
 
