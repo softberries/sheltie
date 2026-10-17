@@ -211,7 +211,7 @@ pub fn render_overview(repos: &[RepoOverview], now: DateTime<Utc>) -> String {
         r#"<h1>Repositories</h1><p class="sub">Where Sheltie is installed and you have access.</p>"#,
     );
     if repos.is_empty() {
-        s.push_str(r#"<div class="table"><div class="empty">No repositories yet. Install the GitHub App on a repository you can access.</div></div>"#);
+        s.push_str(r#"<div class="table"><div class="empty">No repositories yet. Install the GitHub App on a repository you can access. Installed it after signing in? <a href="/auth/login">Sign in again</a> to refresh your repositories.</div></div>"#);
         return s;
     }
     s.push_str(r#"<div class="repos">"#);
