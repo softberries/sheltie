@@ -15,7 +15,12 @@ use sheltie_core::{CommitSha, GuaranteeTier, RepoId, TargetId};
 use sheltie_github::GitHubApp;
 use sheltie_github::git::{FastForward, MergeResult};
 use sheltie_scheduler::Decision;
-use sheltie_store::{CiState, CommitterChange, RepoAccess, SpecBuild, SpecGroup, Store, VerifyRun};
+use sheltie_store::{
+    CiState, CommitterChange, MergeOutcome, RepoAccess, SpecBuild, SpecGroup, Store, VerifyRun,
+};
+
+/// The `repository_dispatch` event type that starts the merge-engine workflow.
+pub const MERGE_EVENT: &str = "sheltie-merge";
 
 /// Lost compare-and-swaps tolerated per change and epoch before trying again next epoch.
 const MAX_CAS_RETRIES: usize = 3;
@@ -102,7 +107,7 @@ impl Committer {
         for group in self.store.spec_groups(repo_id).await? {
             self.advance_speculation(repo_id, repo, &group).await?;
         }
-        Ok(())
+        self.advance_merges(repo_id, repo).await
     }
 
     /// Builds a group's prefixes on the current head: merges the members one by one on a work
@@ -150,7 +155,7 @@ impl Committer {
                             "it does not merge cleanly onto `{}`; rebase it",
                             repo.default_branch
                         );
-                        self.return_change(repo, *id, &reason).await?;
+                        self.conflicted(repo, *id, &head, &reason).await?;
                     }
                     break;
                 }
@@ -324,7 +329,7 @@ impl Committer {
                         list(&targets),
                         repo.default_branch
                     );
-                    return self.return_change(repo, id, &reason).await;
+                    return self.conflicted(repo, id, &head, &reason).await;
                 }
                 CommitCheck::Reverify(_) | CommitCheck::Unknown => {
                     return self.verify_on(repo, &c, &head).await;
@@ -370,7 +375,7 @@ impl Committer {
                                 "it does not merge cleanly onto `{}`; rebase it",
                                 repo.default_branch
                             );
-                            return self.return_change(repo, id, &reason).await;
+                            return self.conflicted(repo, id, &head, &reason).await;
                         }
                     };
                     let ff = self
@@ -490,7 +495,7 @@ impl Committer {
                     "it does not merge cleanly onto `{}`; rebase it",
                     repo.default_branch
                 );
-                self.return_change(repo, c.change_db_id, &reason).await
+                self.conflicted(repo, c.change_db_id, head, &reason).await
             }
         }
     }
@@ -543,6 +548,79 @@ impl Committer {
                 other => Ok(other),
             },
         }
+    }
+
+    /// A change that cannot land as is: send it to the merge engine when the repository has
+    /// it, otherwise return it with `reason`.
+    async fn conflicted(
+        &self,
+        repo: &RepoAccess,
+        id: i64,
+        onto: &CommitSha,
+        reason: &str,
+    ) -> anyhow::Result<Outcome> {
+        let Some(c) = self.store.committer_change(id).await? else {
+            return Ok(Outcome::Waiting);
+        };
+        if !self.store.merge_engine_enabled(c.change.repo).await? {
+            return self.return_change(repo, id, reason).await;
+        }
+        let payload = serde_json::json!({
+            "pr": c.change.pr.0,
+            "head": c.change.head.as_str(),
+            "onto": onto.as_str(),
+            "branch": repo.default_branch,
+        });
+        self.github
+            .dispatch(repo.installation, &repo.full_name, MERGE_EVENT, payload)
+            .await?;
+        self.store.start_merge_run(id, onto).await?;
+        tracing::info!(repo = %repo.full_name, change = %c.change, onto = %onto, "sent to the merge engine");
+        Ok(Outcome::Verifying)
+    }
+
+    /// Acts on merge-engine reports: a resolved merge is verified like any change merged onto
+    /// the head; an unresolved one is returned; a missing report times out.
+    async fn advance_merges(&self, repo_id: RepoId, repo: &RepoAccess) -> anyhow::Result<()> {
+        for run in self.store.merge_runs(repo_id).await? {
+            let Some(c) = self.store.committer_change(run.change_db_id).await? else {
+                continue;
+            };
+            match run.outcome {
+                Some(MergeOutcome::Resolved(sha)) => {
+                    let branch = verify_branch(c.change.pr, &c.change.head);
+                    self.github
+                        .reset_branch(repo.installation, &repo.full_name, &branch, &sha)
+                        .await?;
+                    let verify = VerifyRun {
+                        branch,
+                        verify_sha: sha,
+                        onto: run.onto.clone(),
+                    };
+                    self.store
+                        .start_verify_run(run.change_db_id, &verify)
+                        .await?;
+                    tracing::info!(repo = %repo.full_name, change = %c.change, "merge engine resolved the conflict; verifying");
+                }
+                Some(MergeOutcome::Unresolved(files)) => {
+                    let list: Vec<String> =
+                        files.iter().take(10).map(|f| format!("`{f}`")).collect();
+                    let reason = format!(
+                        "the merge engine could not resolve conflicts in {}; rebase it",
+                        list.join(", ")
+                    );
+                    self.return_change(repo, run.change_db_id, &reason).await?;
+                }
+                None if chrono::Utc::now() - run.requested_at
+                    > chrono::Duration::minutes(NO_CI_TIMEOUT_MINUTES) =>
+                {
+                    let reason = "the merge engine did not report back; is the `sheltie-merge` workflow installed?";
+                    self.return_change(repo, run.change_db_id, reason).await?;
+                }
+                None => {}
+            }
+        }
+        Ok(())
     }
 
     async fn return_change(
