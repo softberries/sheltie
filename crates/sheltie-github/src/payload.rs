@@ -6,8 +6,11 @@
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
+use sheltie_core::IssueNumber;
+use sheltie_core::coordination::closing_references;
 use sheltie_core::intake::{
-    ChecksEvent, InstallationEvent, Intake, IntentField, PrEvent, PrEventKind, PushEvent, RepoRef,
+    ChecksEvent, InstallationEvent, Intake, IntentField, IssueEvent, IssueEventKind, PrEvent,
+    PrEventKind, PushEvent, RepoRef,
 };
 use sheltie_core::{CommitSha, InstallationId, Login, PrNumber, RepoFullName, RepoId};
 
@@ -77,6 +80,45 @@ pub fn parse(event: &str, body: &[u8]) -> Result<Option<Intake>, PayloadError> {
             pr_event(kind, p.installation, p.repository, p.pull_request, p.sender)
                 .map(Some)
                 .map_err(invalid)
+        }
+        "issues" => {
+            let p: IssuesPayload = serde_json::from_slice(body).map_err(json)?;
+            let who = |u: Option<User>| -> Result<Login, PayloadError> {
+                login(u.ok_or_else(|| invalid("missing assignee".into()))?.login).map_err(invalid)
+            };
+            let kind = match p.action.as_str() {
+                "opened" => IssueEventKind::Opened,
+                "edited" => IssueEventKind::Edited,
+                "reopened" => IssueEventKind::Reopened,
+                "closed" => IssueEventKind::Closed,
+                "assigned" => IssueEventKind::Assigned(who(p.assignee)?),
+                "unassigned" => IssueEventKind::Unassigned(who(p.assignee)?),
+                _ => return Ok(None),
+            };
+            let installation = p
+                .installation
+                .ok_or_else(|| invalid("missing installation; is this an App webhook?".into()))?;
+            if p.issue.number == 0 {
+                return Err(invalid("issue number 0".into()));
+            }
+            let clip = |s: String, n: usize| s.chars().take(n).collect::<String>();
+            let default_branch = p
+                .repository
+                .default_branch
+                .clone()
+                .map(branch_name)
+                .transpose()
+                .map_err(invalid)?;
+            Ok(Some(Intake::Issue(IssueEvent {
+                installation: InstallationId(installation.id),
+                repo: repo_ref(p.repository).map_err(invalid)?,
+                issue: IssueNumber(p.issue.number),
+                kind,
+                title: clip(p.issue.title, 1_000),
+                body: clip(p.issue.body.unwrap_or_default(), IssueEvent::MAX_BODY),
+                at: p.issue.updated_at,
+                default_branch,
+            })))
         }
         "installation" => {
             let p: InstallationPayload = serde_json::from_slice(body).map_err(json)?;
@@ -220,6 +262,7 @@ fn pr_event(
         default_branch: repository_default_branch,
         // Every pull request payload carries the current description.
         intent: IntentField::from_description(pr.body.as_deref()),
+        closes: Some(closing_references(pr.body.as_deref().unwrap_or_default())),
         merge_commit: match (kind, pr.merge_commit_sha) {
             (PrEventKind::Merged, Some(sha)) => {
                 Some(CommitSha::parse(sha).map_err(|e| e.to_string())?)
@@ -260,6 +303,25 @@ struct PullRequestPayload {
     repository: Repository,
     installation: Option<InstallationRef>,
     sender: User,
+}
+
+#[derive(Deserialize)]
+struct IssuesPayload {
+    action: String,
+    issue: Issue,
+    repository: Repository,
+    installation: Option<InstallationRef>,
+    #[serde(default)]
+    assignee: Option<User>,
+}
+
+#[derive(Deserialize)]
+struct Issue {
+    number: u64,
+    title: String,
+    #[serde(default)]
+    body: Option<String>,
+    updated_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize)]
@@ -427,6 +489,33 @@ mod tests {
             event("edited", "\"```sheltie-intent\\n{\""),
             (_, IntentField::Invalid(_))
         ));
+    }
+
+    #[test]
+    fn issue_events() {
+        let event = |action: &str, extra: &str| {
+            let json = format!(
+                r#"{{"action":"{action}","issue":{{"number":7,"title":"Fix cart","body":"in `cart`","updated_at":"2026-01-01T00:00:00Z"}},"repository":{{"id":1,"full_name":"a/b"}},"installation":{{"id":2}}{extra}}}"#
+            );
+            parse("issues", json.as_bytes())
+        };
+        match event("assigned", r#","assignee":{"login":"agent-a"}"#).unwrap() {
+            Some(Intake::Issue(e)) => {
+                assert_eq!(e.issue, IssueNumber(7));
+                assert_eq!(e.kind, IssueEventKind::Assigned(Login::new("agent-a")));
+                assert_eq!(e.body, "in `cart`");
+            }
+            other => panic!("{other:?}"),
+        }
+        assert!(matches!(
+            event("opened", "").unwrap(),
+            Some(Intake::Issue(IssueEvent {
+                kind: IssueEventKind::Opened,
+                ..
+            }))
+        ));
+        assert!(event("labeled", "").unwrap().is_none());
+        assert!(event("assigned", "").is_err(), "assignee required");
     }
 
     #[test]

@@ -111,7 +111,17 @@ pub fn actions_claims(repository: &str, repository_id: u64) -> Value {
         "repository": repository,
         "repository_id": repository_id.to_string(),
         "event_name": "pull_request",
+        "ref": "refs/pull/1/merge",
         "run_id": "42",
         "run_attempt": "1",
     })
+}
+
+/// Claims of a GitHub Actions token for a push to `branch`.
+pub fn push_claims(repository: &str, repository_id: u64, branch: &str) -> Value {
+    let mut claims = actions_claims(repository, repository_id);
+    claims["sub"] = json!(format!("repo:{repository}:ref:refs/heads/{branch}"));
+    claims["event_name"] = json!("push");
+    claims["ref"] = json!(format!("refs/heads/{branch}"));
+    claims
 }

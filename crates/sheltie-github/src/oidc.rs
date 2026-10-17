@@ -75,6 +75,8 @@ pub struct ActionsClaims {
     pub event_name: String,
     /// The workflow run, for audit (`<run_id>/<attempt>`).
     pub run: String,
+    /// The git ref the run was for, e.g. `refs/heads/main` or `refs/pull/7/merge`.
+    pub git_ref: String,
 }
 
 #[derive(Deserialize)]
@@ -87,6 +89,8 @@ struct RawClaims {
     run_id: String,
     #[serde(default)]
     run_attempt: String,
+    #[serde(default, rename = "ref")]
+    git_ref: String,
 }
 
 struct Keys {
@@ -143,6 +147,7 @@ impl OidcVerifier {
                 .map_err(|e| OidcError::Rejected(e.to_string()))?,
             event_name: c.event_name,
             run: format!("{}/{}", c.run_id, c.run_attempt),
+            git_ref: c.git_ref,
         })
     }
 
