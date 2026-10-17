@@ -26,7 +26,7 @@ const SESSION_TTL: Duration = Duration::from_secs(8 * 3600);
 /// The dashboard's stylesheet.
 pub const CSS: &str = include_str!("../assets/dashboard.css");
 /// The logo.
-pub const LOGO: &str = include_str!("../assets/logo.svg");
+pub const LOGO: &[u8] = include_bytes!("../assets/logo.png");
 /// Geist (SIL Open Font License 1.1, `assets/fonts/OFL.txt`).
 pub const FONT_SANS: &[u8] = include_bytes!("../assets/fonts/Geist-Variable.woff2");
 /// Geist Mono (SIL Open Font License 1.1).
@@ -148,7 +148,7 @@ pub fn page(title: &str, header: &str, body: &str) -> String {
     format!(
         r#"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark"><title>{} · Sheltie</title>
-<link rel="icon" href="/dashboard/assets/logo.svg" type="image/svg+xml">
+<link rel="icon" href="/dashboard/assets/logo.png" type="image/png">
 <link rel="preload" href="/dashboard/assets/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/dashboard/assets/dashboard.css"></head>
 <body>{header}<main class="wrap">{body}</main>
@@ -192,7 +192,7 @@ pub fn top_bar(login: Option<&str>) -> String {
         None => String::new(),
     };
     format!(
-        r#"<header class="top"><div class="wrap-in"><a class="brand" href="/dashboard"><img src="/dashboard/assets/logo.svg" alt="" width="28" height="28"><span>Sheltie</span></a>{who}</div></header>"#
+        r#"<header class="top"><div class="wrap-in"><a class="brand" href="/dashboard"><img src="/dashboard/assets/logo.png" alt="" width="28" height="28"><span>Sheltie</span></a>{who}</div></header>"#
     )
 }
 
@@ -587,7 +587,7 @@ fn signin_page() -> Response {
         StatusCode::OK,
         "Sign in",
         &top_bar(None),
-        r#"<div class="signin"><img src="/dashboard/assets/logo.svg" alt="" width="64" height="64"><h1>Sheltie dashboard</h1><p class="sub">The merge queue, landings, time saved and agents of the repositories you can access on GitHub.</p><a class="btn" href="/auth/login"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Sign in with GitHub</a><p class="fine">Read-only. Sheltie sees only repositories where its App is installed.</p></div>"#,
+        r#"<div class="signin"><img src="/dashboard/assets/logo.png" alt="" width="64" height="64"><h1>Sheltie dashboard</h1><p class="sub">The merge queue, landings, time saved and agents of the repositories you can access on GitHub.</p><a class="btn" href="/auth/login"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Sign in with GitHub</a><p class="fine">Read-only. Sheltie sees only repositories where its App is installed.</p></div>"#,
     )
 }
 
@@ -747,7 +747,7 @@ pub(crate) async fn logout(State(st): State<DashState>, headers: HeaderMap) -> R
 pub(crate) async fn asset(Path(file): Path<String>) -> Response {
     let (body, kind): (&'static [u8], &'static str) = match file.as_str() {
         "dashboard.css" => (CSS.as_bytes(), "text/css; charset=utf-8"),
-        "logo.svg" => (LOGO.as_bytes(), "image/svg+xml"),
+        "logo.png" => (LOGO, "image/png"),
         "Geist-Variable.woff2" => (FONT_SANS, "font/woff2"),
         "GeistMono-Variable.woff2" => (FONT_MONO, "font/woff2"),
         _ => return StatusCode::NOT_FOUND.into_response(),

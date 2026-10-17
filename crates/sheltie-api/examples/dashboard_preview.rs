@@ -59,7 +59,7 @@ fn main() -> std::io::Result<()> {
     std::fs::create_dir_all(dir.join("assets"))?;
     std::fs::create_dir_all(dir.join("acme"))?;
     std::fs::write(dir.join("assets/dashboard.css"), CSS)?;
-    std::fs::write(dir.join("assets/logo.svg"), LOGO)?;
+    std::fs::write(dir.join("assets/logo.png"), LOGO)?;
     std::fs::write(dir.join("assets/Geist-Variable.woff2"), FONT_SANS)?;
     std::fs::write(dir.join("assets/GeistMono-Variable.woff2"), FONT_MONO)?;
     let now = Utc::now();
