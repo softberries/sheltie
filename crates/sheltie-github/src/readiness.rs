@@ -81,22 +81,24 @@ struct Rollup {
     contexts: Contexts,
 }
 
+/// A page of a commit's checks and statuses (shared with [`crate::ci`]).
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Contexts {
-    page_info: PageInfo,
-    nodes: Vec<Context>,
+pub(crate) struct Contexts {
+    pub(crate) page_info: PageInfo,
+    pub(crate) nodes: Vec<Context>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct PageInfo {
-    has_next_page: bool,
+pub(crate) struct PageInfo {
+    pub(crate) has_next_page: bool,
 }
 
+/// One check run or commit status.
 #[derive(Debug, Deserialize)]
 #[serde(tag = "__typename")]
-enum Context {
+pub(crate) enum Context {
     CheckRun {
         name: String,
         status: String,
