@@ -199,6 +199,13 @@ async fn independent_prs_land_and_conflicting_ones_are_verified_or_returned(
     let h1 = env.open_pr(1, "Billing retries").await;
     let h2 = env.open_pr(2, "Auth scopes").await;
     let h3 = env.open_pr(3, "Billing rounding").await;
+    env.footprint(&h1, &["billing"]).await;
+    env.footprint(&h2, &["auth"]).await;
+    env.footprint(&h3, &["billing"]).await;
+    // All three become ready in shadow mode, so the first merge-mode epoch sees them together.
+    for (n, h) in [(1, &h1), (2, &h2), (3, &h3)] {
+        env.wait_state(n, h, ChangeState::Ready).await;
+    }
     assert!(
         env.store
             .set_repo_mode(
@@ -208,9 +215,6 @@ async fn independent_prs_land_and_conflicting_ones_are_verified_or_returned(
             .await
             .unwrap()
     );
-    env.footprint(&h1, &["billing"]).await;
-    env.footprint(&h2, &["auth"]).await;
-    env.footprint(&h3, &["billing"]).await;
 
     env.wait_state(2, &h2, ChangeState::Landed).await;
     env.wait_state(1, &h1, ChangeState::Landed).await;
