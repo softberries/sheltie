@@ -90,10 +90,12 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 
 **M7 — Coordination**
 
-- [ ] Issue footprint prediction
-- [ ] Leases with TTL
-- [ ] MCP server: `safe_issues`, `claim_issue`, `predict_footprint`, `release`
-- [ ] Labels and comments for non-MCP agents
+- [x] Issue footprint prediction (default-branch graph uploaded on push; matched against issue text)
+- [x] Leases with TTL
+- [x] MCP server: `safe_issues`, `claim_issue`, `predict_footprint`, `release`
+- [x] Labels and comments for non-MCP agents (assignment claims; `sheltie: blocked`)
+- [ ] Accept the Issues permission on the dev App installation and try it on the playground
+- [ ] Fairness lease: a PR that lost three epochs reserves its read set (scheduler, `docs/design.md`)
 
 **M8 — Release**
 

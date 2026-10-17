@@ -45,6 +45,9 @@ secrecy = "0.10"
 hmac = "0.13"
 sha2 = "0.11"
 hex = "0.4"
+getrandom = "0.4"
+rmcp = { version = "3.5.1", default-features = false, features = ["server", "macros", "transport-streamable-http-server"] }
+schemars = "1"
 syn = { version = "3", default-features = false, features = ["full", "parsing", "printing", "visit", "visit-mut", "clone-impls"] }
 proc-macro2 = { version = "1", default-features = false }
 quote = { version = "1", default-features = false }

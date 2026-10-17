@@ -43,6 +43,7 @@ impl Env {
             database: database.clone(),
             bind: "127.0.0.1:0".parse().unwrap(),
             pool: PoolConfig::default(),
+            agents: sheltie_server::AgentsConfig::default(),
             epoch: Duration::from_millis(200),
             github: Some(GitHubConfig {
                 app_id: 1,

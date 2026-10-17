@@ -59,6 +59,7 @@ async fn setup(pool: &PgPool) -> (Store, i64) {
                 default_branch: Some("main".into()),
                 merge_commit: None,
                 intent: sheltie_core::intake::IntentField::Unknown,
+                closes: None,
             }),
         )
         .await

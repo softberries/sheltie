@@ -160,6 +160,10 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/dispatches", post(dispatch))
             .route("/repos/{o}/{r}/contents/{*path}", get(contents))
             .route("/repos/{o}/{r}/issues/{n}/labels", post(add_labels))
+            .route(
+                "/repos/{o}/{r}/issues/{n}/labels/{name}",
+                axum::routing::delete(remove_label),
+            )
             .route("/repos/{o}/{r}/git/commits/{sha}", get(get_commit))
             .route("/repos/{o}/{r}/git/commits", post(create_commit))
             .route("/repos/{o}/{r}/issues/{n}/comments", post(comment))
@@ -414,6 +418,19 @@ async fn add_labels(
             .push((n, l.as_str().unwrap_or_default().to_owned()));
     }
     Json(json!([]))
+}
+
+async fn remove_label(
+    State(s): Shared,
+    Path((_, _, n, name)): Path<(String, String, u64, String)>,
+) -> Response {
+    let mut st = lock(&s);
+    let before = st.labels.len();
+    st.labels.retain(|(pr, l)| !(*pr == n && *l == name));
+    if st.labels.len() == before {
+        return status(StatusCode::NOT_FOUND, "Label does not exist");
+    }
+    Json(json!([])).into_response()
 }
 
 async fn dispatch(State(s): Shared, Json(body): Json<Value>) -> StatusCode {

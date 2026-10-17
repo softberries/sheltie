@@ -1,4 +1,4 @@
-//! REST API (axum) and, from M7, the MCP server.
+//! REST API (axum) and the MCP server for agents.
 //!
 //! The control plane is stateless: every handler reads and writes through [`Store`], so any
 //! number of replicas can serve the same router.
@@ -16,8 +16,11 @@ use sheltie_github::{WebhookSecret, payload};
 use sheltie_store::{Ingested, Store};
 use tokio::sync::Notify;
 
+pub mod agents;
+pub mod coordination;
 mod footprints;
 
+pub use agents::Agents;
 pub use footprints::Footprints;
 
 /// GitHub caps webhook payloads at 25 MB.
@@ -41,8 +44,14 @@ struct AppState {
 }
 
 /// Builds the HTTP router. `POST /webhooks/github` is served only when `webhooks` is set,
-/// `POST /v1/footprints` only when `footprints` is set.
-pub fn router(store: Store, webhooks: Option<Webhooks>, footprints: Option<Footprints>) -> Router {
+/// the CI uploads only when `footprints` is set, and the agent endpoints (REST and `/mcp`)
+/// only when `agents` is set.
+pub fn router(
+    store: Store,
+    webhooks: Option<Webhooks>,
+    footprints: Option<Footprints>,
+    agents: Option<Agents>,
+) -> Router {
     let mut router = Router::new().route("/healthz", get(healthz));
     if webhooks.is_some() {
         router = router.route(
@@ -57,6 +66,11 @@ pub fn router(store: Store, webhooks: Option<Webhooks>, footprints: Option<Footp
                 post(footprints::upload).layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
             )
             .route(
+                "/v1/graphs",
+                post(footprints::graph_upload)
+                    .layer(DefaultBodyLimit::max(footprints::MAX_GRAPH_BYTES)),
+            )
+            .route(
                 "/v1/replays",
                 post(footprints::replay_report)
                     .layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
@@ -67,11 +81,51 @@ pub fn router(store: Store, webhooks: Option<Webhooks>, footprints: Option<Footp
                     .layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
             );
     }
-    router.with_state(AppState {
-        store,
+    let router = router.with_state(AppState {
+        store: store.clone(),
         webhooks,
         footprints,
-    })
+    });
+    match agents {
+        Some(agents) => router.merge(agent_router(store, agents)),
+        None => router,
+    }
+}
+
+/// `/v1/footprint`, `/v1/leases`, `/v1/issues/safe` and `/mcp`, behind token authentication.
+fn agent_router(store: Store, agents: Agents) -> Router {
+    use rmcp::transport::streamable_http_server::session::never::NeverSessionManager;
+    use rmcp::transport::streamable_http_server::{
+        StreamableHttpServerConfig, StreamableHttpService,
+    };
+    let mut hosts = vec![
+        "localhost".to_owned(),
+        "127.0.0.1".to_owned(),
+        "::1".to_owned(),
+    ];
+    hosts.extend(agents.mcp_hosts.iter().cloned());
+    // Stateless: any replica can serve any request.
+    let config = StreamableHttpServerConfig::default()
+        .with_legacy_session_mode(false)
+        .with_json_response(true)
+        .with_allowed_hosts(hosts);
+    let coordinator = Arc::clone(&agents.coordinator);
+    let mcp = StreamableHttpService::new(
+        move || Ok(agents::SheltieMcp::new(Arc::clone(&coordinator))),
+        Arc::new(NeverSessionManager::default()),
+        config,
+    );
+    Router::new()
+        .route("/v1/footprint", get(agents::footprint))
+        .route("/v1/leases", post(agents::claim))
+        .route("/v1/leases/{issue}", axum::routing::delete(agents::release))
+        .route("/v1/issues/safe", get(agents::safe_issues))
+        .with_state(agents)
+        .nest_service("/mcp", mcp)
+        .layer(axum::middleware::from_fn_with_state(
+            store,
+            agents::authenticate,
+        ))
 }
 
 /// JSON body of every response: a short machine-readable status.

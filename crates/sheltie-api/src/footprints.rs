@@ -1,6 +1,7 @@
 //! Uploads from CI, authenticated with GitHub Actions OIDC tokens:
 //! `POST /v1/footprints` (a change's footprint), `POST /v1/merges` (a merge-engine report) and
-//! `POST /v1/replays` (an intent-replay report).
+//! `POST /v1/replays` (an intent-replay report) and `POST /v1/graphs` (the default branch's
+//! build graph, for footprint prediction).
 //!
 //! Authenticated with a GitHub Actions OIDC token (`Authorization: Bearer <jwt>`). The token
 //! names the repository; the upload is accepted only for repositories where the App is
@@ -22,6 +23,8 @@ use crate::AppState;
 
 /// Footprints are sets of names; 8 MB is far above any real workspace.
 pub(crate) const MAX_UPLOAD_BYTES: usize = 8 * 1024 * 1024;
+/// A whole build graph is larger: every target with its files and edges.
+pub(crate) const MAX_GRAPH_BYTES: usize = 32 * 1024 * 1024;
 
 /// Settings for accepting footprint uploads.
 #[derive(Debug, Clone)]
@@ -260,6 +263,99 @@ pub(crate) async fn replay_report(
         }
         Err(error) => {
             tracing::error!(error = %error, "replay report: store failed");
+            reply(StatusCode::INTERNAL_SERVER_ERROR, "error")
+        }
+    }
+}
+
+/// Body of `POST /v1/graphs`.
+#[derive(serde::Deserialize)]
+struct GraphUpload {
+    /// The default-branch commit the graph describes.
+    commit: sheltie_core::CommitSha,
+    /// The graph, as `sheltie-cargo graph` prints it.
+    snapshot: serde_json::Value,
+}
+
+/// `POST /v1/graphs`: the adapter uploads the default branch's build graph after a push.
+pub(crate) async fn graph_upload(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> (StatusCode, Json<UploadReply>) {
+    let Some(footprints) = &state.footprints else {
+        return reply(StatusCode::NOT_FOUND, "not_found");
+    };
+    let Some(token) = headers
+        .get("authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| {
+            v.strip_prefix("Bearer ")
+                .or_else(|| v.strip_prefix("bearer "))
+        })
+    else {
+        return reply(StatusCode::UNAUTHORIZED, "missing_token");
+    };
+    let claims = match footprints.verifier.verify(token.trim()).await {
+        Ok(c) => c,
+        Err(error) => {
+            tracing::warn!(error = %error, "graph upload: token rejected");
+            return reply(StatusCode::UNAUTHORIZED, "invalid_token");
+        }
+    };
+    let upload: GraphUpload = match serde_json::from_slice(&body) {
+        Ok(u) => u,
+        Err(error) => {
+            tracing::warn!(repo = %claims.repository, error = %error, "graph upload: malformed body");
+            return reply(StatusCode::BAD_REQUEST, "invalid_body");
+        }
+    };
+    // Strictly typed before it is stored: unknown shapes are refused.
+    if serde_json::from_value::<sheltie_graph::GraphSnapshot>(upload.snapshot.clone()).is_err() {
+        return reply(StatusCode::UNPROCESSABLE_ENTITY, "invalid_graph");
+    }
+    match state.store.repository_installed(claims.repository_id).await {
+        Ok(true) => {}
+        Ok(false) => return reply(StatusCode::FORBIDDEN, "repository_not_installed"),
+        Err(error) => {
+            tracing::error!(error = %error, "graph upload: store failed");
+            return reply(StatusCode::INTERNAL_SERVER_ERROR, "error");
+        }
+    }
+    // Only the default branch describes the code everyone builds on: a run for a pull request
+    // must not be able to replace it and skew every prediction.
+    match state.store.default_branch(claims.repository_id).await {
+        Ok(Some(branch))
+            if claims.event_name == "push" && claims.git_ref == format!("refs/heads/{branch}") => {}
+        Ok(_) => {
+            tracing::warn!(repo = %claims.repository, event = %claims.event_name, git_ref = %claims.git_ref, "graph upload: not a push to the default branch");
+            return reply(StatusCode::FORBIDDEN, "not_default_branch_push");
+        }
+        Err(error) => {
+            tracing::error!(error = %error, "graph upload: store failed");
+            return reply(StatusCode::INTERNAL_SERVER_ERROR, "error");
+        }
+    }
+    let uploaded_by = format!(
+        "{} {} run {}",
+        claims.repository, claims.event_name, claims.run
+    );
+    match state
+        .store
+        .save_graph(
+            claims.repository_id,
+            &upload.commit,
+            &upload.snapshot,
+            &uploaded_by,
+        )
+        .await
+    {
+        Ok(()) => {
+            tracing::info!(repo = %claims.repository, commit = %upload.commit, "graph stored");
+            reply(StatusCode::ACCEPTED, "accepted")
+        }
+        Err(error) => {
+            tracing::error!(error = %error, "graph upload: store failed");
             reply(StatusCode::INTERNAL_SERVER_ERROR, "error")
         }
     }
