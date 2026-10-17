@@ -76,7 +76,15 @@ commit_and_open demo/migration-customers "Migrations: customers table" "Adds \`0
 branch demo/rename-rate
 sed -i.bak 's/pub fn rate() -> u32/pub fn standard_rate() -> u32/; s/u64::from(rate())/u64::from(standard_rate())/' crates/pricing/src/lib.rs && rm crates/pricing/src/lib.rs.bak
 sed -i.bak 's/shop_pricing::rate()/shop_pricing::standard_rate()/' crates/invoice/src/lib.rs && rm crates/invoice/src/lib.rs.bak
-commit_and_open demo/rename-rate "Pricing: rename rate() to standard_rate()" "Makes room for reduced rates."
+commit_and_open demo/rename-rate "Pricing: rename rate() to standard_rate()" "Makes room for reduced rates.
+
+\`\`\`sheltie-intent
+{
+  \"task\": \"Rename rate() in shop-pricing to standard_rate() and update every caller in the workspace.\",
+  \"plan\": \"Rename the function in crates/pricing/src/lib.rs and replace each call to rate() across the crates.\",
+  \"acceptance\": [\"tests::tax_is_rounded\"]
+}
+\`\`\`"
 
 branch demo/reduced-rate
 cat >> crates/pricing/src/lib.rs <<'RS'
