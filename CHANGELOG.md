@@ -99,7 +99,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `sheltie-server stats` prints anonymous usage counts to share by hand (Sheltie sends no
   telemetry); `sheltie-server healthcheck` for container health checks.
 
+- A read-only dashboard at `/dashboard`: sign in with GitHub to see, per repository you can
+  access, the queue, recent landings and how they were proven, returned pull requests and
+  agents' claimed issues. Set `SHELTIE_PUBLIC_URL`, `SHELTIE_GITHUB_CLIENT_ID` and
+  `SHELTIE_GITHUB_CLIENT_SECRET` (the registration script does).
+- sheltie.dev: landing page, branded docs and a Pages workflow (`scripts/build-site.sh`).
+- A logo.
+- Sheltie's labels are created with colors and descriptions.
+- `shadow-report --format text|markdown|json`, with a readable terminal format by default.
+
 ### Changed
+
+- The Sheltie check run is redesigned: a clear headline per state, what happens next, the footprint's targets in a collapsible section, how a change landed and which tier resolved its conflict.
+- Every comment Sheltie posts follows one format: what happened, why, what to do next.
+- `shadow-report --json` is now `--format json`.
 
 - Licensed under Apache-2.0.
 - Logs are plain text when stderr is not a terminal.
