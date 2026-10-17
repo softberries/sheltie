@@ -64,6 +64,8 @@ impl CheckRunSync {
             footprint: job.footprint,
             readiness: job.readiness,
             prediction: job.prediction.as_deref(),
+            returned_reason: job.returned_reason.as_deref(),
+            merge_mode: job.merge_mode,
         });
         let result = match job.github_id {
             Some(id) => self

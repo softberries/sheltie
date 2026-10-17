@@ -30,6 +30,9 @@ pub enum GitHubError {
     /// A GitHub API call failed.
     #[error("GitHub API request failed")]
     Api(#[from] octocrab::Error),
+    /// GitHub answered in a way Sheltie does not expect.
+    #[error("unexpected GitHub response: {0}")]
+    Unexpected(String),
 }
 
 /// A GitHub App, authenticated with its private key.
@@ -39,6 +42,7 @@ pub enum GitHubError {
 pub struct GitHubApp {
     app: Octocrab,
     installations: Mutex<HashMap<InstallationId, Arc<Octocrab>>>,
+    api_url: String,
 }
 
 impl GitHubApp {
@@ -60,6 +64,10 @@ impl GitHubApp {
         Ok(Self {
             app: builder.build()?,
             installations: Mutex::new(HashMap::new()),
+            api_url: api_url
+                .unwrap_or("https://api.github.com")
+                .trim_end_matches('/')
+                .to_owned(),
         })
     }
 
@@ -80,6 +88,33 @@ impl GitHubApp {
         );
         map.insert(id, Arc::clone(&client));
         Ok(client)
+    }
+
+    /// Sends a request as the installation and returns the status and body, without turning
+    /// error statuses into errors (callers decide what 409 or 422 mean).
+    pub(crate) async fn raw(
+        &self,
+        installation: InstallationId,
+        method: &str,
+        path: &str,
+        body: Option<serde_json::Value>,
+    ) -> Result<(u16, String), GitHubError> {
+        let client = self.installation(installation)?;
+        let uri = format!("{}{path}", self.api_url);
+        let response = match method {
+            "GET" => client._get(uri).await?,
+            "POST" => client._post(uri, body.as_ref()).await?,
+            "PATCH" => client._patch(uri, body.as_ref()).await?,
+            "DELETE" => client._delete(uri, body.as_ref()).await?,
+            other => {
+                return Err(GitHubError::Unexpected(format!(
+                    "unsupported method {other}"
+                )));
+            }
+        };
+        let status = response.status().as_u16();
+        let text = client.body_to_string(response).await?;
+        Ok((status, text))
     }
 
     /// Creates the "Sheltie" check run on `head`; returns its id.
