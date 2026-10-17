@@ -2,7 +2,8 @@
 
 use chrono::{DateTime, Utc};
 use sheltie_core::intake::{
-    ChecksEvent, InstallationEvent, Intake, Lifecycle, PrEvent, PrEventKind, PushEvent, RepoRef,
+    ChecksEvent, InstallationEvent, Intake, IntentField, Lifecycle, PrEvent, PrEventKind,
+    PushEvent, RepoRef,
 };
 use sheltie_core::{ChangeState, DeliveryId, InstallationId, Login};
 use sqlx::{PgConnection, Row};
@@ -109,6 +110,32 @@ async fn apply_pr_event(
         .bind(e.head.as_str())
         .bind(merge_commit.as_str())
         .bind(e.at)
+        .execute(&mut *conn)
+        .await?;
+    }
+    // Keep the latest intent of the PR's live changes (the description belongs to the PR).
+    let (intent, intent_error) = match &e.intent {
+        IntentField::Unknown => (None, None),
+        IntentField::Missing => (Some(serde_json::Value::Null), None),
+        IntentField::Valid(i) => (
+            Some(serde_json::to_value(i).map_err(|e| StoreError::InvalidRow(e.to_string()))?),
+            None,
+        ),
+        IntentField::Invalid(why) => (
+            Some(serde_json::Value::Null),
+            Some(why.chars().take(500).collect::<String>()),
+        ),
+    };
+    if let Some(intent) = intent {
+        let intent = (!intent.is_null()).then_some(intent);
+        sqlx::query(
+            "UPDATE changes SET intent = $3, intent_error = $4, updated_at = now()
+             WHERE repo_id = $1 AND pr_number = $2 AND state NOT IN ('landed', 'closed')",
+        )
+        .bind(repo_id)
+        .bind(pr)
+        .bind(intent)
+        .bind(intent_error)
         .execute(&mut *conn)
         .await?;
     }

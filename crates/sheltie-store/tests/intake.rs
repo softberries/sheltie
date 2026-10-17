@@ -45,6 +45,7 @@ fn pr_event(kind: PrEventKind, head: char, secs: i64) -> Intake {
         base_ref: "main".into(),
         default_branch: Some("main".into()),
         merge_commit: None,
+        intent: sheltie_core::intake::IntentField::Unknown,
     })
 }
 
@@ -327,5 +328,60 @@ async fn update_during_sync_triggers_another_sync(pool: PgPool) {
         next[0].github_id,
         Some(42),
         "the created check run is updated, not recreated"
+    );
+}
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn the_intent_follows_the_description(pool: PgPool) {
+    use sheltie_core::Intent;
+    use sheltie_core::intake::IntentField;
+    let h = Harness::new(pool.clone());
+    let with = |kind, secs, intent: IntentField| match pr_event(kind, 'a', secs) {
+        Intake::Pr(mut e) => {
+            e.intent = intent;
+            Intake::Pr(e)
+        }
+        _ => unreachable!(),
+    };
+    let intent = Intent {
+        task: "Add retries".into(),
+        plan: None,
+        acceptance: vec!["t::a".into()],
+    };
+    h.send(with(
+        PrEventKind::Opened,
+        0,
+        IntentField::Valid(intent.clone()),
+    ))
+    .await;
+    let id: i64 = sqlx::query_scalar("SELECT id FROM changes")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(
+        h.store.change_intent(id).await.unwrap(),
+        Some(intent.clone())
+    );
+    // Reviews do not carry the description: the intent is kept.
+    h.send(with(PrEventKind::Approved, 5, IntentField::Unknown))
+        .await;
+    assert_eq!(h.store.change_intent(id).await.unwrap(), Some(intent));
+    // An edit that breaks the block clears it and records why.
+    h.send(with(
+        PrEventKind::Edited,
+        10,
+        IntentField::Invalid("bad json".into()),
+    ))
+    .await;
+    assert_eq!(h.store.change_intent(id).await.unwrap(), None);
+    let why: Option<String> = sqlx::query_scalar("SELECT intent_error FROM changes")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(why.as_deref(), Some("bad json"));
+    assert_eq!(
+        h.state('a').await,
+        Some(ChangeState::Pending),
+        "edits change no state"
     );
 }

@@ -60,6 +60,11 @@ struct PullTitle {
 }
 
 #[derive(Deserialize)]
+struct FileContent {
+    content: String,
+}
+
+#[derive(Deserialize)]
 struct PullNumber {
     number: u64,
 }
@@ -330,6 +335,53 @@ impl GitHubApp {
             )
             .await?;
         expect(status, &[204], &text)
+    }
+
+    /// A file's contents at a ref, or `None` if it does not exist there.
+    pub async fn file_at(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        path: &str,
+        git_ref: &str,
+    ) -> Result<Option<String>, GitHubError> {
+        let (status, text) = self
+            .raw(
+                inst,
+                "GET",
+                &format!("/repos/{repo}/contents/{path}?ref={git_ref}"),
+                None,
+            )
+            .await?;
+        if status == 404 {
+            return Ok(None);
+        }
+        expect(status, &[200], &text)?;
+        let file: FileContent = parse(&text)?;
+        use base64::Engine as _;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(file.content.replace('\n', ""))
+            .map_err(|e| GitHubError::Unexpected(format!("file content: {e}")))?;
+        Ok(Some(String::from_utf8_lossy(&bytes).into_owned()))
+    }
+
+    /// Adds labels to a pull request.
+    pub async fn add_labels(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        pr: PrNumber,
+        labels: &[&str],
+    ) -> Result<(), GitHubError> {
+        let (status, text) = self
+            .raw(
+                inst,
+                "POST",
+                &format!("/repos/{repo}/issues/{}/labels", pr.0),
+                Some(json!({ "labels": labels })),
+            )
+            .await?;
+        expect(status, &[200], &text)
     }
 
     /// A pull request's title.

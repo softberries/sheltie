@@ -60,6 +60,10 @@ pub struct FakeState {
     pub opened: Vec<(u64, String, String)>,
     /// `repository_dispatch` events fired, as (event type, client payload).
     pub dispatches: Vec<(String, Value)>,
+    /// Files served by the contents API (any ref), by path.
+    pub files: BTreeMap<String, String>,
+    /// Labels added, as (PR number, label).
+    pub labels: Vec<(u64, String)>,
     /// Check runs: id → last request body.
     pub check_runs: BTreeMap<u64, Value>,
     /// If set, the next fast-forward of this branch first moves it to a new commit (an
@@ -154,6 +158,8 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/pulls/{n}", get(pull))
             .route("/repos/{o}/{r}/pulls", post(open_pull))
             .route("/repos/{o}/{r}/dispatches", post(dispatch))
+            .route("/repos/{o}/{r}/contents/{*path}", get(contents))
+            .route("/repos/{o}/{r}/issues/{n}/labels", post(add_labels))
             .route("/repos/{o}/{r}/git/commits/{sha}", get(get_commit))
             .route("/repos/{o}/{r}/git/commits", post(create_commit))
             .route("/repos/{o}/{r}/issues/{n}/comments", post(comment))
@@ -384,6 +390,30 @@ async fn create_commit(State(s): Shared, Json(body): Json<Value>) -> (StatusCode
         c.tree = tree.to_owned();
     }
     (StatusCode::CREATED, Json(json!({ "sha": sha })))
+}
+
+async fn contents(
+    State(s): Shared,
+    Path((_, _, path)): Path<(String, String, String)>,
+) -> Response {
+    use base64::Engine as _;
+    match lock(&s).files.get(&path) {
+        Some(text) => Json(json!({ "content": base64::engine::general_purpose::STANDARD.encode(text), "encoding": "base64" })).into_response(),
+        None => status(StatusCode::NOT_FOUND, "Not Found"),
+    }
+}
+
+async fn add_labels(
+    State(s): Shared,
+    Path((_, _, n)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Json<Value> {
+    let mut st = lock(&s);
+    for l in body["labels"].as_array().into_iter().flatten() {
+        st.labels
+            .push((n, l.as_str().unwrap_or_default().to_owned()));
+    }
+    Json(json!([]))
 }
 
 async fn dispatch(State(s): Shared, Json(body): Json<Value>) -> StatusCode {
