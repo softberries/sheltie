@@ -66,7 +66,7 @@ reqwest = { version = "0.13", default-features = false, features = ["json"] }
 wiremock = "0.6"
 insta = { version = "1", features = ["json"] }
 aws-lc-rs = "1"
-base64 = "0.22"
+base64 = "0.23"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
