@@ -16,10 +16,15 @@ working directory if there is one.
 | `SHELTIE_EPOCH_SECONDS` | `10` | Time between scheduler epochs (1–3600). |
 | `SHELTIE_LEASE_TTL_HOURS` | `4` | How long an agent's claim on an issue lasts unless renewed (1–168). |
 | `SHELTIE_PUBLIC_HOSTS` | | Comma-separated public host names; the MCP endpoint rejects other `Host` headers. |
+| `SHELTIE_PUBLIC_URL` | | The server's public URL, e.g. `https://sheltie.example.com`. With the two below it turns on the dashboard. |
+| `SHELTIE_GITHUB_CLIENT_ID` | | The App's OAuth client id (dashboard sign-in). |
+| `SHELTIE_GITHUB_CLIENT_SECRET` | | The App's OAuth client secret. |
+| `SHELTIE_GITHUB_WEB_URL` | `https://github.com` | GitHub's web URL, for GitHub Enterprise Server. |
 | `RUST_LOG` | `info` | Log filter, e.g. `info,sheltie_server=debug`. |
 
-Set all three `SHELTIE_GITHUB_*` variables, or none of them. Without them the server serves
-only `/healthz`.
+Set all three `SHELTIE_GITHUB_APP_ID`, `…_PRIVATE_KEY_PATH` and `…_WEBHOOK_SECRET`, or none of
+them; without them the server serves only `/healthz`. Likewise set all three of
+`SHELTIE_PUBLIC_URL` and the client id and secret, or none (no dashboard).
 
 `compose.yaml` also reads `SHELTIE_POSTGRES_PASSWORD`, `SHELTIE_UID`, `SHELTIE_PORT`,
 `SHELTIE_IMAGE` and `SHELTIE_GITHUB_KEY_FILE` from `.env`.

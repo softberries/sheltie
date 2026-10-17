@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### ↩️ Reverted
+
+`main` turned red after this pull request landed, and bisect blamed it. Sheltie reverted it in #42 to get `main` green again.
+
+**What to do:** fix the problem and open a new pull request with the change.
+
+<sub>Sheltie · [How Sheltie works](https://sheltie.dev/docs/introduction.html)</sub>

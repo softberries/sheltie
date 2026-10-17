@@ -39,7 +39,7 @@ async fn fake_github(head: &str, signer: &OidcSigner) -> MockServer {
         .await;
     Mock::given(method("PATCH"))
         .and(path("/repos/acme/widgets/check-runs/31"))
-        .and(body_string_contains("Footprint: writes 1 target, reads 2"))
+        .and(body_string_contains("writes 1 target · affects 2"))
         .respond_with(ResponseTemplate::new(200).set_body_json(check_run(head)))
         .expect(1)
         .mount(&github)
@@ -112,6 +112,7 @@ async fn check_run_is_created_and_shows_the_uploaded_footprint(
                 audience: "sheltie".into(),
                 jwks_url: format!("{}/.well-known/jwks", github.uri()),
             },
+            dashboard: None,
         }),
     };
     let server = Server::start(config).await.unwrap();
@@ -194,6 +195,7 @@ async fn missing_private_key_fails_startup(_: PgPoolOptions, database: PgConnect
             webhook_secret: WebhookSecret::new(SECRET).unwrap(),
             api_url: None,
             oidc: OidcConfig::github_actions("sheltie"),
+            dashboard: None,
         }),
     };
     let err = Server::start(config).await.unwrap_err();
@@ -264,6 +266,7 @@ async fn ready_pull_request_shows_a_shadow_prediction(
                 audience: "sheltie".into(),
                 jwks_url: format!("{}/.well-known/jwks", github.uri()),
             },
+            dashboard: None,
         }),
     };
     let server = Server::start(config).await.unwrap();

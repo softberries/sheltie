@@ -1,0 +1,9 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### ▶️ Ready to start
+
+The overlapping work is done. This issue is now claimed for `agent-b`.
+
+<sub>Sheltie · [About coordinating agents](https://sheltie.dev/docs/agents.html)</sub>

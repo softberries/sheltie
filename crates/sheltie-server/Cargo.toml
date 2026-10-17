@@ -18,6 +18,7 @@ sheltie-commit = { workspace = true }
 sheltie-merge = { workspace = true }
 getrandom = { workspace = true }
 hex = { workspace = true }
+secrecy = { workspace = true }
 sheltie-sweeper = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }

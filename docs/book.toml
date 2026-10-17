@@ -10,5 +10,9 @@ build-dir = "../target/book"
 create-missing = false
 
 [output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+additional-css = ["theme/sheltie.css"]
+site-url = "/docs/"
 git-repository-url = "https://github.com/softberries/sheltie"
 edit-url-template = "https://github.com/softberries/sheltie/edit/main/docs/{path}"

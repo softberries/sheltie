@@ -2463,6 +2463,8 @@ name = "sheltie-api"
 version = "0.0.0"
 dependencies = [
  "axum",
+ "chrono",
+ "getrandom 0.4.3",
  "hex",
  "http-body-util",
  "rmcp",
@@ -2534,6 +2536,7 @@ dependencies = [
  "chrono",
  "hex",
  "hmac 0.13.0",
+ "insta",
  "jsonwebtoken",
  "octocrab",
  "proptest",
@@ -2582,6 +2585,7 @@ name = "sheltie-scheduler"
 version = "0.0.0"
 dependencies = [
  "chrono",
+ "insta",
  "proptest",
  "serde",
  "sheltie-core",
@@ -2600,6 +2604,7 @@ dependencies = [
  "hex",
  "reqwest",
  "rmcp",
+ "secrecy",
  "serde_json",
  "sheltie-api",
  "sheltie-commit",

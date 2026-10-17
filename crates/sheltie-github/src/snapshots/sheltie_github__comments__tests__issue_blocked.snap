@@ -1,0 +1,9 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### ⏸️ On hold for `agent-b`
+
+This issue overlaps #1, which `agent-a` is working on (both touch `shop::pricing`). To avoid conflicting changes, Sheltie holds it until that work lands or its claim ends, then claims it for `agent-b` automatically.
+
+<sub>Sheltie · [About coordinating agents](https://sheltie.dev/docs/agents.html)</sub>

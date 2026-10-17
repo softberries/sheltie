@@ -7,9 +7,12 @@
 pub mod check_run;
 pub mod ci;
 mod client;
+pub mod comments;
 #[cfg(feature = "test-support")]
 pub mod fake;
 pub mod git;
+pub mod labels;
+pub mod oauth;
 pub mod oidc;
 pub mod payload;
 pub mod readiness;

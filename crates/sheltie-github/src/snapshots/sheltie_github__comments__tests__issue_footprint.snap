@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### 🧭 Predicted footprint
+
+Working on this issue will most likely change `shop::pricing`, and affect `shop::cart`, `shop::pricing`.
+
+Agents assigned to issues that overlap it are serialized, so they do not step on each other.
+
+<sub>Sheltie · [About coordinating agents](https://sheltie.dev/docs/agents.html)</sub>

@@ -127,6 +127,14 @@ async fn apply_pr_event(
         .execute(&mut *conn)
         .await?;
     }
+    if let Some(title) = &e.title {
+        sqlx::query("UPDATE changes SET title = $3 WHERE repo_id = $1 AND pr_number = $2")
+            .bind(repo_id)
+            .bind(pr)
+            .bind(title)
+            .execute(&mut *conn)
+            .await?;
+    }
     if let Some(closes) = &e.closes {
         crate::coordination::set_pr_closes(conn, repo_id, pr, closes).await?;
     }

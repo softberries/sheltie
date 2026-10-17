@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sheltie">
+  <title>Sheltie</title>
+  <circle cx="32" cy="32" r="31" fill="#14213d"/>
+  <!-- white ruff -->
+  <path d="M10 33 C12 47 21 56 32 59 C43 56 52 47 54 33 C50 41 42 47 32 48 C22 47 14 41 10 33 Z" fill="#fdf6ec"/>
+  <!-- sable head with ears; the ear tips fold over -->
+  <path d="M17 13 L25 24 C29 22 35 22 39 24 L47 13 L50 29 C52 38 45 46 32 49 C19 46 12 38 14 29 Z" fill="#cf8a34"/>
+  <path d="M17 13 L21.5 19 L18.2 19.8 Z M47 13 L42.5 19 L45.8 19.8 Z" fill="#9a5b1e"/>
+  <path d="M19 18 L24 24 L20 26 Z M45 18 L40 24 L44 26 Z" fill="#7a4314"/>
+  <!-- white blaze and muzzle -->
+  <path d="M32 23 C29.5 27 29 33 30 38 C27 40 26 43 28 45.5 C30 47.5 34 47.5 36 45.5 C38 43 37 40 34 38 C35 33 34.5 27 32 23 Z" fill="#fdf6ec"/>
+  <path d="M22.5 31.5 Q25.5 29.5 28 31.5 Q25.5 33.5 22.5 31.5 Z M36 31.5 Q38.5 29.5 41.5 31.5 Q38.5 33.5 36 31.5 Z" fill="#14213d"/>
+  <ellipse cx="32" cy="43.2" rx="2.6" ry="1.9" fill="#14213d"/>
+</svg>

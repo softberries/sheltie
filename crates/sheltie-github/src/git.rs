@@ -373,6 +373,11 @@ impl GitHubApp {
         pr: PrNumber,
         labels: &[&str],
     ) -> Result<(), GitHubError> {
+        for name in labels {
+            if let Some(label) = crate::labels::by_name(name) {
+                self.ensure_label(inst, repo, label).await?;
+            }
+        }
         let (status, text) = self
             .raw(
                 inst,
@@ -396,6 +401,41 @@ impl GitHubApp {
             .await?;
         expect(status, &[200], &text)?;
         Ok(parse::<PullTitle>(&text)?.title)
+    }
+
+    /// Creates one of Sheltie's labels with its color and description, once per repository
+    /// and process; an existing label is left as the repository's owners set it.
+    async fn ensure_label(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        label: crate::labels::Label,
+    ) -> Result<(), GitHubError> {
+        let key = format!("{repo}/{}", label.name);
+        let known = |s: &Self| {
+            s.labels_ready
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .contains(&key)
+        };
+        if known(self) {
+            return Ok(());
+        }
+        let (status, text) = self
+            .raw(
+                inst,
+                "POST",
+                &format!("/repos/{repo}/labels"),
+                Some(json!({ "name": label.name, "color": label.color, "description": label.description })),
+            )
+            .await?;
+        // 422: it already exists.
+        expect(status, &[201, 422], &text)?;
+        self.labels_ready
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .insert(key);
+        Ok(())
     }
 
     /// Removes a label from an issue or pull request; a label that is not there is fine.
