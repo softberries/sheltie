@@ -15,7 +15,12 @@ echo "deploying $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
 
 "${COMPOSE[@]}" build sheltie
 "${COMPOSE[@]}" up -d --remove-orphans
+# compose keeps a running container whose image tag moved to a new build; recreate it then.
+if [ "$(docker inspect -f '{{.Image}}' sheltie-sheltie-1)" != "$(docker image inspect -f '{{.Id}}' sheltie/server:latest)" ]; then
+  "${COMPOSE[@]}" up -d --no-deps --force-recreate sheltie
+fi
 "${COMPOSE[@]}" ps
+docker image prune -f >/dev/null
 
 # Shared Caddy: update the site block if it changed. Creating it is the go-live step
 # (deploy/demo/README.md), never done here. A config that does not validate is not installed.
