@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family: Geist; src: url(Geist-Variable.woff2) format("woff2"); font-weight: 100 900; }
+html, body { margin: 0; }
+.card { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #050d17; color: #f2f7fb; font-family: Geist, system-ui; isolation: isolate; }
+.card::before { content: ""; position: absolute; inset: -20%; z-index: -1;
+  background: radial-gradient(38% 55% at 18% 8%, rgb(54 224 176 / .42), transparent 62%),
+              radial-gradient(40% 60% at 62% -6%, rgb(79 155 255 / .42), transparent 62%),
+              radial-gradient(36% 60% at 96% 78%, rgb(179 148 240 / .28), transparent 62%),
+              radial-gradient(30% 50% at 30% 100%, rgb(31 111 209 / .28), transparent 62%);
+  filter: blur(6px); }
+.card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #1f6fd1, #2bd4a8, #8a63c9); }
+.inner { position: absolute; inset: 0; padding: 84px 92px; display: flex; flex-direction: column; justify-content: center; }
+.brand { display: flex; align-items: center; gap: 24px; font-size: 58px; font-weight: 650; letter-spacing: -.04em; }
+.brand img { width: 112px; height: 112px; filter: drop-shadow(0 10px 30px rgb(43 212 168 / .35)); }
+h1 { margin: 44px 0 18px; font-size: 76px; line-height: 1.02; font-weight: 650; letter-spacing: -.05em; max-width: 16ch; }
+h1 em { font-style: normal; background: linear-gradient(100deg, #6aaeff 10%, #4ff0be 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+p { margin: 0; font-size: 30px; color: #a9bdd1; letter-spacing: -.01em; }
+.url { position: absolute; right: 92px; bottom: 64px; font-size: 26px; color: #74b3ff; font-weight: 550; }
+</style></head><body><div class="card"><div class="inner">
+<div class="brand"><img src="logo.svg" alt="">Sheltie</div>
+<h1>Merge agent pull requests <em>in parallel.</em></h1>
+<p>Open-source parallel merge engine · GitHub App · Apache-2.0</p>
+</div><div class="url">sheltie.dev</div></div></body></html>
