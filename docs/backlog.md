@@ -73,8 +73,10 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 
 **M5 — Merge tiers 1–3 and speculation**
 
-- [ ] mergiraf integration
-- [ ] `.sheltie/merge.toml`: derived, set, sequence
+- [x] mergiraf integration (tier 1, run as a separate program on the runner)
+- [x] `.sheltie/merge.toml`: derived, set, sequence
+- [x] Merge engine on the runner: `repository_dispatch` → `.github/workflows/merge.yml` → `POST /v1/merges`
+- [ ] Run the merge workflow on the playground (needs the public deployment, #51)
 - [x] Speculative chains (every prefix of groups up to 8)
 - [x] Group-tested batches (prefixes 1, 2, 4, …, n with bisection)
 
