@@ -57,7 +57,8 @@ M2 priority — module-level footprints for single-crate projects. Most Rust pro
 - [x] OCC commit check + CAS on head (`force=false` fast-forward; 422 on a moved head)
 - [x] Commit trailers with guarantee tier
 - [x] Per-repository merge mode (`sheltie-server repo set-mode`)
-- [ ] Sweeper, bisect, auto-revert PR
+- [x] Sweeps and the verified prefix (`sheltie/verified`), bisect via `sheltie/bisect/*`, auto-revert PR landed by Sheltie
+- [ ] Flaky-test quarantine (a lone red tip is not reverted until then)
 
 **M4.5 — Early public Cargo demo (priority: as soon as M4 works)**
 
