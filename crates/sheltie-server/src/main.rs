@@ -29,9 +29,9 @@ enum Command {
         /// Report window in days.
         #[arg(long, default_value_t = 7)]
         days: u32,
-        /// Print JSON instead of Markdown.
-        #[arg(long)]
-        json: bool,
+        /// Output format; defaults to `text` on a terminal and `markdown` otherwise.
+        #[arg(long, value_parser = ["text", "markdown", "json"])]
+        format: Option<String>,
     },
     /// Administers repositories.
     Repo {
@@ -115,7 +115,7 @@ async fn main() -> anyhow::Result<()> {
             server.serve(shutdown_signal()).await?;
             tracing::info!("sheltie-server stopped");
         }
-        Command::ShadowReport { repo, days, json } => {
+        Command::ShadowReport { repo, days, format } => {
             let repo = RepoFullName::parse(repo)?;
             let config = Config::from_env()?;
             let store = Store::connect(config.database, &config.pool)
@@ -127,10 +127,13 @@ async fn main() -> anyhow::Result<()> {
                 .await?
                 .with_context(|| format!("Sheltie has no data for {repo}"))?;
             let report = build_report(&input);
-            let out = if json {
-                serde_json::to_string_pretty(&report)?
-            } else {
-                report.to_markdown()
+            let terminal = std::io::IsTerminal::is_terminal(&std::io::stdout());
+            let format =
+                format.unwrap_or_else(|| if terminal { "text" } else { "markdown" }.into());
+            let out = match format.as_str() {
+                "json" => serde_json::to_string_pretty(&report)?,
+                "markdown" => report.to_markdown(),
+                _ => report.to_text(terminal),
             };
             use std::io::Write as _;
             writeln!(std::io::stdout(), "{out}")?;

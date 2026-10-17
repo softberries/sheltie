@@ -15,6 +15,7 @@ serde = { workspace = true }
 chrono = { workspace = true }
 
 [dev-dependencies]
+insta = { workspace = true }
 proptest = { workspace = true }
 
 [lints]
