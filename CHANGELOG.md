@@ -48,6 +48,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (independent pairs that landed before a red commit) and `sheltie-server shadow-report --repo
   owner/name` prints predictions versus reality.
 
+- Merge mode (M4): in repositories switched with `sheltie-server repo set-mode --mode merge`,
+  Sheltie lands ready changes itself. Independent changes land at once as merge commits through
+  a compare-and-swap on the default branch (`Sheltie-Verified: footprint`); others are merged onto
+  the head on `sheltie/verify/*` branches, checked by the repository's CI and then landed
+  (`Sheltie-Verified: speculation`); changes that cannot land are returned with a comment. The App
+  now needs contents (write) and pull requests (write).
+
 ### Changed
 
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.

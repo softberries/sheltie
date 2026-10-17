@@ -53,9 +53,10 @@ M2 priority — module-level footprints for single-crate projects. Most Rust pro
 
 **M4 — Parallel commit**
 
-- [ ] Verification via GitHub Actions on temporary branches
-- [ ] OCC commit check + CAS on head
-- [ ] Commit trailers with guarantee tier
+- [x] Verification via the repository's CI on `sheltie/verify/*` branches
+- [x] OCC commit check + CAS on head (`force=false` fast-forward; 422 on a moved head)
+- [x] Commit trailers with guarantee tier
+- [x] Per-repository merge mode (`sheltie-server repo set-mode`)
 - [ ] Sweeper, bisect, auto-revert PR
 
 **M4.5 — Early public Cargo demo (priority: as soon as M4 works)**
