@@ -130,3 +130,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - MSRV raised from 1.85 to 1.94, required by sqlx 0.9.
 - A closed change can be reopened (`Closed` → `Pending`); `Change.diff_hash` is optional until
   the footprint is computed.
+
+### Fixed
+
+- A merge-engine or replay result that was verified while `main` moved on landed the pull
+  request's original head instead of the verified resolution; it now lands the resolution.
+- The verified prefix (`sheltie/verified`) only moves forward; a CI re-run on a newer commit
+  sent it back and forth.
+- The merge and replay workflows replace an earlier result branch when a resolution is retried
+  onto a newer head, instead of failing the push.

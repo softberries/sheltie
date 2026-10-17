@@ -633,6 +633,49 @@ async fn merge_engine_resolution_is_verified_and_lands(_: PgPoolOptions, db: PgC
 }
 
 #[sqlx::test(migrations = false)]
+async fn a_resolution_lands_even_when_main_moved_during_its_verification(
+    _: PgPoolOptions,
+    db: PgConnectOptions,
+) {
+    let mut env = Env::start(db).await;
+    let (_, h2) = env.conflicting_pair().await;
+    let onto = env.fake.state().dispatches[0].1["onto"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    // The engine's result; its CI has not finished yet.
+    let result = env
+        .fake
+        .state()
+        .commit(&[&onto, &h2], "Merge #2: Billing rounding");
+    let status = env
+        .merge_report(json!({
+            "pr": 2, "head": h2, "onto": onto, "result": result,
+            "files": [{ "path": "src/billing.rs", "tier": "structural" }], "unresolved": []
+        }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+
+    // An independent change lands meanwhile, so the verified result is no longer on the head.
+    let h3 = env.open_pr(3, "Search prefix").await;
+    env.footprint(&h3, &["search"]).await;
+    env.wait_state(3, &h3, ChangeState::Landed).await;
+    let moved = env.main_head();
+    assert_ne!(moved, onto);
+
+    env.fake.state().ci.insert(result.clone(), "SUCCESS".into());
+    env.wait_state(2, &h2, ChangeState::Landed).await;
+    let head = env.main_head();
+    let parents = env.fake.state().commits[&head].parents.clone();
+    assert_eq!(
+        parents,
+        vec![moved, result],
+        "the verified resolution lands, not the original head"
+    );
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
 async fn unresolved_merge_returns_the_change(_: PgPoolOptions, db: PgConnectOptions) {
     let mut env = Env::start(db).await;
     let (_, h2) = env.conflicting_pair().await;

@@ -224,7 +224,8 @@ jobs:
           git fetch --no-tags origin "+refs/pull/${PR}/head:refs/remotes/sheltie/pr"
           git fetch "$RUNNER_TEMP/out/result.bundle" "sheltie-result:refs/remotes/sheltie/result"
           test "$(git rev-parse refs/remotes/sheltie/result)" = "$result"
-          git push origin "${result}:refs/heads/sheltie/replay-result/${PR}-${HEAD:0:12}"
+          # Sheltie's own branch: a retry onto a newer head replaces the earlier result.
+          git push --force origin "${result}:refs/heads/sheltie/replay-result/${PR}-${HEAD:0:12}"
 
       - name: Report to Sheltie
         env:
