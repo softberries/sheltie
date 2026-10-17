@@ -115,6 +115,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `demo/cargo-shop`: the demo project and its pull request generator.
 - `deploy/Dockerfile` takes a `BUILD_JOBS` build argument to cap compile jobs on shared hosts.
 - `deploy/demo/`: deployment files and runbook for the public demo instance.
+- Dashboard: a "Time saved" panel per repository and totals on the overview. Waiting time is
+  measured against a one-at-a-time merge queue simulated from real ready times and the median
+  measured CI time on the default branch; author time counts resolved conflicts at assumed
+  minutes, set with `[estimates]` in `.sheltie/merge.toml`. See `docs/dashboard.md`.
+- Dashboard redesign: Geist typography (self-hosted, SIL OFL), a Shetland palette, landings-per-day
+  charts, a landing timeline, CSS-only motion that respects reduced-motion settings.
+- CI durations of default-branch commits are recorded (`branch_commits.ci_seconds`).
 
 ### Changed
 

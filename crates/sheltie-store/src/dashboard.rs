@@ -9,6 +9,9 @@ use sheltie_core::{
 use sqlx::Row;
 use sqlx::postgres::PgRow;
 
+use sheltie_scheduler::report::build_report;
+use sheltie_scheduler::savings::{Savings, estimate};
+
 use crate::{RepoMode, Store, StoreError, from_db_id, to_db_id};
 
 /// A signed-in dashboard user.
@@ -107,11 +110,36 @@ pub struct LeaseItem {
     pub expires_at: DateTime<Utc>,
 }
 
+/// Days of landings shown on an overview card.
+pub const CARD_DAYS: u32 = 14;
+/// Days of history on the repository page, and the time-saved period.
+pub const DETAIL_DAYS: u32 = 30;
+
+/// One repository on the overview, with its recent activity and time saved.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepoCard {
+    /// The headline numbers.
+    pub overview: RepoOverview,
+    /// Landings per day over the last [`CARD_DAYS`] days, oldest first.
+    pub landed_daily: Vec<u32>,
+    /// Time saved over the last [`DETAIL_DAYS`] days.
+    pub savings: Savings,
+    /// In shadow mode: minutes merges waited after Sheltie said "land now" (the predicted
+    /// saving), over the same period.
+    pub predicted_wait_minutes: Option<i64>,
+}
+
 /// Everything the repository page shows.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RepoDetail {
     /// The headline numbers.
     pub overview: RepoOverview,
+    /// Landings per day over the last [`DETAIL_DAYS`] days, oldest first.
+    pub landed_daily: Vec<u32>,
+    /// Time saved over the last [`DETAIL_DAYS`] days.
+    pub savings: Savings,
+    /// In shadow mode, the predicted saving (see [`RepoCard::predicted_wait_minutes`]).
+    pub predicted_wait_minutes: Option<i64>,
     /// Open changes, newest activity first.
     pub queue: Vec<QueueItem>,
     /// Recent landings, newest first.
@@ -236,11 +264,65 @@ impl Store {
         rows.iter().map(overview_row).collect()
     }
 
+    /// Landings per day over the last `days` days (UTC), oldest first.
+    pub async fn landed_daily(&self, repo: RepoId, days: u32) -> Result<Vec<u32>, StoreError> {
+        let counts: Vec<i64> = sqlx::query_scalar(
+            "SELECT count(h.seq)
+             FROM generate_series(current_date - ($2::int - 1), current_date, interval '1 day') d
+             LEFT JOIN head_events h ON h.repo_id = $1 AND h.created_at >= d
+                                     AND h.created_at < d + interval '1 day'
+             GROUP BY d ORDER BY d",
+        )
+        .bind(to_db_id(repo.0, "repository id")?)
+        .bind(i32::try_from(days.clamp(1, 366)).unwrap_or(30))
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(counts
+            .into_iter()
+            .map(|n| u32::try_from(n).unwrap_or(u32::MAX))
+            .collect())
+    }
+
+    /// Time saved over the last [`DETAIL_DAYS`] days, and the predicted saving in shadow mode.
+    async fn savings_of(
+        &self,
+        overview: &RepoOverview,
+    ) -> Result<(Savings, Option<i64>), StoreError> {
+        let since = Utc::now() - chrono::Duration::days(i64::from(DETAIL_DAYS));
+        let savings = estimate(&self.savings_input(overview.id, since).await?);
+        let predicted = match overview.mode {
+            RepoMode::Merge => None,
+            RepoMode::Shadow => self
+                .shadow_report_input(&overview.name, since)
+                .await?
+                .map(|input| build_report(&input).land_now_wait_minutes),
+        };
+        Ok((savings, predicted))
+    }
+
+    /// The overview cards for `repos` (those that are installed).
+    pub async fn repo_cards(&self, repos: &[RepoId]) -> Result<Vec<RepoCard>, StoreError> {
+        let mut cards = Vec::new();
+        for overview in self.repo_overviews(repos).await? {
+            let landed_daily = self.landed_daily(overview.id, CARD_DAYS).await?;
+            let (savings, predicted_wait_minutes) = self.savings_of(&overview).await?;
+            cards.push(RepoCard {
+                overview,
+                landed_daily,
+                savings,
+                predicted_wait_minutes,
+            });
+        }
+        Ok(cards)
+    }
+
     /// The repository page, if `repo` is installed.
     pub async fn repo_detail(&self, repo: RepoId) -> Result<Option<RepoDetail>, StoreError> {
         let Some(overview) = self.repo_overviews(&[repo]).await?.into_iter().next() else {
             return Ok(None);
         };
+        let landed_daily = self.landed_daily(repo, DETAIL_DAYS).await?;
+        let (savings, predicted_wait_minutes) = self.savings_of(&overview).await?;
         let id = to_db_id(repo.0, "repository id")?;
         let state = |r: &PgRow| -> Result<ChangeState, StoreError> {
             r.try_get::<String, _>("state")?.parse().map_err(parse_err)
@@ -345,6 +427,9 @@ impl Store {
         .collect::<Result<_, StoreError>>()?;
         Ok(Some(RepoDetail {
             overview,
+            landed_daily,
+            savings,
+            predicted_wait_minutes,
             queue,
             landed,
             returned,
