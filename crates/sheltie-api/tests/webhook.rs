@@ -62,7 +62,7 @@ async fn post(store: &Store, wake: &Arc<Notify>, call: Call<'_>) -> (StatusCode,
     if let Some(s) = call.signature {
         request = request.header("x-hub-signature-256", s);
     }
-    let response = router(store.clone(), Some(webhooks), None)
+    let response = router(store.clone(), Some(webhooks), None, None)
         .oneshot(request.body(Body::from(call.body)).unwrap())
         .await
         .unwrap();
@@ -175,7 +175,7 @@ async fn ping_is_ignored(pool: PgPool) {
 
 #[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
 async fn webhook_route_is_absent_without_configuration(pool: PgPool) {
-    let response = router(Store::from_pool(pool), None, None)
+    let response = router(Store::from_pool(pool), None, None, None)
         .oneshot(
             Request::post("/webhooks/github")
                 .body(Body::empty())
