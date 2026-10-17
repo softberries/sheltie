@@ -57,6 +57,11 @@ on:
         required: false
         type: string
         default: main
+      sheltie-version:
+        description: Release of Sheltie to download (e.g. v0.1.0); empty builds from sheltie-ref.
+        required: false
+        type: string
+        default: ""
       claude-code-version:
         description: npm version of @anthropic-ai/claude-code
         required: false
@@ -108,6 +113,7 @@ jobs:
           test "$(git rev-parse refs/remotes/sheltie/pr)" = "$HEAD" || { echo "PR head moved"; exit 1; }
 
       - name: Check out sheltie-merge
+        if: inputs.sheltie-version == ''
         uses: actions/checkout@v7
         with:
           repository: softberries/sheltie
@@ -119,6 +125,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        if: inputs.sheltie-version == ''
         with:
           workspaces: .sheltie-src
           key: sheltie-merge
@@ -130,8 +137,27 @@ jobs:
       - name: Install sheltie-merge and Claude Code
         env:
           CLAUDE_CODE_VERSION: ${{ inputs.claude-code-version }}
+          SHELTIE_VERSION: ${{ inputs.sheltie-version }}
+          GH_TOKEN: ${{ secrets.sheltie-repo-token || github.token }}
         run: |
-          cargo install --locked --path .sheltie-src/crates/sheltie-merge --root "$RUNNER_TEMP/sheltie"
+          SHELTIE_VERSION="${SHELTIE_VERSION:-}"
+          if [ -n "$SHELTIE_VERSION" ]; then
+            [[ "$SHELTIE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "bad sheltie-version"; exit 1; }
+            case "$(uname -m)" in
+              x86_64) target=x86_64-unknown-linux-gnu ;;
+              aarch64|arm64) target=aarch64-unknown-linux-gnu ;;
+              *) echo "unsupported runner architecture"; exit 1 ;;
+            esac
+            name="sheltie-$SHELTIE_VERSION-$target"
+            dl="$RUNNER_TEMP/sheltie-release"
+            mkdir -p "$dl" "$RUNNER_TEMP/sheltie/bin"
+            gh release download "$SHELTIE_VERSION" -R softberries/sheltie -D "$dl" --clobber -p "$name.tar.gz" -p SHA256SUMS
+            (cd "$dl" && grep " $name.tar.gz\$" SHA256SUMS | sha256sum --check -)
+            tar -xzf "$dl/$name.tar.gz" -C "$dl"
+            install "$dl/$name/sheltie-merge" "$RUNNER_TEMP/sheltie/bin/"
+          else
+            cargo install --locked --path .sheltie-src/crates/sheltie-merge --root "$RUNNER_TEMP/sheltie"
+          fi
           echo "$RUNNER_TEMP/sheltie/bin" >> "$GITHUB_PATH"
           npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
           rm -rf .sheltie-src
