@@ -19,7 +19,7 @@ One GitHub issue per task, labelled with its milestone; Claude Code can create t
 - [x] Persist PR lifecycle events
 - [x] Sheltie check run per PR with state
 - [x] Installation token management
-- [ ] Register the development App and see the check on a playground PR (manual; `scripts/register-github-app.py`)
+- [x] Register the development App and see the check on a playground PR (`sheltie-dev`, playground PR #2, 2026-10-17)
 
 **M2 — Footprints (Cargo)**
 
