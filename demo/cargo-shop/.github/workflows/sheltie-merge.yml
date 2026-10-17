@@ -1,0 +1,15 @@
+on:
+  repository_dispatch:
+    types: [sheltie-merge]
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: read
+jobs:
+  merge:
+    uses: softberries/sheltie/.github/workflows/merge.yml@main
+    with:
+      sheltie-url: ${{ vars.SHELTIE_URL }}
+      pr: ${{ github.event.client_payload.pr }}
+      head: ${{ github.event.client_payload.head }}
+      onto: ${{ github.event.client_payload.onto }}

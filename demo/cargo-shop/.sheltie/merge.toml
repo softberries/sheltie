@@ -1,0 +1,17 @@
+[[derived]]
+paths = ["Cargo.lock"]
+regenerate = "cargo update --workspace --offline"
+
+[[set]]
+paths = ["config/feature_flags.txt"]
+
+[[sequence]]
+paths = ["migrations/*.sql"]
+key = "^(\\d+)_"
+
+[replay]
+enabled = true
+test_command = "cargo test --workspace -- {tests}"
+max_turns = 30
+max_budget_usd = 2.0
+daily_budget_usd = 10.0
