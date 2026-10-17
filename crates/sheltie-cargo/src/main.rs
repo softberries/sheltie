@@ -35,6 +35,10 @@ enum Command {
         /// Extra glob for files that never affect the build (repeatable).
         #[arg(long = "ignore")]
         ignore: Vec<String>,
+        /// Extra glob for data files outside the build: two changes to the same file conflict,
+        /// but they do not make a footprint leaky (repeatable).
+        #[arg(long = "plain")]
+        plain: Vec<String>,
     },
     /// Prints the build graph Sheltie sees for one revision, as JSON.
     Graph {
@@ -55,6 +59,7 @@ fn main() -> anyhow::Result<()> {
             repo,
             out,
             ignore,
+            plain,
         } => {
             let git = Git::open(&repo).context("opening repository")?;
             let patterns: Vec<&str> = DEFAULT_IGNORE
@@ -62,7 +67,12 @@ fn main() -> anyhow::Result<()> {
                 .copied()
                 .chain(ignore.iter().map(String::as_str))
                 .collect();
-            let policy = PathPolicy::new(&patterns, DEFAULT_PLAIN)?;
+            let plain: Vec<&str> = DEFAULT_PLAIN
+                .iter()
+                .copied()
+                .chain(plain.iter().map(String::as_str))
+                .collect();
+            let policy = PathPolicy::new(&patterns, &plain)?;
             let scratch = std::env::temp_dir();
             let report = sheltie_cargo::compute(&git, &base, &head, &policy, &scratch)
                 .with_context(|| format!("computing the footprint of {head} against {base}"))?;

@@ -66,6 +66,37 @@ pub fn graph(
     Ok(snapshot::build(git, &files, &layout, policy, &BTreeSet::new())?.snapshot)
 }
 
+/// `seq:<first glob>` for every `[[sequence]]` rule in `rules` that a changed path matches.
+/// An unreadable rules file yields nothing; the merge engine reports it.
+fn sequence_targets(rules: &str, changed: &BTreeSet<RepoPath>) -> BTreeSet<TargetId> {
+    let Ok(value) = rules.parse::<toml::Table>() else {
+        return BTreeSet::new();
+    };
+    let Some(sequences) = value.get("sequence").and_then(toml::Value::as_array) else {
+        return BTreeSet::new();
+    };
+    let mut targets = BTreeSet::new();
+    for seq in sequences.iter().take(100) {
+        let globs: Vec<&str> = seq
+            .get("paths")
+            .and_then(toml::Value::as_array)
+            .map(|a| a.iter().filter_map(toml::Value::as_str).collect())
+            .unwrap_or_default();
+        let Some(first) = globs.first() else { continue };
+        let mut set = globset::GlobSetBuilder::new();
+        for g in &globs {
+            if let Ok(glob) = globset::Glob::new(g) {
+                set.add(glob);
+            }
+        }
+        let Ok(set) = set.build() else { continue };
+        if changed.iter().any(|p| set.is_match(p.as_str())) {
+            targets.insert(TargetId::new(format!("seq:{first}")));
+        }
+    }
+    targets
+}
+
 /// Computes the footprint of `head` against `base` in the repository `git`.
 ///
 /// `scratch` is where temporary worktrees for `cargo metadata` are created.
@@ -148,6 +179,16 @@ pub fn compute(
     }
 
     let mut footprint = sheltie_graph::footprint(&b.snapshot, &h.snapshot, &relevant, &extra_reads);
+    // Numbered files (`[[sequence]]` in `.sheltie/merge.toml` at the base, never the PR's) share
+    // one target per rule: two changes adding migrations conflict even when their file names
+    // differ, so the merge engine renumbers them.
+    if let Some(oid) = base_files.oid(".sheltie/merge.toml") {
+        let rules = String::from_utf8_lossy(&git.blob(oid)?).into_owned();
+        for seq in sequence_targets(&rules, &changed) {
+            footprint.writes.insert(seq.clone());
+            footprint.reads.insert(seq);
+        }
+    }
     if !leak_reasons.is_empty() {
         footprint.leaky = true;
     }
@@ -200,4 +241,19 @@ pub fn compute(
         footprint,
         leak_reasons,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sequence_rules_give_a_shared_target() {
+        let rules = "[[sequence]]\npaths = [\"migrations/*.sql\"]\nkey = \"^(\\\\d+)_\"\n";
+        let changed = |p: &str| BTreeSet::from([RepoPath::new(p)]);
+        let t = sequence_targets(rules, &changed("migrations/0002_orders.sql"));
+        assert_eq!(t, BTreeSet::from([TargetId::new("seq:migrations/*.sql")]));
+        assert!(sequence_targets(rules, &changed("src/lib.rs")).is_empty());
+        assert!(sequence_targets("not toml [", &changed("migrations/1_x.sql")).is_empty());
+    }
 }
