@@ -65,6 +65,70 @@ pub struct Resolution {
     pub similarity: Option<Score>,
 }
 
+/// How one file of a merge was resolved.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FileResolution {
+    /// The file.
+    pub path: RepoPath,
+    /// The tier that resolved it.
+    pub tier: ResolutionTier,
+}
+
+/// What the merge engine reports after merging a pull request onto the head.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MergeReport {
+    /// The pull request.
+    pub pr: crate::PrNumber,
+    /// Its head commit.
+    pub head: crate::CommitSha,
+    /// The default-branch commit it was merged onto.
+    pub onto: crate::CommitSha,
+    /// The merge commit (parents: `onto`, `head`), if everything was resolved.
+    pub result: Option<crate::CommitSha>,
+    /// Files that needed more than git's own merge, and how they were resolved.
+    pub files: Vec<FileResolution>,
+    /// Files that could not be resolved.
+    pub unresolved: Vec<RepoPath>,
+}
+
+impl MergeReport {
+    /// The highest tier used, or [`ResolutionTier::Commute`] when git merged everything.
+    pub fn tier(&self) -> ResolutionTier {
+        self.files
+            .iter()
+            .map(|f| f.tier)
+            .max()
+            .unwrap_or(ResolutionTier::Commute)
+    }
+
+    /// Bounds sizes; uploads are untrusted.
+    pub fn validate(&self) -> Result<(), crate::InvalidReport> {
+        let ok = |p: &RepoPath| {
+            !p.as_str().is_empty()
+                && p.as_str().len() <= 1024
+                && !p.as_str().chars().any(char::is_control)
+        };
+        if self.files.len() + self.unresolved.len() > 10_000 {
+            return Err(crate::InvalidReport("too many files".into()));
+        }
+        if !self
+            .files
+            .iter()
+            .map(|f| &f.path)
+            .chain(&self.unresolved)
+            .all(ok)
+        {
+            return Err(crate::InvalidReport("invalid path".into()));
+        }
+        if self.result.is_some() == !self.unresolved.is_empty() {
+            return Err(crate::InvalidReport(
+                "a result needs no unresolved files, and vice versa".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
