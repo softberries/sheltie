@@ -103,7 +103,8 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 - [x] Logo, sheltie.dev landing page, branded docs, social image, Pages workflow
 - [x] Read-only dashboard with GitHub sign-in
 - [ ] Public demo instance on a VM (compose + Caddy) at a sheltie.dev subdomain
-- [ ] Demo repository, PR generator script, recorded run (GIF/video) and published benchmark
+- [x] Demo project and PR generator (`demo/cargo-shop`), scenarios checked with `sheltie-cargo`
+- [ ] Demo repository from it, recorded run (GIF/video) and published benchmark
 - [ ] Replace illustrative screenshots with real ones from the demo
 - [ ] Go public: make the repository public, enable Pages (`PAGES_ENABLED`), dry-run and tag v0.1.0
 

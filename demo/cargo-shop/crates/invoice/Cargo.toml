@@ -1,0 +1,10 @@
+[package]
+name = "shop-invoice"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+shop-cart = { path = "../cart" }
+shop-pricing = { path = "../pricing" }

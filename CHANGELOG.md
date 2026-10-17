@@ -108,6 +108,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Sheltie's labels are created with colors and descriptions.
 - `shadow-report --format text|markdown|json`, with a readable terminal format by default.
 
+- `sheltie-cargo footprint --plain <glob>` and the footprint workflow's `plain` input declare
+  data files outside the build (e.g. `config/**`), so they no longer make footprints leaky.
+- Files matching a `[[sequence]]` rule share a `seq:` target, so two changes adding
+  migrations always go through the merge engine and are renumbered instead of both landing.
+- `demo/cargo-shop`: the demo project and its pull request generator.
+
 ### Changed
 
 - The Sheltie check run is redesigned: a clear headline per state, what happens next, the footprint's targets in a collapsible section, how a change landed and which tier resolved its conflict.
