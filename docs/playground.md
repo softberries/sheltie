@@ -48,3 +48,21 @@ To produce a suspected miss on purpose, merge two PRs that change different modu
 on its own, that break `main` together. For example, one changes `ledger_billing::tax::tax_on`'s
 body (a body-only change, so its footprint does not reach `invoice`) while the other adds an
 `invoice` test that pins the old tax result. Once `main` is red, the report lists the pair.
+
+## Merge mode (M4)
+
+Prerequisites, in this order:
+
+1. Resolve #52 (can fork PRs mint OIDC tokens?); merge mode trusts uploaded footprints.
+2. Give the App contents (write) and pull requests (write) and approve them on the installation.
+3. Protect the default branch with a ruleset that lists the App in its bypass list (rulesets on
+   private repositories need GitHub Team or Enterprise; the playground can instead be made public).
+4. Make CI run on pushes to `sheltie/verify/**` (most workflows run on every push already).
+
+Then switch the playground:
+
+```sh
+cargo run -p sheltie-server -- repo set-mode --repo softberries/sheltie-playground-cargo --mode merge
+```
+
+Sheltie now lands ready PRs itself; switch back with `--mode shadow`.
