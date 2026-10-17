@@ -2425,6 +2425,7 @@ dependencies = [
  "sheltie-commit",
  "sheltie-core",
  "sheltie-github",
+ "sheltie-merge",
  "sheltie-scheduler",
  "sheltie-store",
  "sheltie-sweeper",

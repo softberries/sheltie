@@ -15,6 +15,7 @@ sheltie-github = { workspace = true }
 sheltie-core = { workspace = true }
 sheltie-scheduler = { workspace = true }
 sheltie-commit = { workspace = true }
+sheltie-merge = { workspace = true }
 sheltie-sweeper = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }

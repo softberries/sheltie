@@ -57,6 +57,11 @@ pub fn router(store: Store, webhooks: Option<Webhooks>, footprints: Option<Footp
                 post(footprints::upload).layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
             )
             .route(
+                "/v1/replays",
+                post(footprints::replay_report)
+                    .layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
+            )
+            .route(
                 "/v1/merges",
                 post(footprints::merge_report)
                     .layer(DefaultBodyLimit::max(footprints::MAX_UPLOAD_BYTES)),
