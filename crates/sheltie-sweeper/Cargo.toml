@@ -1,6 +1,6 @@
 [package]
 name = "sheltie-sweeper"
-description = "Sweeps, bisect and auto-revert."
+description = "Sweeps, culprit finding and auto-revert decisions."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,9 @@ authors.workspace = true
 publish.workspace = true
 
 [dependencies]
-sheltie-core = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
 
 [lints]
 workspace = true
