@@ -4,11 +4,13 @@
 # Configure with environment variables (see docs/self-hosting.md); listens on SHELTIE_BIND.
 
 FROM rust:1.97.0-bookworm AS build
+# Parallel compile jobs; unset uses every CPU. Set it on a host shared with other services.
+ARG BUILD_JOBS
 WORKDIR /src
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/target \
-    cargo build --release --locked -p sheltie-server \
+    cargo build --release --locked -p sheltie-server ${BUILD_JOBS:+--jobs "$BUILD_JOBS"} \
     && install -D target/release/sheltie-server /out/sheltie-server
 
 FROM gcr.io/distroless/cc-debian12:nonroot
