@@ -289,12 +289,12 @@ fn day_bars(values: &[u32], now: DateTime<Utc>, class: &str, id: &str) -> String
 /// Two horizontal bars: Sheltie's median time to land against the one-at-a-time queue's.
 fn compare_bars(sheltie: i64, serial: i64) -> String {
     let max = sheltie.max(serial).max(1) as f64;
-    let width = |v: i64| ((v as f64 / max) * 100.0).max(1.5);
+    let value = |v: i64| ((v as f64 / max) * 100.0).max(2.0);
     format!(
-        r#"<div class="compare"><div class="crow"><span class="clabel">Sheltie</span><svg class="cbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="ctrack" width="100" height="10" rx="5"/><rect class="cfill-a" width="{:.1}" height="10" rx="5"/></svg><span class="cval">{}</span></div><div class="crow"><span class="clabel">One at a time</span><svg class="cbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="ctrack" width="100" height="10" rx="5"/><rect class="cfill-b" width="{:.1}" height="10" rx="5"/></svg><span class="cval">{}</span></div></div>"#,
-        width(sheltie),
+        r#"<div class="compare"><div class="crow"><span class="clabel">Sheltie</span><progress class="pbar pbar-a" max="100" value="{:.1}" aria-hidden="true"></progress><span class="cval">{}</span></div><div class="crow"><span class="clabel">One at a time</span><progress class="pbar pbar-b" max="100" value="{:.1}" aria-hidden="true"></progress><span class="cval">{}</span></div></div>"#,
+        value(sheltie),
         duration(sheltie),
-        width(serial),
+        value(serial),
         duration(serial)
     )
 }
