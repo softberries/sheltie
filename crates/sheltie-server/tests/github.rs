@@ -100,6 +100,7 @@ async fn check_run_is_created_and_shows_the_uploaded_footprint(
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        agents: sheltie_server::AgentsConfig::default(),
         epoch: std::time::Duration::from_secs(1),
         github: Some(GitHubConfig {
             app_id: 123456,
@@ -185,6 +186,7 @@ async fn missing_private_key_fails_startup(_: PgPoolOptions, database: PgConnect
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        agents: sheltie_server::AgentsConfig::default(),
         epoch: std::time::Duration::from_secs(1),
         github: Some(GitHubConfig {
             app_id: 1,
@@ -250,6 +252,7 @@ async fn ready_pull_request_shows_a_shadow_prediction(
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        agents: sheltie_server::AgentsConfig::default(),
         epoch: Duration::from_millis(200),
         github: Some(GitHubConfig {
             app_id: 123456,

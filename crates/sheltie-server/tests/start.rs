@@ -19,6 +19,7 @@ async fn server_starts_migrates_and_reports_healthy(_: PgPoolOptions, database: 
         database,
         bind: "127.0.0.1:0".parse().unwrap(),
         pool: PoolConfig::default(),
+        agents: sheltie_server::AgentsConfig::default(),
         epoch: std::time::Duration::from_secs(1),
         github: None,
     };

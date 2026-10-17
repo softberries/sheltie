@@ -38,6 +38,33 @@ enum Command {
         #[command(subcommand)]
         command: RepoCommand,
     },
+    /// Manages agent tokens (REST and MCP).
+    Token {
+        #[command(subcommand)]
+        command: TokenCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum TokenCommand {
+    /// Creates a token for an agent and prints it once.
+    Create {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// Agent name; it holds the agent's leases.
+        #[arg(long)]
+        name: String,
+    },
+    /// Revokes an agent's tokens.
+    Revoke {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// Agent name.
+        #[arg(long)]
+        name: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -128,6 +155,48 @@ async fn main() -> anyhow::Result<()> {
                 anyhow::bail!("Sheltie does not know {repo}; install the App on it first");
             }
             tracing::info!(%repo, merge_engine = %state, "merge engine set");
+        }
+        Command::Token { command } => {
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            match command {
+                TokenCommand::Create { repo, name } => {
+                    let repo = RepoFullName::parse(repo)?;
+                    anyhow::ensure!(
+                        (1..=100).contains(&name.len())
+                            && name
+                                .bytes()
+                                .all(|b| b.is_ascii_alphanumeric()
+                                    || matches!(b, b'-' | b'_' | b'.')),
+                        "--name must be 1-100 letters, digits, '-', '_' or '.'"
+                    );
+                    let mut secret = [0u8; 32];
+                    getrandom::fill(&mut secret)
+                        .map_err(|e| anyhow::anyhow!("no randomness: {e}"))?;
+                    let token = format!(
+                        "{}{}",
+                        sheltie_api::agents::TOKEN_PREFIX,
+                        hex::encode(secret)
+                    );
+                    if store
+                        .create_token(&repo, &name, &sheltie_api::agents::token_hash(&token))
+                        .await?
+                        .is_none()
+                    {
+                        anyhow::bail!("Sheltie does not know {repo}; install the App on it first");
+                    }
+                    use std::io::Write as _;
+                    writeln!(std::io::stdout(), "{token}")?;
+                    tracing::info!(%repo, name, "token created; it is shown only once");
+                }
+                TokenCommand::Revoke { repo, name } => {
+                    let repo = RepoFullName::parse(repo)?;
+                    let n = store.revoke_token(&repo, &name).await?;
+                    tracing::info!(%repo, name, revoked = n, "tokens revoked");
+                }
+            }
         }
     }
     Ok(())
