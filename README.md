@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="site/assets/logo.svg" width="96" alt="">
+  <img src="site/assets/logo-256.png" width="96" alt="">
 </p>
 
 <h1 align="center">Sheltie</h1>
