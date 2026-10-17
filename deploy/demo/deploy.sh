@@ -5,6 +5,8 @@
 # Fetches the ref, builds the image on the host, recreates changed containers (the server applies
 # migrations at start) and updates the shared Caddy site block if it changed.
 set -euo pipefail
+# Parsed whole before it runs: the checkout below may replace this file.
+{
 cd /opt/sheltie
 REF="${1:-origin/main}"
 COMPOSE=(docker compose -f compose.yaml -f deploy/demo/compose.demo.yaml)
@@ -40,3 +42,5 @@ if [ -f "$SITE_DST" ] && ! cmp -s "$SITE_SRC" "$SITE_DST"; then
   fi
   rm -f "$SITE_DST.prev"
 fi
+exit
+}
