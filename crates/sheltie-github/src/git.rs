@@ -312,6 +312,26 @@ impl GitHubApp {
         Ok(PrNumber(parse::<PullNumber>(&text)?.number))
     }
 
+    /// Fires a `repository_dispatch` event, which starts workflows listening for `event_type`.
+    pub async fn dispatch(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        event_type: &str,
+        payload: serde_json::Value,
+    ) -> Result<(), GitHubError> {
+        let body = json!({ "event_type": event_type, "client_payload": payload });
+        let (status, text) = self
+            .raw(
+                inst,
+                "POST",
+                &format!("/repos/{repo}/dispatches"),
+                Some(body),
+            )
+            .await?;
+        expect(status, &[204], &text)
+    }
+
     /// A pull request's title.
     pub async fn pr_title(
         &self,
