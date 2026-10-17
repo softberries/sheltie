@@ -6,11 +6,15 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use sheltie_core::PrNumber;
+use std::collections::BTreeSet;
+
+use sheltie_core::{PrNumber, RepoId};
 use sheltie_github::GitHubApp;
 use sheltie_scheduler::report::{LandedInWindow, suspected_misses};
 use sheltie_scheduler::{Candidate, plan_epoch};
-use sheltie_store::{PredictionRow, Store, StoreError};
+use sheltie_store::{PredictionRow, RepoMode, Store, StoreError};
+
+use crate::committer::Committer;
 use tokio::sync::Notify;
 
 /// Polls CI results of recent default-branch commits and records suspected footprint misses
@@ -106,6 +110,8 @@ pub struct ShadowScheduler {
     pub epoch: Duration,
     /// Notified when an epoch changed predictions, so check runs refresh promptly.
     pub changed: Arc<Notify>,
+    /// Lands changes in repositories in merge mode; `None` means shadow mode everywhere.
+    pub committer: Option<Committer>,
 }
 
 impl ShadowScheduler {
@@ -115,13 +121,27 @@ impl ShadowScheduler {
             store,
             epoch,
             changed,
+            committer: None,
         }
+    }
+
+    /// Lets the scheduler land changes in repositories switched to merge mode.
+    pub fn with_committer(mut self, committer: Committer) -> Self {
+        self.committer = Some(committer);
+        self
     }
 
     /// Runs one epoch across repositories; returns how many predictions changed.
     pub async fn run_once(&self) -> Result<usize, StoreError> {
         let mut changed = 0;
-        for repo in self.store.repos_with_ready_changes().await? {
+        let mut repos: BTreeSet<RepoId> = self
+            .store
+            .repos_with_ready_changes()
+            .await?
+            .into_iter()
+            .collect();
+        repos.extend(self.store.repos_with_verifying().await?);
+        for repo in repos {
             let candidates = self.store.epoch_candidates(repo).await?;
             let now = Utc::now();
             let pr_of: BTreeMap<i64, PrNumber> = candidates
@@ -138,9 +158,10 @@ impl ShadowScheduler {
                     landed_writes: c.landed_writes.clone(),
                 })
                 .collect();
-            let rows: Vec<PredictionRow> = plan_epoch(&input)
-                .into_iter()
-                .map(|(id, decision)| {
+            let plan = plan_epoch(&input);
+            let rows: Vec<PredictionRow> = plan
+                .iter()
+                .map(|(&id, decision)| {
                     let by_pr = decision.map_keys(|k| pr_of.get(k).copied().unwrap_or(PrNumber(0)));
                     let me = pr_of.get(&id).copied().unwrap_or(PrNumber(0));
                     PredictionRow {
@@ -152,11 +173,40 @@ impl ShadowScheduler {
                 })
                 .collect();
             changed += self.store.record_predictions(repo, now, &rows).await?;
+            if let Some(committer) = &self.committer {
+                self.commit(committer, repo, &plan).await;
+            }
         }
         if changed > 0 {
             self.changed.notify_one();
         }
         Ok(changed)
+    }
+
+    /// Lets the committer act on a repository in merge mode, under its commit lock. Errors are
+    /// logged; the next epoch tries again.
+    async fn commit(
+        &self,
+        committer: &Committer,
+        repo: RepoId,
+        plan: &BTreeMap<i64, sheltie_scheduler::Decision<i64>>,
+    ) {
+        let result: anyhow::Result<()> = async {
+            let Some(access) = self.store.repo_access(repo).await? else {
+                return Ok(());
+            };
+            if access.mode != RepoMode::Merge {
+                return Ok(());
+            }
+            let Some(_lock) = self.store.try_lock_repo(repo).await? else {
+                return Ok(()); // another replica is committing here
+            };
+            committer.act(repo, &access, plan).await
+        }
+        .await;
+        if let Err(error) = result {
+            tracing::error!(repo = repo.0, error = %format!("{error:#}"), "committer failed");
+        }
     }
 
     /// Runs epochs until `shutdown` resolves.

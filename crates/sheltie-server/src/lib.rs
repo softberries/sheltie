@@ -19,8 +19,10 @@ use sqlx::postgres::PgConnectOptions;
 use tokio::net::TcpListener;
 use tokio::sync::{Notify, watch};
 
+mod committer;
 mod shadow;
 
+pub use committer::Committer;
 pub use shadow::{BranchCiWorker, ShadowScheduler};
 
 /// Default time between scheduler epochs.
@@ -221,12 +223,13 @@ impl Server {
                     },
                     check_runs: CheckRunSync::new(store.clone(), Arc::clone(&app)),
                     readiness: ReadinessSync::new(store.clone(), Arc::clone(&app)),
-                    branch_ci: BranchCiWorker::new(store.clone(), app),
+                    branch_ci: BranchCiWorker::new(store.clone(), Arc::clone(&app)),
                     shadow: ShadowScheduler::new(
                         store.clone(),
                         config.epoch,
                         Arc::new(Notify::new()),
-                    ),
+                    )
+                    .with_committer(Committer::new(store.clone(), app)),
                 })
             }
             None => None,

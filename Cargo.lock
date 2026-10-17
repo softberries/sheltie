@@ -2332,6 +2332,7 @@ dependencies = [
 name = "sheltie-commit"
 version = "0.0.0"
 dependencies = [
+ "proptest",
  "sheltie-core",
 ]
 
@@ -2351,6 +2352,7 @@ name = "sheltie-github"
 version = "0.0.0"
 dependencies = [
  "aws-lc-rs",
+ "axum",
  "base64 0.22.1",
  "chrono",
  "hex",
@@ -2411,6 +2413,7 @@ dependencies = [
  "reqwest",
  "serde_json",
  "sheltie-api",
+ "sheltie-commit",
  "sheltie-core",
  "sheltie-github",
  "sheltie-scheduler",
