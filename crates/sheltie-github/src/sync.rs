@@ -61,11 +61,15 @@ impl CheckRunSync {
         let spec = spec_for(&CheckContext {
             state: job.state,
             head: &job.change.head,
-            footprint: job.footprint,
+            footprint: job.footprint.as_ref(),
             readiness: job.readiness,
             prediction: job.prediction.as_deref(),
             returned_reason: job.returned_reason.as_deref(),
             merge_mode: job.merge_mode,
+            default_branch: job.default_branch.as_deref(),
+            landing: job.landing.as_ref(),
+            resolution: job.resolution,
+            replaying: job.replaying,
         });
         let result = match job.github_id {
             Some(id) => self

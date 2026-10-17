@@ -1,0 +1,29 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: InProgress
+title: Verifying on main
+---
+## 🔍 Verifying
+
+This change is merged onto the current `main` on a `sheltie/` branch, where your CI runs. It lands when CI passes there.
+
+Conflict resolved: regenerated derived files.
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group · <b>leaky</b></summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+**Leaky:** a non-hermetic part of the build widened what it may affect:
+- build.rs in shop reads the environment
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

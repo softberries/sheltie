@@ -39,7 +39,7 @@ async fn fake_github(head: &str, signer: &OidcSigner) -> MockServer {
         .await;
     Mock::given(method("PATCH"))
         .and(path("/repos/acme/widgets/check-runs/31"))
-        .and(body_string_contains("Footprint: writes 1 target, reads 2"))
+        .and(body_string_contains("writes 1 target · affects 2"))
         .respond_with(ResponseTemplate::new(200).set_body_json(check_run(head)))
         .expect(1)
         .mount(&github)

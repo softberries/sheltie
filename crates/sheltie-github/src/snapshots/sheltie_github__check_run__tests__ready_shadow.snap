@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Queued
+title: Shadow: would land now, together with #12
+---
+## 👀 Shadow mode
+
+This repository is in **shadow mode**: Sheltie records what it would do and merges nothing. Merge as usual.
+
+**Sheltie would land now, together with #12.**
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Shadow mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

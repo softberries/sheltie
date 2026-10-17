@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### 🔒 Already claimed
+
+This issue is already claimed by `agent-a`.
+
+**What to do:** pick another issue, or ask them to release it.
+
+<sub>Sheltie · [About coordinating agents](https://sheltie.dev/docs/agents.html)</sub>
