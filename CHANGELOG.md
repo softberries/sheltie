@@ -85,7 +85,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   comments while they wait. See `docs/agents.md`. The App now needs Issues write and the
   `issues` event.
 
+- Release packaging:
+  - container image (`deploy/Dockerfile`, distroless, non-root, built-in health check);
+  - self-host stack (`compose.yaml`) and `scripts/register-github-app.py --url` for production
+    Apps;
+  - Helm chart (`deploy/helm/sheltie`, tested on kind in CI);
+  - release workflow producing binaries for Linux x86_64/arm64 and macOS arm64 with
+    `SHA256SUMS`, and a multi-arch image on GHCR.
+- The reusable workflows take `sheltie-version` to download released, checksum-verified
+  binaries instead of building from source.
+- Documentation site (`mdbook build docs`): self-hosting, configuration, workflows, merge rules,
+  intent replay and agents.
+- `sheltie-server stats` prints anonymous usage counts to share by hand (Sheltie sends no
+  telemetry); `sheltie-server healthcheck` for container health checks.
+
 ### Changed
+
+- Licensed under Apache-2.0.
+- Logs are plain text when stderr is not a terminal.
 
 - `sheltie-merge` now has subcommands: `sheltie-merge merge` (tiers 1-3) and `sheltie-merge replay`.
 
