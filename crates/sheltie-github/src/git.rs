@@ -398,7 +398,36 @@ impl GitHubApp {
         Ok(parse::<PullTitle>(&text)?.title)
     }
 
-    /// Comments on a pull request.
+    /// Removes a label from an issue or pull request; a label that is not there is fine.
+    pub async fn remove_label(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        number: PrNumber,
+        label: &str,
+    ) -> Result<(), GitHubError> {
+        let encoded: String = label
+            .bytes()
+            .map(|b| {
+                if b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~') {
+                    (b as char).to_string()
+                } else {
+                    format!("%{b:02X}")
+                }
+            })
+            .collect();
+        let (status, text) = self
+            .raw(
+                inst,
+                "DELETE",
+                &format!("/repos/{repo}/issues/{}/labels/{encoded}", number.0),
+                None,
+            )
+            .await?;
+        expect(status, &[200, 404], &text)
+    }
+
+    /// Comments on a pull request or issue (they share numbers).
     pub async fn comment(
         &self,
         inst: InstallationId,
