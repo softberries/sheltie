@@ -22,6 +22,8 @@ pub struct FakeCommit {
     pub parents: Vec<String>,
     /// Commit message.
     pub message: String,
+    /// Tree id (the fake has no contents; a tree is just an id).
+    pub tree: String,
 }
 
 /// A pull request in the fake repository.
@@ -52,6 +54,8 @@ pub struct FakeState {
     pub verify_ci: Option<String>,
     /// Comments posted, as (PR number, body).
     pub comments: Vec<(u64, String)>,
+    /// Pull requests opened through the API, as (number, title, head branch).
+    pub opened: Vec<(u64, String, String)>,
     /// Check runs: id → last request body.
     pub check_runs: BTreeMap<u64, Value>,
     /// If set, the next fast-forward of this branch first moves it to a new commit (an
@@ -74,6 +78,7 @@ impl FakeState {
             FakeCommit {
                 parents: parents.iter().map(|p| (*p).to_owned()).collect(),
                 message: message.to_owned(),
+                tree: format!("tree-{sha}"),
             },
         );
         sha
@@ -143,6 +148,9 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/merges", post(merge))
             .route("/repos/{o}/{r}/compare/{spec}", get(compare))
             .route("/repos/{o}/{r}/pulls/{n}", get(pull))
+            .route("/repos/{o}/{r}/pulls", post(open_pull))
+            .route("/repos/{o}/{r}/git/commits/{sha}", get(get_commit))
+            .route("/repos/{o}/{r}/git/commits", post(create_commit))
             .route("/repos/{o}/{r}/issues/{n}/comments", post(comment))
             .route("/graphql", post(graphql))
             .with_state(Arc::clone(&state));
@@ -322,6 +330,50 @@ async fn pull(State(s): Shared, Path((_, _, n)): Path<(String, String, u64)>) ->
         Some(p) => Json(json!({ "number": n, "title": p.title })).into_response(),
         None => status(StatusCode::NOT_FOUND, "Not Found"),
     }
+}
+
+async fn open_pull(State(s): Shared, Json(body): Json<Value>) -> (StatusCode, Json<Value>) {
+    let mut st = lock(&s);
+    let n = 1000 + st.opened.len() as u64;
+    let title = body["title"].as_str().unwrap_or_default().to_owned();
+    let head = body["head"].as_str().unwrap_or_default().to_owned();
+    st.opened.push((n, title, head));
+    (StatusCode::CREATED, Json(json!({ "number": n })))
+}
+
+async fn get_commit(
+    State(s): Shared,
+    Path((_, _, sha)): Path<(String, String, String)>,
+) -> Response {
+    match lock(&s).commits.get(&sha) {
+        Some(c) => Json(json!({
+            "sha": sha,
+            "tree": { "sha": c.tree },
+            "parents": c.parents.iter().map(|p| json!({ "sha": p })).collect::<Vec<_>>(),
+        }))
+        .into_response(),
+        None => status(StatusCode::NOT_FOUND, "Not Found"),
+    }
+}
+
+async fn create_commit(State(s): Shared, Json(body): Json<Value>) -> (StatusCode, Json<Value>) {
+    let mut st = lock(&s);
+    let parents: Vec<String> = body["parents"]
+        .as_array()
+        .map(|a| {
+            a.iter()
+                .filter_map(|p| p.as_str().map(str::to_owned))
+                .collect()
+        })
+        .unwrap_or_default();
+    let refs: Vec<&str> = parents.iter().map(String::as_str).collect();
+    let sha = st.commit(&refs, body["message"].as_str().unwrap_or_default());
+    if let Some(tree) = body["tree"].as_str()
+        && let Some(c) = st.commits.get_mut(&sha)
+    {
+        c.tree = tree.to_owned();
+    }
+    (StatusCode::CREATED, Json(json!({ "sha": sha })))
 }
 
 async fn comment(

@@ -59,6 +59,26 @@ struct PullTitle {
     title: String,
 }
 
+#[derive(Deserialize)]
+struct PullNumber {
+    number: u64,
+}
+
+#[derive(Deserialize)]
+struct GitCommit {
+    tree: ShaObject,
+    parents: Vec<ShaObject>,
+}
+
+/// A commit's tree and parents.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommitInfo {
+    /// Tree sha.
+    pub tree: String,
+    /// Parents, first parent first.
+    pub parents: Vec<CommitSha>,
+}
+
 fn sha(s: String) -> Result<CommitSha, GitHubError> {
     CommitSha::parse(s).map_err(|e| GitHubError::Unexpected(e.to_string()))
 }
@@ -219,6 +239,77 @@ impl GitHubApp {
         }
         chain.reverse();
         Ok(Some(chain))
+    }
+
+    /// A commit's tree and parents.
+    pub async fn commit_info(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        commit: &CommitSha,
+    ) -> Result<CommitInfo, GitHubError> {
+        let (status, text) = self
+            .raw(
+                inst,
+                "GET",
+                &format!("/repos/{repo}/git/commits/{commit}"),
+                None,
+            )
+            .await?;
+        expect(status, &[200], &text)?;
+        let c: GitCommit = parse(&text)?;
+        Ok(CommitInfo {
+            tree: c.tree.sha,
+            parents: c
+                .parents
+                .into_iter()
+                .map(|p| sha(p.sha))
+                .collect::<Result<_, _>>()?,
+        })
+    }
+
+    /// Creates a commit object (no branch moves).
+    pub async fn create_commit(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        tree: &str,
+        parents: &[CommitSha],
+        message: &str,
+    ) -> Result<CommitSha, GitHubError> {
+        let body = json!({
+            "message": message,
+            "tree": tree,
+            "parents": parents.iter().map(CommitSha::as_str).collect::<Vec<_>>(),
+        });
+        let (status, text) = self
+            .raw(
+                inst,
+                "POST",
+                &format!("/repos/{repo}/git/commits"),
+                Some(body),
+            )
+            .await?;
+        expect(status, &[201], &text)?;
+        sha(parse::<ShaObject>(&text)?.sha)
+    }
+
+    /// Opens a pull request; returns its number.
+    pub async fn open_pr(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        head: &str,
+        base: &str,
+        title: &str,
+        body: &str,
+    ) -> Result<PrNumber, GitHubError> {
+        let req = json!({ "title": title, "head": head, "base": base, "body": body });
+        let (status, text) = self
+            .raw(inst, "POST", &format!("/repos/{repo}/pulls"), Some(req))
+            .await?;
+        expect(status, &[201], &text)?;
+        Ok(PrNumber(parse::<PullNumber>(&text)?.number))
     }
 
     /// A pull request's title.
