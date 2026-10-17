@@ -26,6 +26,8 @@ pub enum MergeOutcome {
     Resolved(CommitSha),
     /// These files could not be resolved.
     Unresolved(Vec<String>),
+    /// The workflow failed before it could merge.
+    Failed,
 }
 
 /// Result of [`Store::record_merge_report`].
@@ -113,9 +115,8 @@ impl Store {
         let Some(change) = change else {
             return Ok(MergeReportOutcome::UnknownChange);
         };
-        let unresolved: Option<Vec<&str>> = report
-            .result
-            .is_none()
+        // A failed run is stored as reported with neither a result nor unresolved files.
+        let unresolved: Option<Vec<&str>> = (report.result.is_none() && !report.failed)
             .then(|| report.unresolved.iter().map(|p| p.as_str()).collect());
         sqlx::query("UPDATE merge_runs SET result_sha = $2, unresolved = $3, reported_at = now() WHERE change_id = $1")
             .bind(change)
@@ -146,7 +147,7 @@ impl Store {
     /// Merge runs of a repository's changes still in `merging`.
     pub async fn merge_runs(&self, repo: RepoId) -> Result<Vec<MergeRun>, StoreError> {
         let rows = sqlx::query(
-            "SELECT m.change_id, m.onto_sha, m.requested_at, m.result_sha, m.unresolved
+            "SELECT m.change_id, m.onto_sha, m.requested_at, m.result_sha, m.unresolved, m.reported_at
              FROM merge_runs m JOIN changes c ON c.id = m.change_id
              WHERE c.repo_id = $1 AND c.state = 'merging' ORDER BY m.change_id",
         )
@@ -160,14 +161,16 @@ impl Store {
                 };
                 let result: Option<String> = r.try_get("result_sha")?;
                 let unresolved: Option<Vec<String>> = r.try_get("unresolved")?;
+                let reported: Option<DateTime<Utc>> = r.try_get("reported_at")?;
                 Ok(MergeRun {
                     change_db_id: r.try_get("change_id")?,
                     onto: sha(r.try_get("onto_sha")?)?,
                     requested_at: r.try_get("requested_at")?,
-                    outcome: match (result, unresolved) {
-                        (Some(s), _) => Some(MergeOutcome::Resolved(sha(s)?)),
-                        (None, Some(files)) => Some(MergeOutcome::Unresolved(files)),
-                        (None, None) => None,
+                    outcome: match (result, unresolved, reported) {
+                        (Some(s), _, _) => Some(MergeOutcome::Resolved(sha(s)?)),
+                        (None, Some(files), _) => Some(MergeOutcome::Unresolved(files)),
+                        (None, None, Some(_)) => Some(MergeOutcome::Failed),
+                        (None, None, None) => None,
                     },
                 })
             })
