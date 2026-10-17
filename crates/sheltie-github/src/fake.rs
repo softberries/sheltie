@@ -58,6 +58,8 @@ pub struct FakeState {
     pub comments: Vec<(u64, String)>,
     /// Pull requests opened through the API, as (number, title, head branch).
     pub opened: Vec<(u64, String, String)>,
+    /// `repository_dispatch` events fired, as (event type, client payload).
+    pub dispatches: Vec<(String, Value)>,
     /// Check runs: id → last request body.
     pub check_runs: BTreeMap<u64, Value>,
     /// If set, the next fast-forward of this branch first moves it to a new commit (an
@@ -151,6 +153,7 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/compare/{spec}", get(compare))
             .route("/repos/{o}/{r}/pulls/{n}", get(pull))
             .route("/repos/{o}/{r}/pulls", post(open_pull))
+            .route("/repos/{o}/{r}/dispatches", post(dispatch))
             .route("/repos/{o}/{r}/git/commits/{sha}", get(get_commit))
             .route("/repos/{o}/{r}/git/commits", post(create_commit))
             .route("/repos/{o}/{r}/issues/{n}/comments", post(comment))
@@ -381,6 +384,14 @@ async fn create_commit(State(s): Shared, Json(body): Json<Value>) -> (StatusCode
         c.tree = tree.to_owned();
     }
     (StatusCode::CREATED, Json(json!({ "sha": sha })))
+}
+
+async fn dispatch(State(s): Shared, Json(body): Json<Value>) -> StatusCode {
+    let event = body["event_type"].as_str().unwrap_or_default().to_owned();
+    lock(&s)
+        .dispatches
+        .push((event, body["client_payload"].clone()));
+    StatusCode::NO_CONTENT
 }
 
 async fn comment(
