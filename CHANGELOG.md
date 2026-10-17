@@ -77,6 +77,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   scope, acceptance tests and similarity, reported to `POST /v1/replays`, capped per PR and per
   repository per day, and labelled `sheltie: replayed` or `sheltie: needs re-approval`.
 
+- Agent coordination: Sheltie predicts issue footprints from the default branch's build graph
+  (uploaded by `footprint.yml` on pushes), and serializes agents on overlapping issues with
+  leases. Agents use an MCP server at `/mcp` (`safe_issues`, `claim_issue`,
+  `predict_footprint`, `release`) or REST with tokens from `sheltie-server token create`;
+  agents assigned on GitHub are claimed by assignment, with a `sheltie: blocked` label and
+  comments while they wait. See `docs/agents.md`. The App now needs Issues write and the
+  `issues` event.
+
 ### Changed
 
 - `sheltie-merge` now has subcommands: `sheltie-merge merge` (tiers 1-3) and `sheltie-merge replay`.
