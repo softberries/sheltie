@@ -8,6 +8,7 @@ use std::time::Duration;
 
 mod checks;
 mod commit;
+mod coordination;
 mod epochs;
 mod footprints;
 mod intake;
@@ -20,6 +21,7 @@ mod sweeps;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
 pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
+pub use coordination::{Claim, IssueNotice, IssueRow, Lease, PendingNotice, Waiter};
 pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
 pub use intake::Ingested;
