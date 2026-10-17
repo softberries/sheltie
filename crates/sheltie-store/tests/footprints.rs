@@ -146,7 +146,11 @@ async fn upload_after_the_webhook_refreshes_the_check_run(pool: PgPool) {
             writes: 1,
             reads: 2,
             tests: 0,
-            leaky: false
+            leaky: false,
+            write_names: vec!["x".into()],
+            read_names: vec!["x".into(), "y".into()],
+            test_names: vec![],
+            leak_reasons: vec![],
         })
     );
 }

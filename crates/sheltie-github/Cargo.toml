@@ -31,6 +31,7 @@ aws-lc-rs = { workspace = true, optional = true }
 axum = { workspace = true, optional = true }
 
 [dev-dependencies]
+insta = { workspace = true }
 sheltie-github = { path = ".", features = ["test-support"] }
 sqlx = { workspace = true }
 proptest = { workspace = true }

@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: InProgress
+title: Re-deriving from its intent
+---
+## 🤖 Re-deriving from intent
+
+This change conflicts with what landed, and the merge engine could not combine them. An agent is now re-deriving it from the intent in the description, on your CI runner (re-implementing the change on the new head, tier 4b).
+
+The result lands only if it passes the acceptance tests, stays inside this change's files, and is close to the reviewed diff.
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

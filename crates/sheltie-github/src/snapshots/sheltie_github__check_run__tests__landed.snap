@@ -1,0 +1,24 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Completed(Success)
+title: Landed as fedcba9
+---
+## ✅ Landed
+
+On `main` as `fedcba9`, footprint-proven: verified on a base, and nothing that landed since touches what it reads.
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

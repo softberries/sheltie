@@ -3,7 +3,8 @@
 use std::time::Duration;
 
 use sheltie_core::{
-    ChangeId, ChangeState, CommitSha, InstallationId, PrNumber, RepoFullName, RepoId,
+    ChangeId, ChangeState, CommitSha, GuaranteeTier, InstallationId, PrNumber, RepoFullName,
+    RepoId, ResolutionTier,
 };
 use sqlx::Row;
 use sqlx::postgres::PgRow;
@@ -42,6 +43,14 @@ pub struct CheckRunJob {
     pub returned_reason: Option<String>,
     /// Whether Sheltie lands changes in the repository (otherwise it only predicts).
     pub merge_mode: bool,
+    /// The repository's default branch, when known.
+    pub default_branch: Option<String>,
+    /// How it landed, once landed.
+    pub landing: Option<Landing>,
+    /// The tier that resolved its latest conflict, if any.
+    pub resolution: Option<ResolutionTier>,
+    /// The replay tier in progress, while an agent re-derives it.
+    pub replaying: Option<ResolutionTier>,
 }
 
 /// The parts of readiness a check run explains.
@@ -55,8 +64,8 @@ pub struct ReadinessFlags {
     pub draft: bool,
 }
 
-/// Sizes of a footprint, for display.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A footprint, for display: sizes, and the first names of each set.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FootprintSummary {
     /// Targets written.
     pub writes: usize,
@@ -66,6 +75,26 @@ pub struct FootprintSummary {
     pub tests: usize,
     /// Whether a non-hermetic target widened it.
     pub leaky: bool,
+    /// Targets written, at most [`MAX_LISTED`].
+    pub write_names: Vec<String>,
+    /// Targets read, at most [`MAX_LISTED`].
+    pub read_names: Vec<String>,
+    /// Test groups, at most [`MAX_LISTED`].
+    pub test_names: Vec<String>,
+    /// Why it is leaky, at most [`MAX_LISTED`].
+    pub leak_reasons: Vec<String>,
+}
+
+/// Most names of each footprint set shown on a check run.
+pub const MAX_LISTED: usize = 30;
+
+/// How a landed change landed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Landing {
+    /// The default-branch commit it landed as.
+    pub commit: CommitSha,
+    /// How it was proven: `footprint`, `speculation` or `sweep`.
+    pub tier: GuaranteeTier,
 }
 
 impl Store {
@@ -105,7 +134,13 @@ impl Store {
                     claimed.attempts, c.repo_id, c.pr_number, c.head_sha, c.state,
                     r.full_name, r.installation_id,
                     fp.writes_n, fp.reads_n, fp.tests_n, fp.leaky,
-                    rd.approved, rd.checks_green, rd.draft, p.summary AS prediction, c.returned_reason, r.mode = 'merge' AS merge_mode
+                    fp.write_names, fp.read_names, fp.test_names, fp.leak_reasons,
+                    rd.approved, rd.checks_green, rd.draft, p.summary AS prediction, c.returned_reason, r.mode = 'merge' AS merge_mode,
+                    r.default_branch, he.commit_sha AS landed_sha, he.tier AS landed_tier,
+                    (SELECT rs.tier FROM resolutions rs JOIN resolution_changes rc ON rc.resolution_id = rs.id
+                     WHERE rc.change_id = c.id ORDER BY rs.id DESC LIMIT 1) AS resolution_tier,
+                    (SELECT rr.tier FROM replay_runs rr
+                     WHERE rr.change_id = c.id AND NOT rr.handled ORDER BY rr.id DESC LIMIT 1) AS replay_tier
              FROM claimed
              JOIN changes c ON c.id = claimed.change_id
              JOIN repositories r ON r.id = c.repo_id
@@ -113,12 +148,18 @@ impl Store {
              LEFT JOIN predictions p ON p.change_id = c.id
              LEFT JOIN LATERAL (
                  SELECT cardinality(writes) AS writes_n, cardinality(reads) AS reads_n,
-                        cardinality(tests) AS tests_n, leaky
+                        cardinality(tests) AS tests_n, leaky,
+                        writes[1:30] AS write_names, reads[1:30] AS read_names,
+                        tests[1:30] AS test_names, leak_reasons[1:30] AS leak_reasons
                  FROM footprint_reports f
                  WHERE f.repo_id = c.repo_id AND f.head_sha = c.head_sha
                  ORDER BY f.uploaded_at DESC
                  LIMIT 1
              ) fp ON true
+             LEFT JOIN LATERAL (
+                 SELECT h.commit_sha, h.tier FROM head_events h
+                 WHERE h.change_id = c.id ORDER BY h.seq DESC LIMIT 1
+             ) he ON true
              ORDER BY claimed.change_id",
         )
         .bind(limit)
@@ -197,6 +238,18 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
             reads,
             tests,
             leaky: row.try_get::<Option<bool>, _>("leaky")?.unwrap_or(false),
+            write_names: row
+                .try_get::<Option<Vec<String>>, _>("write_names")?
+                .unwrap_or_default(),
+            read_names: row
+                .try_get::<Option<Vec<String>>, _>("read_names")?
+                .unwrap_or_default(),
+            test_names: row
+                .try_get::<Option<Vec<String>>, _>("test_names")?
+                .unwrap_or_default(),
+            leak_reasons: row
+                .try_get::<Option<Vec<String>>, _>("leak_reasons")?
+                .unwrap_or_default(),
         }),
         _ => None,
     };
@@ -236,5 +289,29 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
         prediction: row.try_get("prediction")?,
         returned_reason: row.try_get("returned_reason")?,
         merge_mode: row.try_get("merge_mode")?,
+        default_branch: row.try_get("default_branch")?,
+        landing: match (
+            row.try_get::<Option<String>, _>("landed_sha")?,
+            row.try_get::<Option<String>, _>("landed_tier")?,
+        ) {
+            (Some(sha), Some(tier)) => Some(Landing {
+                commit: CommitSha::parse(sha).map_err(|e| invalid(e.to_string()))?,
+                tier: tier
+                    .parse()
+                    .map_err(|e: sheltie_core::UnknownVariant| invalid(e.to_string()))?,
+            }),
+            _ => None,
+        },
+        resolution: tier_column(row, "resolution_tier")?,
+        replaying: tier_column(row, "replay_tier")?,
     })
+}
+
+fn tier_column(row: &PgRow, name: &str) -> Result<Option<ResolutionTier>, StoreError> {
+    row.try_get::<Option<String>, _>(name)?
+        .map(|t| {
+            t.parse()
+                .map_err(|e: sheltie_core::UnknownVariant| StoreError::InvalidRow(e.to_string()))
+        })
+        .transpose()
 }

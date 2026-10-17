@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### ⚠️ Sheltie could not land this pull request
+
+CI failed with the change merged onto `main` at `abc1234` (branch `sheltie/verify/7-abc`).
+
+**What to do:** fix it and push a new commit; Sheltie picks it up again.
+
+<sub>Sheltie · [How Sheltie works](https://sheltie.dev/docs/introduction.html)</sub>

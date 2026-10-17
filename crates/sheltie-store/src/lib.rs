@@ -20,7 +20,7 @@ mod speculation;
 mod stats;
 mod sweeps;
 
-pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
+pub use checks::{CheckRunJob, FootprintSummary, Landing, MAX_LISTED, ReadinessFlags};
 pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
 pub use coordination::{Claim, IssueNotice, IssueRow, Lease, PendingNotice, Waiter};
 pub use epochs::{EpochCandidate, PredictionRow};

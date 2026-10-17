@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### ↩️ Automatic revert of #7
+
+`main` turned red at `abc1234` and stayed red. Sheltie bisected the commits since the last green one and blamed `#7 (`abc1234`)`.
+
+This pull request undoes it. Sheltie lands it itself; there is nothing to do.
+
+<sub>Sheltie · [How Sheltie works](https://sheltie.dev/docs/introduction.html)</sub>

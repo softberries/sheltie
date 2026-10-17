@@ -1,0 +1,17 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Queued
+title: Waiting for approval, footprint
+---
+## ⏳ Waiting to be ready
+
+Sheltie takes this pull request once all of these hold:
+
+- [x] Ready for review (not a draft)
+- [ ] Approved
+- [x] Other checks passed
+- [ ] Footprint uploaded by CI
+
+<sub>Shadow mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>
