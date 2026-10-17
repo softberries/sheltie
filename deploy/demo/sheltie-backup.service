@@ -1,0 +1,8 @@
+[Unit]
+Description=Sheltie demo instance: daily Postgres dump
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/sheltie/deploy/demo/backup.sh

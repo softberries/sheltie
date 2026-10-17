@@ -1,0 +1,10 @@
+# demo.sheltie.dev: the public Sheltie demo instance. A site block for a shared Caddy that
+# imports sites/*.caddy; the server listens on 127.0.0.1:8080 (compose.yaml).
+
+demo.sheltie.dev {
+	encode zstd gzip
+	# Browsers remember to use HTTPS only (a year; no subdomains, no preload list).
+	header Strict-Transport-Security "max-age=31536000"
+	redir / /dashboard
+	reverse_proxy 127.0.0.1:8080
+}

@@ -1,0 +1,27 @@
+# Overrides for the public demo instance (demo.sheltie.dev), which shares its host with other
+# services: caps on memory, CPU, compile jobs and log size so Sheltie cannot starve them.
+#
+#   docker compose -f compose.yaml -f deploy/demo/compose.demo.yaml up -d
+#
+# The project directory stays the repository root, so .env and the App key are read from there.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  postgres:
+    mem_limit: 512m
+    cpus: 1
+    logging: *logging
+
+  sheltie:
+    # Built on the host.
+    image: sheltie/server:latest
+    build:
+      args:
+        BUILD_JOBS: "3"
+    mem_limit: 512m
+    cpus: 2
+    logging: *logging
