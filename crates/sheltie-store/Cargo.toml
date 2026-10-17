@@ -13,6 +13,7 @@ publish.workspace = true
 sheltie-core = { workspace = true }
 sheltie-scheduler = { workspace = true }
 chrono = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }

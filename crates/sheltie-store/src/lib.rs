@@ -17,6 +17,7 @@ mod readiness;
 mod reality;
 mod replays;
 mod speculation;
+mod stats;
 mod sweeps;
 
 pub use checks::{CheckRunJob, FootprintSummary, ReadinessFlags};
@@ -30,6 +31,7 @@ pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
 pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
 pub use speculation::{SpecBuild, SpecGroup};
+pub use stats::Stats;
 pub use sweeps::{Culprit, LandedChange, Tip};
 
 use sqlx::migrate::{MigrateError, Migrator};
