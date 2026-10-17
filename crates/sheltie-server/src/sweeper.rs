@@ -7,8 +7,9 @@
 //! `sheltie/bisect/<sha>` branch at them (the repository's CI runs on it), and a culprit whose
 //! red persisted is reverted through the same compare-and-swap as any landing.
 
+use std::collections::HashMap;
 use std::future::Future;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use sheltie_core::{CommitSha, GuaranteeTier, RepoId};
@@ -27,6 +28,8 @@ pub struct Sweeper {
     github: Arc<GitHubApp>,
     /// Time between sweeps.
     pub poll: Duration,
+    /// The red tip each repository was last warned about, so a red stretch is logged once.
+    warned: Arc<Mutex<HashMap<RepoId, CommitSha>>>,
 }
 
 fn short(sha: &CommitSha) -> &str {
@@ -40,6 +43,7 @@ impl Sweeper {
             store,
             github,
             poll,
+            warned: Arc::default(),
         }
     }
 
@@ -84,7 +88,14 @@ impl Sweeper {
             return Ok(());
         }
         let Some(green) = green else {
-            tracing::warn!(repo = %access.full_name, "default branch is red and no green commit is known; not bisecting");
+            let first = self
+                .warned
+                .lock()
+                .map(|mut w| w.insert(repo, tip.sha.clone()).as_ref() != Some(&tip.sha))
+                .unwrap_or(true);
+            if first {
+                tracing::warn!(repo = %access.full_name, tip = %short(&tip.sha), "default branch is red and no green commit is known; not bisecting");
+            }
             return Ok(());
         };
         // Already handling this red stretch?
