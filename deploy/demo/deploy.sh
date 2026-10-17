@@ -5,6 +5,8 @@
 # Fetches the ref, builds the image on the host, recreates changed containers (the server applies
 # migrations at start) and updates the shared Caddy site block if it changed.
 set -euo pipefail
+# Parsed whole before it runs: the checkout below may replace this file.
+{
 cd /opt/sheltie
 REF="${1:-origin/main}"
 COMPOSE=(docker compose -f compose.yaml -f deploy/demo/compose.demo.yaml)
@@ -15,7 +17,12 @@ echo "deploying $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
 
 "${COMPOSE[@]}" build sheltie
 "${COMPOSE[@]}" up -d --remove-orphans
+# compose keeps a running container whose image tag moved to a new build; recreate it then.
+if [ "$(docker inspect -f '{{.Image}}' sheltie-sheltie-1)" != "$(docker image inspect -f '{{.Id}}' sheltie/server:latest)" ]; then
+  "${COMPOSE[@]}" up -d --no-deps --force-recreate sheltie
+fi
 "${COMPOSE[@]}" ps
+docker image prune -f >/dev/null
 
 # Shared Caddy: update the site block if it changed. Creating it is the go-live step
 # (deploy/demo/README.md), never done here. A config that does not validate is not installed.
@@ -35,3 +42,5 @@ if [ -f "$SITE_DST" ] && ! cmp -s "$SITE_SRC" "$SITE_DST"; then
   fi
   rm -f "$SITE_DST.prev"
 fi
+exit
+}
