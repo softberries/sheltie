@@ -6,6 +6,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-17
+
+The first public release.
+
 ### Added
 
 - Project skeleton: Cargo workspace with crate stubs, CI, lint and dependency policy, community files.
@@ -162,3 +166,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   sent it back and forth.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
+
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/softberries/sheltie/releases/tag/v0.1.0
