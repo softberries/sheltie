@@ -1,0 +1,14 @@
+[book]
+title = "Sheltie"
+description = "A parallel merge engine for agent-generated pull requests"
+authors = ["Sheltie contributors"]
+language = "en"
+src = "."
+
+[build]
+build-dir = "../target/book"
+create-missing = false
+
+[output.html]
+git-repository-url = "https://github.com/softberries/sheltie"
+edit-url-template = "https://github.com/softberries/sheltie/edit/main/docs/{path}"
