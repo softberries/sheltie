@@ -52,6 +52,8 @@ pub struct FakeState {
     pub ci: HashMap<String, String>,
     /// CI state given to new merge commits on verify branches (default `SUCCESS`).
     pub verify_ci: Option<String>,
+    /// PR heads that break CI on any verify or speculation build that contains them.
+    pub failing_heads: BTreeSet<String>,
     /// Comments posted, as (PR number, body).
     pub comments: Vec<(u64, String)>,
     /// Pull requests opened through the API, as (number, title, head branch).
@@ -297,8 +299,13 @@ async fn merge(State(s): Shared, Json(body): Json<Value>) -> Response {
         return status(StatusCode::CONFLICT, "Merge conflict");
     }
     let sha = st.commit(&[&base_sha, &head], &message);
-    if base.starts_with("sheltie/verify/") {
-        let state = st.verify_ci.clone().unwrap_or_else(|| "SUCCESS".into());
+    if base.starts_with("sheltie/verify/") || base.starts_with("sheltie/spec/") {
+        let broken = st.failing_heads.iter().any(|h| st.reaches(&sha, h));
+        let state = if broken {
+            "FAILURE".into()
+        } else {
+            st.verify_ci.clone().unwrap_or_else(|| "SUCCESS".into())
+        };
         st.ci.entry(sha.clone()).or_insert(state);
     }
     st.refs.insert(base, sha.clone());

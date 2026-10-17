@@ -449,3 +449,75 @@ async fn a_single_red_commit_is_not_reverted(_: PgPoolOptions, db: PgConnectOpti
     assert!(env.fake.state().opened.is_empty());
     env.stop().await;
 }
+
+impl Env {
+    async fn footprint_rw(&self, head: &str, writes: &[&str], reads: &[&str]) {
+        let mut all: Vec<&str> = writes.to_vec();
+        all.extend_from_slice(reads);
+        let report = json!({
+            "adapter": "test", "base": self.root, "head": head, "base_tree": "e".repeat(40),
+            "diff_hash": format!("sha256:{head}"),
+            "footprint": { "writes": writes, "reads": all, "tests": [], "leaky": false },
+            "leak_reasons": []
+        });
+        let r = reqwest::Client::new()
+            .post(format!("http://{}/v1/footprints", self.addr))
+            .bearer_auth(self.signer.sign(&actions_claims("acme/widgets", 1001)))
+            .json(&report)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(r.status(), reqwest::StatusCode::ACCEPTED);
+    }
+}
+
+/// M5a: a semantic chain is built as prefixes; the longest green prefix lands, the change
+/// that broke the build is returned, and the rest lands in a later round.
+#[sqlx::test(migrations = false)]
+async fn a_speculative_chain_lands_its_green_prefix(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.push_main().await;
+    // A writes core; B reads core and writes api; C reads api and writes web: one chain.
+    let a = env.open_pr(1, "Core").await;
+    let b = env.open_pr(2, "Api").await;
+    let c = env.open_pr(3, "Web").await;
+    env.fake.state().failing_heads.insert(b.clone());
+    env.footprint_rw(&a, &["core"], &[]).await;
+    env.footprint_rw(&b, &["api"], &["core"]).await;
+    env.footprint_rw(&c, &["web"], &["api"]).await;
+    for (n, h) in [(1, &a), (2, &b), (3, &c)] {
+        env.wait_state(n, h, ChangeState::Ready).await;
+    }
+    assert!(
+        env.store
+            .set_repo_mode(
+                &RepoFullName::parse("acme/widgets").unwrap(),
+                RepoMode::Merge
+            )
+            .await
+            .unwrap()
+    );
+    env.wait_state(1, &a, ChangeState::Landed).await;
+    env.wait_state(2, &b, ChangeState::Returned).await;
+    env.wait_state(3, &c, ChangeState::Landed).await;
+    {
+        let st = env.fake.state();
+        let chain = st.first_parents("main");
+        assert_eq!(chain.len(), 3, "A and C landed on top of the root");
+        assert_eq!(st.commits[&chain[1]].parents[1], a);
+        assert_eq!(st.commits[&chain[0]].parents[1], c);
+        assert!(
+            st.comments
+                .iter()
+                .any(|(n, body)| *n == 2 && body.contains("together with #1")),
+            "{:?}",
+            st.comments
+        );
+        assert!(
+            st.refs.keys().all(|r| !r.starts_with("sheltie/spec/")),
+            "{:?}",
+            st.refs.keys()
+        );
+    }
+    env.stop().await;
+}
