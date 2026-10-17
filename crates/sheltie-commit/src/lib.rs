@@ -12,6 +12,11 @@ use std::collections::BTreeSet;
 
 use sheltie_core::{CommitSha, Footprint, GuaranteeTier, PrNumber, TargetId};
 
+pub mod speculation;
+
+/// Largest group built as a speculative chain (every prefix); larger groups are batches.
+pub const MAX_CHAIN: usize = 8;
+
 /// What the commit check says about landing a change on the current head.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommitCheck {
@@ -72,6 +77,11 @@ pub fn land_branch(pr: PrNumber, head: &CommitSha) -> String {
         pr.0,
         &head.as_str()[..12.min(head.as_str().len())]
     )
+}
+
+/// Branch on which a prefix of a speculation group is built.
+pub fn spec_branch(group: i64, length: usize) -> String {
+    format!("sheltie/spec/{group}-{length}")
 }
 
 /// Branch on which a change is merged onto the head and verified by the repository's CI.
