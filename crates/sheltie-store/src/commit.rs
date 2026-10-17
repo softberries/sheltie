@@ -345,6 +345,10 @@ impl Store {
             .bind(change_db_id)
             .execute(&mut *tx)
             .await?;
+        sqlx::query("UPDATE replay_runs SET handled = true WHERE change_id = $1")
+            .bind(change_db_id)
+            .execute(&mut *tx)
+            .await?;
         tx.commit().await?;
         Ok(())
     }

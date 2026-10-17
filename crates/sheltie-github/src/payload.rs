@@ -7,7 +7,7 @@
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use sheltie_core::intake::{
-    ChecksEvent, InstallationEvent, Intake, PrEvent, PrEventKind, PushEvent, RepoRef,
+    ChecksEvent, InstallationEvent, Intake, IntentField, PrEvent, PrEventKind, PushEvent, RepoRef,
 };
 use sheltie_core::{CommitSha, InstallationId, Login, PrNumber, RepoFullName, RepoId};
 
@@ -55,6 +55,7 @@ pub fn parse(event: &str, body: &[u8]) -> Result<Option<Intake>, PayloadError> {
                 "closed" if p.pull_request.merged == Some(true) => PrEventKind::Merged,
                 "closed" => PrEventKind::Closed,
                 "ready_for_review" => PrEventKind::ReadyForReview,
+                "edited" => PrEventKind::Edited,
                 "converted_to_draft" => PrEventKind::ConvertedToDraft,
                 _ => return Ok(None),
             };
@@ -217,6 +218,8 @@ fn pr_event(
         at: pr.updated_at,
         base_ref: branch_name(pr.base.git_ref)?,
         default_branch: repository_default_branch,
+        // Every pull request payload carries the current description.
+        intent: IntentField::from_description(pr.body.as_deref()),
         merge_commit: match (kind, pr.merge_commit_sha) {
             (PrEventKind::Merged, Some(sha)) => {
                 Some(CommitSha::parse(sha).map_err(|e| e.to_string())?)
@@ -295,6 +298,8 @@ struct PullRequest {
     #[serde(default)]
     merge_commit_sha: Option<String>,
     updated_at: DateTime<Utc>,
+    #[serde(default)]
+    body: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -393,6 +398,35 @@ mod tests {
         assert!(parse("deployment", b"{}").unwrap().is_none());
         let labeled = br#"{"action":"labeled","pull_request":{"number":1,"head":{"sha":"","ref":"x"},"base":{"sha":"","ref":"main"},"updated_at":"2026-01-01T00:00:00Z"},"repository":{"id":1,"full_name":"a/b"},"sender":{"login":"x"}}"#;
         assert!(parse("pull_request", labeled).unwrap().is_none());
+    }
+
+    #[test]
+    fn the_description_becomes_the_intent() {
+        use sheltie_core::intake::IntentField;
+        let event = |action: &str, body: &str| {
+            let json = format!(
+                r#"{{"action":"{action}","number":1,"pull_request":{{"number":1,"merged":false,"body":{body},"head":{{"sha":"{h}","ref":"x"}},"base":{{"sha":"{h}","ref":"main"}},"updated_at":"2026-01-01T00:00:00Z"}},"repository":{{"id":1,"full_name":"a/b"}},"installation":{{"id":2}},"sender":{{"login":"x"}}}}"#,
+                h = "a".repeat(40)
+            );
+            match parse("pull_request", json.as_bytes()).unwrap() {
+                Some(Intake::Pr(e)) => (e.kind, e.intent),
+                other => panic!("{other:?}"),
+            }
+        };
+        let block = serde_json::to_string("```sheltie-intent\n{\"task\":\"x\"}\n```").unwrap();
+        assert!(matches!(
+            event("opened", &block),
+            (PrEventKind::Opened, IntentField::Valid(_))
+        ));
+        assert!(matches!(
+            event("edited", &block),
+            (PrEventKind::Edited, IntentField::Valid(_))
+        ));
+        assert_eq!(event("opened", "null").1, IntentField::Missing);
+        assert!(matches!(
+            event("edited", "\"```sheltie-intent\\n{\""),
+            (_, IntentField::Invalid(_))
+        ));
     }
 
     #[test]
