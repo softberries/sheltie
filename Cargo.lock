@@ -2621,6 +2621,7 @@ name = "sheltie-store"
 version = "0.0.0"
 dependencies = [
  "chrono",
+ "serde",
  "serde_json",
  "sheltie-core",
  "sheltie-scheduler",

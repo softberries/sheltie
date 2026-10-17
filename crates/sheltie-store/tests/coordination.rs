@@ -370,3 +370,24 @@ async fn waiters_and_notices(pool: PgPool) {
         "sent"
     );
 }
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn stats_count_without_names(pool: PgPool) {
+    let h = H::new(pool);
+    h.issue(1, IssueEventKind::Opened, 0).await;
+    let Claim::Granted(_) = h.claim(1, "agent-a", &fp(&["x"], &[])).await else {
+        panic!()
+    };
+    let stats = h
+        .store
+        .stats(Utc::now() - chrono::Duration::days(1))
+        .await
+        .unwrap();
+    assert_eq!(stats.repositories.get("shadow"), Some(&1));
+    assert_eq!((stats.leases, stats.replays, stats.returned), (1, 0, 0));
+    let json = serde_json::to_string(&stats).unwrap();
+    assert!(
+        !json.contains("acme") && !json.contains("agent-a"),
+        "{json}"
+    );
+}

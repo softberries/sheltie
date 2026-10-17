@@ -38,6 +38,14 @@ enum Command {
         #[command(subcommand)]
         command: RepoCommand,
     },
+    /// Exits 0 if the local server answers `/healthz` (for container health checks).
+    Healthcheck,
+    /// Prints anonymous usage counts as JSON (no repository names or ids), to share by hand.
+    Stats {
+        /// Window in days.
+        #[arg(long, default_value_t = 30)]
+        days: u32,
+    },
     /// Manages agent tokens (REST and MCP).
     Token {
         #[command(subcommand)]
@@ -97,6 +105,8 @@ async fn main() -> anyhow::Result<()> {
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
         .with_writer(std::io::stderr)
+        // Colours only on a terminal: container log collectors get plain text.
+        .with_ansi(std::io::IsTerminal::is_terminal(&std::io::stderr()))
         .init();
 
     match Cli::parse().command.unwrap_or(Command::Serve) {
@@ -156,6 +166,33 @@ async fn main() -> anyhow::Result<()> {
             }
             tracing::info!(%repo, merge_engine = %state, "merge engine set");
         }
+        Command::Healthcheck => {
+            let bind = std::env::var("SHELTIE_BIND").unwrap_or_else(|_| "127.0.0.1:8080".into());
+            let port = bind.rsplit(':').next().unwrap_or("8080");
+            match healthy(&format!("127.0.0.1:{port}")) {
+                Ok(true) => {}
+                Ok(false) => anyhow::bail!("/healthz did not return 200"),
+                Err(e) => return Err(e).context("connecting to the server"),
+            }
+        }
+        Command::Stats { days } => {
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            let since = Utc::now() - chrono::Duration::days(i64::from(days));
+            let report = serde_json::json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "days": days,
+                "stats": store.stats(since).await?,
+            });
+            use std::io::Write as _;
+            writeln!(
+                std::io::stdout(),
+                "{}",
+                serde_json::to_string_pretty(&report)?
+            )?;
+        }
         Command::Token { command } => {
             let config = Config::from_env()?;
             let store = Store::connect(config.database, &config.pool)
@@ -200,6 +237,23 @@ async fn main() -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+/// A plain HTTP/1.0 GET of `/healthz`; true on status 200.
+fn healthy(addr: &str) -> std::io::Result<bool> {
+    use std::io::{Read as _, Write as _};
+    let timeout = Some(std::time::Duration::from_secs(3));
+    let addr = addr
+        .parse()
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
+    let mut stream =
+        std::net::TcpStream::connect_timeout(&addr, std::time::Duration::from_secs(3))?;
+    stream.set_read_timeout(timeout)?;
+    stream.set_write_timeout(timeout)?;
+    stream.write_all(b"GET /healthz HTTP/1.0\r\nHost: localhost\r\n\r\n")?;
+    let mut head = [0u8; 12];
+    stream.read_exact(&mut head)?;
+    Ok(head.starts_with(b"HTTP/1.") && &head[9..12] == b"200")
 }
 
 /// Loads `.env` when present; a missing file is fine, a malformed one is an error.

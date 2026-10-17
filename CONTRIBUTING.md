@@ -1,6 +1,6 @@
 # Contributing to Sheltie
 
-Thanks for your interest. Sheltie is pre-alpha; the best place to start is
+Thanks for your interest. Sheltie is early (0.x); the best place to start is
 [`docs/design.md`](docs/design.md) and the open issues for the current milestone.
 
 ## Before you start
@@ -12,7 +12,7 @@ Thanks for your interest. Sheltie is pre-alpha; the best place to start is
 
 ```sh
 rustup show                                          # installs the pinned toolchain
-cargo install cargo-nextest cargo-deny sqlx-cli --locked
+cargo install cargo-nextest cargo-deny sqlx-cli mergiraf mdbook --locked   # mergiraf: merge-engine tests
 cp .env.example .env                                 # DATABASE_URL is also used by the DB tests
 docker compose -f deploy/docker-compose.yml up -d
 cargo build --workspace
@@ -27,7 +27,8 @@ cargo nextest run --workspace      # or: cargo test --workspace
 cargo deny check
 ```
 
-All four must pass; CI runs the same checks plus an MSRV build.
+All four must pass; CI runs the same checks plus an MSRV build. If you touch `deploy/`, also run
+`scripts/test-helm-kind.sh` (needs kind and helm); if you touch `docs/`, `mdbook build docs`.
 
 ## Guidelines
 
@@ -47,5 +48,6 @@ responsible for what you submit: review it, make sure it is tested, and follow [
 
 ## License of contributions
 
-The project license is not decided yet. Contributions accepted before the decision may require a
-contributor agreement once it is made; this will be announced in the README.
+Sheltie is licensed under the Apache License 2.0 (`LICENSE`). Unless you state otherwise, any
+contribution you submit is licensed under the same terms, as section 5 of the license says;
+there is no separate contributor agreement.
