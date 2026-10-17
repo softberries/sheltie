@@ -33,7 +33,7 @@ runs against a newer schema, but check `crates/sheltie-store/migrations` first.
 
 1. DNS: an A record `demo.sheltie.dev` pointing at the host.
 2. Register the App from a workstation, in a directory without an existing `.env` or key:
-   `scripts/register-github-app.py --url https://demo.sheltie.dev --org softberries --name "Sheltie Demo"`.
+   `scripts/register-github-app.py --url https://demo.sheltie.dev --name "Sheltie Demo"`.
    Copy the resulting `.env` and `sheltie-github-app.pem` to `/opt/sheltie` without printing them,
    then set `SHELTIE_UID=65532` in `.env` and `chown 65532 sheltie-github-app.pem`.
 3. `sudo /opt/sheltie/deploy/demo/deploy.sh`, then check `curl -s 127.0.0.1:8080/healthz`.
