@@ -7,7 +7,7 @@ A separate GitHub organization keeps experiments away from real repositories and
 - [x] Register `sheltie.dev`; repository at `softberries/sheltie`.
 - [ ] Create the GitHub org and the main repository `sheltie`.
 - [ ] Create a second org (or private repos) for testing, e.g. `sheltie-playground`.
-- [ ] Register a development GitHub App with `scripts/register-github-app.py` (see below). It requests only what M1 needs; later milestones widen the manifest (contents write and push events in M4, issues in M7).
+- [x] Register a development GitHub App with `scripts/register-github-app.py` (see below): `sheltie-dev`, installed on the playground. It requests only what M1 needs; later milestones widen the manifest (contents write and push events in M4, issues in M7).
 - [ ] Store the App private key and webhook secret in a password manager; webhooks reach the local server through the smee.io channel the script creates.
 - [x] Create `playground-cargo`: private repo `softberries/sheltie-playground-cargo`, a 5-crate `ledger` workspace with real dependencies and a CI workflow (`test`).
 - [ ] Protect its `main` (require the `test` check, no force pushes). Branch protection on a private repo needs GitHub Pro; alternatively make the repo public, which M4.5 plans anyway. Needed before M4.
