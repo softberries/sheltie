@@ -64,6 +64,8 @@ pub struct FakeState {
     pub files: BTreeMap<String, String>,
     /// Labels added, as (PR number, label).
     pub labels: Vec<(u64, String)>,
+    /// Labels defined in the repository, as (name, color).
+    pub label_defs: Vec<(String, String)>,
     /// Check runs: id → last request body.
     pub check_runs: BTreeMap<u64, Value>,
     /// If set, the next fast-forward of this branch first moves it to a new commit (an
@@ -160,6 +162,7 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/dispatches", post(dispatch))
             .route("/repos/{o}/{r}/contents/{*path}", get(contents))
             .route("/repos/{o}/{r}/issues/{n}/labels", post(add_labels))
+            .route("/repos/{o}/{r}/labels", post(create_label))
             .route(
                 "/repos/{o}/{r}/issues/{n}/labels/{name}",
                 axum::routing::delete(remove_label),
@@ -418,6 +421,17 @@ async fn add_labels(
             .push((n, l.as_str().unwrap_or_default().to_owned()));
     }
     Json(json!([]))
+}
+
+async fn create_label(State(s): Shared, Json(body): Json<Value>) -> Response {
+    let mut st = lock(&s);
+    let name = body["name"].as_str().unwrap_or_default().to_owned();
+    if st.label_defs.iter().any(|(n, _)| *n == name) {
+        return status(StatusCode::UNPROCESSABLE_ENTITY, "Validation Failed");
+    }
+    st.label_defs
+        .push((name, body["color"].as_str().unwrap_or_default().to_owned()));
+    (StatusCode::CREATED, Json(json!({}))).into_response()
 }
 
 async fn remove_label(

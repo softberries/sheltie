@@ -223,10 +223,7 @@ impl Sweeper {
                     .record_culprit(repo, culprit, red, "conflict", None, None)
                     .await?;
                 if let Some(c) = &landed {
-                    let body = format!(
-                        "`{}` turned red after this pull request landed and Sheltie blames it, but reverting it conflicts with later changes. Please fix or revert it by hand.",
-                        access.default_branch
-                    );
+                    let body = sheltie_github::comments::revert_conflict(&access.default_branch);
                     self.github.comment(inst, name, c.pr, &body).await?;
                 }
                 return Ok(());
@@ -235,10 +232,11 @@ impl Sweeper {
         let pr = match open_pr {
             Some(pr) => pr,
             None => {
-                let body = format!(
-                    "Automatic revert of {what}: `{}` turned red at {} and stayed red, and bisect blamed {culprit}.\n\nSheltie lands this revert itself.",
-                    access.default_branch,
-                    short(red)
+                let body = sheltie_github::comments::revert_pr_body(
+                    &what,
+                    &access.default_branch,
+                    short(red),
+                    short(culprit),
                 );
                 self.github
                     .open_pr(
@@ -266,10 +264,7 @@ impl Sweeper {
                     .record_culprit(repo, culprit, red, "reverted", Some(&revert), Some(pr))
                     .await?;
                 if let Some(c) = &landed {
-                    let body = format!(
-                        "`{}` turned red after this pull request landed; bisect blamed it, so Sheltie reverted it in #{}.",
-                        access.default_branch, pr.0
-                    );
+                    let body = sheltie_github::comments::reverted(&access.default_branch, pr.0);
                     self.github.comment(inst, name, c.pr, &body).await?;
                     if c.tier == Some(GuaranteeTier::FootprintProven) {
                         let confirmed = self.store.confirm_misses(repo, c.change_db_id).await?;
