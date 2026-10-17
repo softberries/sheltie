@@ -82,6 +82,11 @@ fn git(dir: &Path, args: &[&str]) {
             "user.email=tests@sheltie.dev",
             "-c",
             "commit.gpgsign=false",
+            // No detached background maintenance outliving the test.
+            "-c",
+            "gc.auto=0",
+            "-c",
+            "maintenance.auto=false",
         ])
         .args(args)
         .output()
