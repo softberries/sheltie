@@ -1,0 +1,12 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Completed(Neutral)
+title: No longer tracked
+---
+## ⏹️ No longer tracked
+
+The pull request was closed, or a newer commit replaced this one.
+
+<sub>Shadow mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

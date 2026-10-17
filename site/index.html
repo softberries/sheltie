@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sheltie — merge agent pull requests in parallel</title>
+  <meta name="description" content="Sheltie is an open-source merge engine for agent-generated pull requests. It knows what each pull request touches in your build, lands independent ones in parallel and resolves conflicts in escalating tiers.">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <meta property="og:title" content="Sheltie — merge agent pull requests in parallel">
+  <meta property="og:description" content="Open-source parallel merge engine for agent-generated pull requests. Runs as a GitHub App next to your CI.">
+  <meta property="og:image" content="https://sheltie.dev/assets/social.png">
+  <meta property="og:url" content="https://sheltie.dev/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="">Sheltie</a>
+    <nav class="nav-links">
+      <a class="hide-sm" href="#how">How it works</a>
+      <a class="hide-sm" href="#tiers">Conflicts</a>
+      <a class="hide-sm" href="#agents">Agents</a>
+      <a href="docs/">Docs</a>
+      <a class="btn btn-ghost btn-small" href="https://github.com/softberries/sheltie">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Open source · Apache-2.0</span>
+      <h1>Merge agent pull requests <em>in parallel.</em></h1>
+      <p class="lede">Coding agents open more pull requests than a one-at-a-time merge queue can land. Sheltie knows what each one touches in your build, lands the independent ones together, and resolves conflicts before a person has to.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="docs/self-hosting.html">Self-host in 30 minutes →</a>
+        <a class="btn btn-ghost" href="docs/introduction.html">Read the docs</a>
+      </div>
+      <p class="note">A GitHub App that runs next to your existing CI. Your builds, your runners, your keys.</p>
+    </div>
+
+    <div class="lanes" aria-label="Animation: three independent pull requests land on main together while a fourth is resolved by the merge engine first">
+      <div class="lanes-head"><span><b>Ready pull requests</b></span><span><b>main</b></span></div>
+      <div class="track"><span class="chip c1">#41 billing</span></div>
+      <div class="track"><span class="chip c2">#42 search</span></div>
+      <div class="track"><span class="chip c3">#43 auth</span></div>
+      <div class="track"><span class="chip c4">#44 billing</span><span class="tier-tag">merge engine</span></div>
+      <div class="main-line"><span>independent → land together</span><span class="bar"></span><span class="dot"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="soft">
+  <div class="wrap">
+    <h2>It knows what every pull request touches</h2>
+    <p class="section-lede">For every pull request an adapter computes a <b>footprint</b>: the build targets it writes, and the targets it affects through their interfaces. Two pull requests conflict only when one writes what the other writes or affects. Everything else can land together, safely.</p>
+    <div class="grid g4">
+      <div class="card"><div class="icon">🧭</div><span class="step-n">01</span><h3>Footprint</h3><p>An adapter runs on your CI runner (Cargo today) and uploads what the change writes and affects.</p></div>
+      <div class="card"><div class="icon">🚦</div><span class="step-n">02</span><h3>Schedule</h3><p>Each epoch, independent pull requests are grouped to land at once; overlapping ones are built speculatively or merged.</p></div>
+      <div class="card"><div class="icon">🔍</div><span class="step-n">03</span><h3>Commit</h3><p>Sheltie checks nothing that landed meanwhile touches the change, then fast-forwards <code>main</code>. It never force-pushes.</p></div>
+      <div class="card"><div class="icon">🧹</div><span class="step-n">04</span><h3>Sweep</h3><p>Full builds of <code>main</code> keep watch; a red commit is bisected and reverted automatically.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tiers">
+  <div class="wrap">
+    <h2>Conflicts, resolved in escalating tiers</h2>
+    <p class="section-lede">When two pull requests do touch the same code, Sheltie tries progressively stronger resolutions on your runner, and verifies every result with your CI before it lands.</p>
+    <div class="grid g4">
+      <div class="card tier"><span class="num">1</span><div class="icon">🌳</div><h3>Structural merge</h3><p>Merges by syntax tree with mergiraf, so two edits to the same file stop being a conflict.</p></div>
+      <div class="card tier"><span class="num">2</span><div class="icon">🔁</div><h3>Regenerate</h3><p>Lockfiles and other derived files are regenerated, never hand-merged.</p></div>
+      <div class="card tier"><span class="num">3</span><div class="icon">📐</div><h3>Declared rules</h3><p>Set-like files are unioned and numbered migrations renumbered, as you declare in <code>.sheltie/merge.toml</code>.</p></div>
+      <div class="card tier"><span class="num">4</span><div class="icon">🤖</div><h3>Intent replay</h3><p>Claude Code re-derives the change from its recorded intent, checked against its acceptance tests and the reviewed diff.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap split">
+    <div>
+      <h2>Where you already work: on the pull request</h2>
+      <p class="section-lede" style="margin-bottom:0">The <b>Sheltie</b> check tells you what happens next and why: what the change still needs, how it will land, which conflict tier resolved it, and exactly what it writes and affects.</p>
+      <ul class="checklist">
+        <li>Start in <b>shadow mode</b>: Sheltie only predicts, and reports how often it would have been wrong.</li>
+        <li>Switch a repository to <b>merge mode</b> when you trust it.</li>
+        <li>Every landed commit says how it was proven safe.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="shot"><div class="shot-bar"><span></span><span></span><span></span></div><img src="docs/images/check-verifying.png" alt="The Sheltie check run while a change is verified on the current main" loading="lazy"></div>
+      <p class="caption">The Sheltie check while a change is verified on the current <code>main</code>.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The whole queue at a glance</h2>
+    <p class="section-lede">Sign in with GitHub to see every repository you have access to: what is queued and why, what landed and how it was proven, what went back to its author, and which issues agents are working on.</p>
+    <div class="shot"><div class="shot-bar"><span></span><span></span><span></span></div><img src="docs/images/dashboard.png" alt="The Sheltie dashboard for a repository: queue, recent landings, returned pull requests and agent claims" loading="lazy"></div>
+    <p class="caption">The dashboard for a repository (example data).</p>
+  </div>
+</section>
+
+<section id="agents">
+  <div class="wrap split">
+    <div>
+      <h2>Agents that don't step on each other</h2>
+      <p class="section-lede" style="margin-bottom:22px">Before work starts, Sheltie predicts which code an issue will touch and lets only one agent at a time work on issues that overlap. Agents ask over MCP; agents assigned on GitHub are held and released automatically.</p>
+      <a class="btn btn-ghost" href="docs/agents.html">Coordinating agents →</a>
+    </div>
+    <pre class="code"><span class="c"># Give Claude Code access to Sheltie</span>
+claude mcp add --transport http sheltie \
+  https://sheltie.example.com/mcp \
+  --header <span class="s">"Authorization: Bearer shl_…"</span>
+
+<span class="c"># The agent then calls:</span>
+<span class="k">safe_issues</span>()        <span class="c">→ issues safe to start now</span>
+<span class="k">claim_issue</span>(<span class="s">12</span>)     <span class="c">→ granted, or blocked by #9</span>
+<span class="k">predict_footprint</span>(…) <span class="c">→ targets it will touch</span></pre>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap split">
+    <div>
+      <h2>Yours to run</h2>
+      <p class="section-lede" style="margin-bottom:0">Sheltie is a small Rust service and Postgres. Builds, tests and agent jobs run on your CI runners with your API keys; the control plane only does set arithmetic and talks to GitHub.</p>
+      <ul class="checklist">
+        <li>Docker Compose or Helm</li>
+        <li>Your own GitHub App, registered with one script</li>
+        <li>No telemetry. Apache-2.0.</li>
+      </ul>
+    </div>
+    <pre class="code"><span class="c"># On a host with Docker and a public HTTPS name</span>
+git clone https://github.com/softberries/sheltie
+cd sheltie
+scripts/register-github-app.py \
+  --url https://sheltie.example.com
+docker compose up -d --build
+
+<span class="c"># then add the footprint workflow to your repos</span></pre>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap">
+    <h2>Let your agents ship in parallel</h2>
+    <p>Install it next to your CI, watch it in shadow mode, and turn on merging when you trust what it predicts.</p>
+    <div class="cta" style="justify-content:center">
+      <a class="btn btn-primary" href="docs/self-hosting.html">Get started</a>
+      <a class="btn btn-ghost" style="background:transparent;color:#fff;border-color:#3a4766" href="https://github.com/softberries/sheltie">Star on GitHub</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Sheltie · Apache-2.0 · built by <a href="https://softberries.dev">Softberries</a></span>
+    <span class="links"><a href="docs/">Docs</a><a href="docs/design.html">Design</a><a href="https://github.com/softberries/sheltie">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

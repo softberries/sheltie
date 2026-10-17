@@ -9,3 +9,4 @@
 .vscode/
 /fixtures/**/target
 __pycache__/
+.playwright-mcp/

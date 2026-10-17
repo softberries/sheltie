@@ -47,6 +47,7 @@ fn pr_event(kind: PrEventKind, head: char, secs: i64) -> Intake {
         merge_commit: None,
         intent: sheltie_core::intake::IntentField::Unknown,
         closes: None,
+        title: None,
     })
 }
 

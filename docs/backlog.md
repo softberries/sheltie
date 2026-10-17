@@ -97,6 +97,16 @@ Pulled forward from M8: show Sheltie working in public as soon as the Cargo adap
 - [ ] Accept the Issues permission on the dev App installation and try it on the playground
 - [ ] Fairness lease: a PR that lost three epochs reserves its read set (scheduler, `docs/design.md`)
 
+**M9 — Polish, website and demo**
+
+- [x] Redesigned check run, one voice for comments, labels with colors, terminal shadow report
+- [x] Logo, sheltie.dev landing page, branded docs, social image, Pages workflow
+- [x] Read-only dashboard with GitHub sign-in
+- [ ] Public demo instance on a VM (compose + Caddy) at a sheltie.dev subdomain
+- [ ] Demo repository, PR generator script, recorded run (GIF/video) and published benchmark
+- [ ] Replace illustrative screenshots with real ones from the demo
+- [ ] Go public: make the repository public, enable Pages (`PAGES_ENABLED`), dry-run and tag v0.1.0
+
 **M8 — Release**
 
 - [x] Helm chart and Docker image (`deploy/`, `compose.yaml`; chart tested on kind in CI)

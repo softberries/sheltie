@@ -1,0 +1,12 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Queued
+title: Checking approval and CI
+---
+## ⏳ Waiting to be ready
+
+Sheltie is reading the pull request's reviews and checks on GitHub. It also needs the footprint from your CI ([setup](https://sheltie.dev/docs/workflows.html)).
+
+<sub>Shadow mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

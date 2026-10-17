@@ -1,0 +1,71 @@
+/* Sheltie brand for mdBook: navy, sable and cream, matching sheltie.dev. */
+:root {
+  --sheltie-navy: #14213d;
+  --sheltie-sable: #cf8a34;
+  --content-max-width: 820px;
+}
+
+.light, .rust {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --sidebar-bg: #f7f5f1;
+  --sidebar-fg: #3b4252;
+  --sidebar-non-existant: #a0a7b4;
+  --sidebar-active: #a8661e;
+  --sidebar-header-border-color: #cf8a34;
+  --sidebar-spacer: #e4e0d8;
+  --links: #a8661e;
+  --inline-code-color: #14213d;
+  --theme-popup-bg: #ffffff;
+  --theme-hover: #f3efe8;
+  --quote-bg: #fbf7f0;
+  --quote-border: #e9dcc6;
+  --table-header-bg: #f3efe8;
+  --table-alternate-bg: #faf8f4;
+  --searchbar-border-color: #e4e0d8;
+}
+
+.navy, .coal, .ayu {
+  --bg: #0e1424;
+  --fg: #e6e3dc;
+  --sidebar-bg: #0b1020;
+  --sidebar-fg: #c3c7d0;
+  --sidebar-active: #e3a65a;
+  --sidebar-header-border-color: #cf8a34;
+  --sidebar-spacer: #26304a;
+  --links: #e3a65a;
+  --inline-code-color: #f3dfc0;
+  --theme-popup-bg: #161f35;
+  --theme-hover: #1d2742;
+  --quote-bg: #131b2e;
+  --quote-border: #26304a;
+  --table-header-bg: #161f35;
+  --table-alternate-bg: #121a2c;
+  --searchbar-bg: #131b2e;
+}
+
+html { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.content { font-size: 1.65rem; line-height: 1.65; }
+.content h1, .content h2, .content h3 { letter-spacing: -0.015em; }
+.light .content h1, .light .content h2, .rust .content h1, .rust .content h2 { color: var(--sheltie-navy); }
+.content h1 { font-size: 2.6em; margin-top: 0.6em; }
+.content h2 { margin-top: 1.8em; padding-bottom: 0.25em; border-bottom: 1px solid var(--sidebar-spacer); }
+.content pre { border-radius: 10px; }
+.content code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.content table { border-radius: 8px; overflow: hidden; }
+
+/* Logo before the book title in the top bar. */
+.light .menu-title, .rust .menu-title { color: var(--sheltie-navy); }
+.menu-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.menu-title::before {
+  content: "";
+  width: 1.5em;
+  height: 1.5em;
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJTaGVsdGllIj4KICA8dGl0bGU+U2hlbHRpZTwvdGl0bGU+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzEiIGZpbGw9IiMxNDIxM2QiLz4KICA8IS0tIHdoaXRlIHJ1ZmYgLS0+CiAgPHBhdGggZD0iTTEwIDMzIEMxMiA0NyAyMSA1NiAzMiA1OSBDNDMgNTYgNTIgNDcgNTQgMzMgQzUwIDQxIDQyIDQ3IDMyIDQ4IEMyMiA0NyAxNCA0MSAxMCAzMyBaIiBmaWxsPSIjZmRmNmVjIi8+CiAgPCEtLSBzYWJsZSBoZWFkIHdpdGggZWFyczsgdGhlIGVhciB0aXBzIGZvbGQgb3ZlciAtLT4KICA8cGF0aCBkPSJNMTcgMTMgTDI1IDI0IEMyOSAyMiAzNSAyMiAzOSAyNCBMNDcgMTMgTDUwIDI5IEM1MiAzOCA0NSA0NiAzMiA0OSBDMTkgNDYgMTIgMzggMTQgMjkgWiIgZmlsbD0iI2NmOGEzNCIvPgogIDxwYXRoIGQ9Ik0xNyAxMyBMMjEuNSAxOSBMMTguMiAxOS44IFogTTQ3IDEzIEw0Mi41IDE5IEw0NS44IDE5LjggWiIgZmlsbD0iIzlhNWIxZSIvPgogIDxwYXRoIGQ9Ik0xOSAxOCBMMjQgMjQgTDIwIDI2IFogTTQ1IDE4IEw0MCAyNCBMNDQgMjYgWiIgZmlsbD0iIzdhNDMxNCIvPgogIDwhLS0gd2hpdGUgYmxhemUgYW5kIG11enpsZSAtLT4KICA8cGF0aCBkPSJNMzIgMjMgQzI5LjUgMjcgMjkgMzMgMzAgMzggQzI3IDQwIDI2IDQzIDI4IDQ1LjUgQzMwIDQ3LjUgMzQgNDcuNSAzNiA0NS41IEMzOCA0MyAzNyA0MCAzNCAzOCBDMzUgMzMgMzQuNSAyNyAzMiAyMyBaIiBmaWxsPSIjZmRmNmVjIi8+CiAgPHBhdGggZD0iTTIyLjUgMzEuNSBRMjUuNSAyOS41IDI4IDMxLjUgUTI1LjUgMzMuNSAyMi41IDMxLjUgWiBNMzYgMzEuNSBRMzguNSAyOS41IDQxLjUgMzEuNSBRMzguNSAzMy41IDM2IDMxLjUgWiIgZmlsbD0iIzE0MjEzZCIvPgogIDxlbGxpcHNlIGN4PSIzMiIgY3k9IjQzLjIiIHJ4PSIyLjYiIHJ5PSIxLjkiIGZpbGw9IiMxNDIxM2QiLz4KPC9zdmc+Cg==") center / contain no-repeat;
+}

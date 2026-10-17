@@ -193,15 +193,10 @@ fn percentile(sorted: &[i64], p: usize) -> Option<i64> {
 }
 
 impl ShadowReport {
-    /// The report as Markdown.
-    pub fn to_markdown(&self) -> String {
+    /// The headline numbers as (label, value) rows, shared by every output format.
+    fn rows(&self) -> Vec<(&'static str, String)> {
         let opt = |v: Option<i64>| v.map_or("n/a".to_owned(), |m| format!("{m} min"));
-        let mut out = format!(
-            "# Sheltie shadow report: {}\n\nSince {}.\n\n| Metric | Value |\n| --- | --- |\n",
-            self.repository,
-            self.since.format("%Y-%m-%d %H:%M UTC")
-        );
-        let rows = [
+        vec![
             ("PRs merged", self.merged.to_string()),
             (
                 "…of which Sheltie judged ready first",
@@ -232,7 +227,92 @@ impl ShadowReport {
                 self.misses_per_1000_merges
                     .map_or("n/a".into(), |r| format!("{r:.1}")),
             ),
-        ];
+        ]
+    }
+
+    /// Renders the report for a terminal: aligned rows, bold headings when `color`.
+    pub fn to_text(&self, color: bool) -> String {
+        let (bold, dim, reset) = if color {
+            ("\x1b[1m", "\x1b[2m", "\x1b[0m")
+        } else {
+            ("", "", "")
+        };
+        let rows = self.rows();
+        let width = rows
+            .iter()
+            .map(|(l, _)| l.chars().count())
+            .max()
+            .unwrap_or(0);
+        let mut out = format!(
+            "{bold}Sheltie shadow report · {}{reset}\n{dim}since {}{reset}\n\n",
+            self.repository,
+            self.since.format("%Y-%m-%d %H:%M UTC")
+        );
+        for (label, value) in rows {
+            let pad = width - label.chars().count();
+            out.push_str(&format!(
+                "  {label}{}  {bold}{value}{reset}\n",
+                " ".repeat(pad)
+            ));
+        }
+        let section = |out: &mut String, title: &str, lines: Vec<String>| {
+            out.push_str(&format!("\n{bold}{title}{reset}\n"));
+            if lines.is_empty() {
+                out.push_str(&format!("  {dim}none{reset}\n"));
+            }
+            for l in lines {
+                out.push_str(&format!("  {l}\n"));
+            }
+        };
+        section(
+            &mut out,
+            "Prediction at merge time",
+            self.predicted_at_merge
+                .iter()
+                .map(|(l, n)| format!("{n:>5}  {l}"))
+                .collect(),
+        );
+        section(
+            &mut out,
+            "Most-written targets",
+            self.hot_targets
+                .iter()
+                .map(|(t, n)| format!("{n:>5}  {t}"))
+                .collect(),
+        );
+        section(
+            &mut out,
+            "Suspected footprint misses",
+            self.misses
+                .iter()
+                .map(|m| {
+                    let w = |s: &BTreeSet<TargetId>| {
+                        s.iter()
+                            .map(TargetId::as_str)
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    };
+                    format!(
+                        "#{} ({})  ×  #{} ({})",
+                        m.a,
+                        w(&m.writes_a),
+                        m.b,
+                        w(&m.writes_b)
+                    )
+                })
+                .collect(),
+        );
+        out
+    }
+
+    /// The report as Markdown.
+    pub fn to_markdown(&self) -> String {
+        let mut out = format!(
+            "# Sheltie shadow report: {}\n\nSince {}.\n\n| Metric | Value |\n| --- | --- |\n",
+            self.repository,
+            self.since.format("%Y-%m-%d %H:%M UTC")
+        );
+        let rows = self.rows();
         for (name, value) in rows {
             out.push_str(&format!("| {name} | {value} |\n"));
         }
@@ -284,6 +364,29 @@ mod tests {
             tests: BTreeSet::new(),
             leaky: false,
         }
+    }
+
+    #[test]
+    fn text_report_is_aligned() {
+        let report = ShadowReport {
+            repository: "acme/widgets".into(),
+            since: Utc.timestamp_opt(1_800_000_000, 0).unwrap(),
+            merged: 12,
+            merged_ready: 10,
+            ready_to_merged_p50: Some(14),
+            ready_to_merged_p95: None,
+            predicted_at_merge: BTreeMap::from([("land_now".to_owned(), 9)]),
+            land_now_wait_minutes: 31,
+            average_land_now_batch: Some(2.5),
+            red_commits: 0,
+            suspected_misses: 0,
+            confirmed_misses: 0,
+            misses_per_1000_merges: Some(0.0),
+            hot_targets: vec![(TargetId::new("shop::cart"), 4)],
+            misses: vec![],
+        };
+        insta::assert_snapshot!(report.to_text(false));
+        assert!(report.to_text(true).contains("\x1b[1m"));
     }
 
     #[test]

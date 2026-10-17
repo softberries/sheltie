@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### 🤖 Re-derived, but it needs your review
+
+Sheltie re-derived this change from its intent on top of the current head. The result is on branch `sheltie/replay/7-0123456789ab`, but it differs from the change that was reviewed (similarity 0.31, threshold 0.60), so it was not landed.
+
+**What to do:** review `sheltie/replay/7-0123456789ab` and, if it is right, push it to this pull request. Sheltie lands it once it is approved again.
+
+<sub>Sheltie · [About intent replay](https://sheltie.dev/docs/intent-replay.html)</sub>

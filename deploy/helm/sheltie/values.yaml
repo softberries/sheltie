@@ -31,6 +31,11 @@ oidc:
   # Empty means GitHub Actions on github.com.
   issuer: ""
 
+# The dashboard (GitHub sign-in): set publicUrl and add `client-id` and `client-secret` (the
+# App's OAuth credentials) to the github secret. Its callback URL is <publicUrl>/auth/callback.
+dashboard:
+  publicUrl: ""
+
 # Seconds between scheduler epochs.
 epochSeconds: 10
 # Hours an agent's lease lasts unless renewed.

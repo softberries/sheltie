@@ -263,6 +263,7 @@ fn pr_event(
         // Every pull request payload carries the current description.
         intent: IntentField::from_description(pr.body.as_deref()),
         closes: Some(closing_references(pr.body.as_deref().unwrap_or_default())),
+        title: pr.title.map(|t| t.chars().take(300).collect()),
         merge_commit: match (kind, pr.merge_commit_sha) {
             (PrEventKind::Merged, Some(sha)) => {
                 Some(CommitSha::parse(sha).map_err(|e| e.to_string())?)
@@ -362,6 +363,8 @@ struct PullRequest {
     updated_at: DateTime<Utc>,
     #[serde(default)]
     body: Option<String>,
+    #[serde(default)]
+    title: Option<String>,
 }
 
 #[derive(Deserialize)]

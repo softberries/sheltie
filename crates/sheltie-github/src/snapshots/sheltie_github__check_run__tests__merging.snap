@@ -1,0 +1,24 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: InProgress
+title: Resolving a conflict
+---
+## 🔀 Resolving a conflict
+
+This change conflicts with what landed on `main`. The merge engine is combining them on your CI runner (structural merge, regenerated files, declared rules); the result is verified before it lands.
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

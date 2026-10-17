@@ -18,9 +18,11 @@ use tokio::sync::Notify;
 
 pub mod agents;
 pub mod coordination;
+pub mod dashboard;
 mod footprints;
 
 pub use agents::Agents;
+pub use dashboard::Dashboard;
 pub use footprints::Footprints;
 
 /// GitHub caps webhook payloads at 25 MB.
@@ -44,13 +46,14 @@ struct AppState {
 }
 
 /// Builds the HTTP router. `POST /webhooks/github` is served only when `webhooks` is set,
-/// the CI uploads only when `footprints` is set, and the agent endpoints (REST and `/mcp`)
-/// only when `agents` is set.
+/// the CI uploads only when `footprints` is set, the agent endpoints (REST and `/mcp`) only
+/// when `agents` is set, and the dashboard only when `dashboard` is set.
 pub fn router(
     store: Store,
     webhooks: Option<Webhooks>,
     footprints: Option<Footprints>,
     agents: Option<Agents>,
+    dashboard: Option<Dashboard>,
 ) -> Router {
     let mut router = Router::new().route("/healthz", get(healthz));
     if webhooks.is_some() {
@@ -86,10 +89,26 @@ pub fn router(
         webhooks,
         footprints,
     });
+    let router = match dashboard {
+        Some(config) => router.merge(dashboard_router(store.clone(), config)),
+        None => router,
+    };
     match agents {
         Some(agents) => router.merge(agent_router(store, agents)),
         None => router,
     }
+}
+
+/// `/dashboard` and the sign-in routes under `/auth`.
+fn dashboard_router(store: Store, config: Dashboard) -> Router {
+    Router::new()
+        .route("/dashboard", get(dashboard::overview))
+        .route("/dashboard/assets/{file}", get(dashboard::asset))
+        .route("/dashboard/{owner}/{repo}", get(dashboard::repo))
+        .route("/auth/login", get(dashboard::login))
+        .route("/auth/callback", get(dashboard::callback))
+        .route("/auth/logout", post(dashboard::logout))
+        .with_state(dashboard::DashState { store, config })
 }
 
 /// `/v1/footprint`, `/v1/leases`, `/v1/issues/safe` and `/mcp`, behind token authentication.
