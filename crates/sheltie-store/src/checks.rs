@@ -38,6 +38,10 @@ pub struct CheckRunJob {
     pub readiness: Option<ReadinessFlags>,
     /// The current shadow-mode prediction, for ready changes.
     pub prediction: Option<String>,
+    /// Why the change was returned, if it was.
+    pub returned_reason: Option<String>,
+    /// Whether Sheltie lands changes in the repository (otherwise it only predicts).
+    pub merge_mode: bool,
 }
 
 /// The parts of readiness a check run explains.
@@ -101,7 +105,7 @@ impl Store {
                     claimed.attempts, c.repo_id, c.pr_number, c.head_sha, c.state,
                     r.full_name, r.installation_id,
                     fp.writes_n, fp.reads_n, fp.tests_n, fp.leaky,
-                    rd.approved, rd.checks_green, rd.draft, p.summary AS prediction
+                    rd.approved, rd.checks_green, rd.draft, p.summary AS prediction, c.returned_reason, r.mode = 'merge' AS merge_mode
              FROM claimed
              JOIN changes c ON c.id = claimed.change_id
              JOIN repositories r ON r.id = c.repo_id
@@ -230,5 +234,7 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
             _ => None,
         },
         prediction: row.try_get("prediction")?,
+        returned_reason: row.try_get("returned_reason")?,
+        merge_mode: row.try_get("merge_mode")?,
     })
 }
