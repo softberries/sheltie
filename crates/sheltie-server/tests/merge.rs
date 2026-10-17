@@ -219,6 +219,7 @@ async fn independent_prs_land_and_conflicting_ones_are_verified_or_returned(
     env.wait_state(2, &h2, ChangeState::Landed).await;
     env.wait_state(1, &h1, ChangeState::Landed).await;
     env.wait_state(3, &h3, ChangeState::Returned).await;
+    env.wait_comment(3, "billing").await;
 
     {
         let st = env.fake.state();
@@ -305,6 +306,7 @@ async fn failed_verification_returns_the_change(_: PgPoolOptions, db: PgConnectO
     env.fake.state().verify_ci = Some("FAILURE".into());
     env.footprint(&h1, &["billing"]).await;
     env.wait_state(1, &h1, ChangeState::Returned).await;
+    env.wait_comment(1, "CI failed").await;
 
     {
         let st = env.fake.state();
@@ -324,6 +326,17 @@ async fn failed_verification_returns_the_change(_: PgPoolOptions, db: PgConnectO
 impl Env {
     fn main_head(&self) -> String {
         self.fake.state().refs["main"].clone()
+    }
+
+    /// Waits for a comment on PR `n` containing `needle`. Sheltie records a state change before
+    /// it comments, so tests wait for the comment itself.
+    async fn wait_comment(&self, n: u64, needle: &str) {
+        self.wait_fake(&format!("a comment on #{n} with {needle:?}"), |st| {
+            st.comments
+                .iter()
+                .any(|(pr, body)| *pr == n && body.contains(needle))
+        })
+        .await;
     }
 
     async fn wait_fake(&self, what: &str, pred: impl Fn(&sheltie_github::fake::FakeState) -> bool) {
@@ -379,6 +392,7 @@ async fn a_bad_landing_is_blamed_and_reverted(_: PgPoolOptions, db: PgConnectOpt
             .is_some_and(|c| c.message.contains("Sheltie-Revert"))
     })
     .await;
+    env.wait_comment(1, "reverted it in #1000").await;
     {
         let st = env.fake.state();
         let head = &st.commits[&st.refs["main"]];
@@ -500,6 +514,7 @@ async fn a_speculative_chain_lands_its_green_prefix(_: PgPoolOptions, db: PgConn
     env.wait_state(1, &a, ChangeState::Landed).await;
     env.wait_state(2, &b, ChangeState::Returned).await;
     env.wait_state(3, &c, ChangeState::Landed).await;
+    env.wait_comment(2, "together with #1").await;
     {
         let st = env.fake.state();
         let chain = st.first_parents("main");
@@ -519,5 +534,103 @@ async fn a_speculative_chain_lands_its_green_prefix(_: PgPoolOptions, db: PgConn
             st.refs.keys()
         );
     }
+    env.stop().await;
+}
+
+impl Env {
+    async fn merge_report(&self, report: Value) -> reqwest::StatusCode {
+        reqwest::Client::new()
+            .post(format!("http://{}/v1/merges", self.addr))
+            .bearer_auth(self.signer.sign(&actions_claims("acme/widgets", 1001)))
+            .json(&report)
+            .send()
+            .await
+            .unwrap()
+            .status()
+    }
+
+    /// Two ready PRs writing `billing`; merge mode and the merge engine on. Returns the heads.
+    async fn conflicting_pair(&mut self) -> (String, String) {
+        self.push_main().await;
+        let h1 = self.open_pr(1, "Billing retries").await;
+        let h2 = self.open_pr(2, "Billing rounding").await;
+        self.footprint(&h1, &["billing"]).await;
+        self.footprint(&h2, &["billing"]).await;
+        self.wait_state(1, &h1, ChangeState::Ready).await;
+        self.wait_state(2, &h2, ChangeState::Ready).await;
+        let repo = RepoFullName::parse("acme/widgets").unwrap();
+        assert!(self.store.set_merge_engine(&repo, true).await.unwrap());
+        assert!(
+            self.store
+                .set_repo_mode(&repo, RepoMode::Merge)
+                .await
+                .unwrap()
+        );
+        self.wait_state(1, &h1, ChangeState::Landed).await;
+        self.wait_fake("a merge dispatch", |st| !st.dispatches.is_empty())
+            .await;
+        (h1, h2)
+    }
+}
+
+/// M5 "done when": a conflict is resolved by the merge engine (here tier 2) and lands.
+#[sqlx::test(migrations = false)]
+async fn merge_engine_resolution_is_verified_and_lands(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let (_, h2) = env.conflicting_pair().await;
+    let (event, payload) = env.fake.state().dispatches[0].clone();
+    assert_eq!(event, sheltie_server::MERGE_EVENT);
+    assert_eq!(payload["pr"], 2);
+    assert_eq!(payload["head"], h2);
+    let onto = payload["onto"].as_str().unwrap().to_owned();
+    assert_eq!(onto, env.main_head(), "merged onto the current head");
+
+    // The runner merges and reports: Cargo.lock was regenerated.
+    let result = {
+        let mut st = env.fake.state();
+        let sha = st.commit(&[&onto, &h2], "Merge #2: Billing rounding");
+        st.ci.insert(sha.clone(), "SUCCESS".into());
+        sha
+    };
+    let status = env
+        .merge_report(json!({
+            "pr": 2, "head": h2, "onto": onto, "result": result,
+            "files": [{ "path": "Cargo.lock", "tier": "regenerate" }], "unresolved": []
+        }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+
+    env.wait_state(2, &h2, ChangeState::Landed).await;
+    assert_eq!(env.main_head(), result, "the engine's merge commit landed");
+    let id: i64 = sqlx::query_scalar("SELECT id FROM changes WHERE pr_number = 2")
+        .fetch_one(env.store.pool())
+        .await
+        .unwrap();
+    assert_eq!(
+        env.store.resolution_tier(id).await.unwrap(),
+        Some(sheltie_core::ResolutionTier::Regenerate)
+    );
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn unresolved_merge_returns_the_change(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let (_, h2) = env.conflicting_pair().await;
+    let onto = env.fake.state().dispatches[0].1["onto"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    // A report for an unrelated head is refused.
+    let wrong = env
+        .merge_report(json!({ "pr": 2, "head": "9".repeat(40), "onto": onto, "result": null, "files": [], "unresolved": ["x"] }))
+        .await;
+    assert_eq!(wrong, reqwest::StatusCode::CONFLICT);
+    let status = env
+        .merge_report(json!({ "pr": 2, "head": h2, "onto": onto, "result": null, "files": [], "unresolved": ["src/billing.rs"] }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+    env.wait_state(2, &h2, ChangeState::Returned).await;
+    env.wait_comment(2, "`src/billing.rs`").await;
     env.stop().await;
 }
