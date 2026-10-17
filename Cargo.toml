@@ -51,6 +51,7 @@ quote = { version = "1", default-features = false }
 petgraph = { version = "0.8", default-features = false, features = ["graphmap", "std"] }
 cargo_metadata = "0.23"
 globset = "0.4"
+regex = "1"
 toml = { version = "1", default-features = false, features = ["parse", "serde"] }
 clap = { version = "4", features = ["derive"] }
 
