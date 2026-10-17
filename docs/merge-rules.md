@@ -59,3 +59,16 @@ When more than one rule matches a path, `[[derived]]` wins over `[[set]]`, which
 ## `[replay]`
 
 Settings for tier 4, re-deriving a change with an agent. See [Intent replay](intent-replay.md).
+
+## `[estimates]`
+
+Assumptions for the dashboard's time-saved estimate. Both are optional, in minutes (at most
+1440). See [Dashboard](dashboard.md#time-saved).
+
+```toml
+[estimates]
+minutes_per_conflict = 15   # an author fixing a conflict the merge engine resolved
+minutes_per_replay = 30     # an author redoing a change Sheltie re-derived from its intent
+```
+
+The server reads this file from the default branch every 10 minutes.

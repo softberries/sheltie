@@ -16,9 +16,9 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use sheltie_core::{ChangeState, RepoFullName};
-use sheltie_github::check_run::tier_words;
+use sheltie_github::check_run::{DOCS_URL, tier_words};
 use sheltie_github::oauth::OAuthApp;
-use sheltie_store::{DashboardSession, RepoDetail, RepoMode, RepoOverview, Store};
+use sheltie_store::{DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store};
 
 const SESSION_COOKIE: &str = "sheltie_session";
 const STATE_COOKIE: &str = "sheltie_oauth_state";
@@ -27,6 +27,10 @@ const SESSION_TTL: Duration = Duration::from_secs(8 * 3600);
 pub const CSS: &str = include_str!("../assets/dashboard.css");
 /// The logo.
 pub const LOGO: &str = include_str!("../assets/logo.svg");
+/// Geist (SIL Open Font License 1.1, `assets/fonts/OFL.txt`).
+pub const FONT_SANS: &[u8] = include_bytes!("../assets/fonts/Geist-Variable.woff2");
+/// Geist Mono (SIL Open Font License 1.1).
+pub const FONT_MONO: &[u8] = include_bytes!("../assets/fonts/GeistMono-Variable.woff2");
 
 /// Settings for the dashboard.
 #[derive(Debug, Clone)]
@@ -143,8 +147,12 @@ impl DashState {
 pub fn page(title: &str, header: &str, body: &str) -> String {
     format!(
         r#"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{} · Sheltie</title><link rel="icon" href="/dashboard/assets/logo.svg" type="image/svg+xml"><link rel="stylesheet" href="/dashboard/assets/dashboard.css"></head>
-<body>{header}<main class="wrap">{body}</main></body></html>"#,
+<meta name="color-scheme" content="light dark"><title>{} · Sheltie</title>
+<link rel="icon" href="/dashboard/assets/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/dashboard/assets/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/dashboard/assets/dashboard.css"></head>
+<body>{header}<main class="wrap">{body}</main>
+<footer class="foot"><div class="wrap-in"><span>Sheltie · parallel merge engine</span><a href="{DOCS_URL}">Documentation</a></div></footer></body></html>"#,
         esc(title)
     )
 }
@@ -161,22 +169,30 @@ fn html(status: StatusCode, title: &str, header: &str, body: &str) -> Response {
     h.insert("x-frame-options", HeaderValue::from_static("DENY"));
     h.insert(
         "content-security-policy",
-        HeaderValue::from_static("default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'"),
+        HeaderValue::from_static("default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'"),
     );
     res
 }
 
-/// The navy bar at the top: the brand, and who is signed in.
+/// The bar at the top: the brand, and who is signed in.
 pub fn top_bar(login: Option<&str>) -> String {
     let who = match login {
-        Some(login) => format!(
-            r#"<div class="who">Signed in as <b>{}</b><form method="post" action="/auth/logout"><button>Sign out</button></form></div>"#,
-            esc(login)
-        ),
+        Some(login) => {
+            let initial = login
+                .chars()
+                .next()
+                .map(|c| c.to_uppercase().to_string())
+                .unwrap_or_default();
+            format!(
+                r#"<div class="who"><span class="avatar" aria-hidden="true">{}</span><span class="login">{}</span><form method="post" action="/auth/logout"><button class="btn-ghost">Sign out</button></form></div>"#,
+                esc(&initial),
+                esc(login)
+            )
+        }
         None => String::new(),
     };
     format!(
-        r#"<header class="top"><div class="in"><a class="brand" href="/dashboard"><img src="/dashboard/assets/logo.svg" alt="">Sheltie <span>dashboard</span></a>{who}</div></header>"#
+        r#"<header class="top"><div class="wrap-in"><a class="brand" href="/dashboard"><img src="/dashboard/assets/logo.svg" alt="" width="28" height="28"><span>Sheltie</span></a>{who}</div></header>"#
     )
 }
 
@@ -190,156 +206,370 @@ fn ago(t: DateTime<Utc>, now: DateTime<Utc>) -> String {
     }
 }
 
-fn mode_pill(mode: RepoMode) -> &'static str {
-    match mode {
-        RepoMode::Merge => r#"<span class="pill mode-merge">merge mode</span>"#,
-        RepoMode::Shadow => r#"<span class="pill mode-shadow">shadow mode</span>"#,
+/// A duration for people: `45 s`, `12 min`, `4.2 h`, `3.5 d`.
+pub fn duration(seconds: i64) -> String {
+    let s = seconds.abs();
+    match s {
+        0..60 => format!("{s} s"),
+        60..3600 => format!("{} min", (s + 30) / 60),
+        3600..172_800 => {
+            let tenths = (s * 10 + 1800) / 3600;
+            if tenths % 10 == 0 {
+                format!("{} h", tenths / 10)
+            } else {
+                format!("{}.{} h", tenths / 10, tenths % 10)
+            }
+        }
+        _ => {
+            let tenths = (s * 10 + 43_200) / 86_400;
+            format!("{}.{} d", tenths / 10, tenths % 10)
+        }
     }
 }
 
-fn state_pill(state: ChangeState) -> String {
-    let label = match state {
-        ChangeState::Committable => "landing",
-        s => s.as_str(),
-    };
-    format!(r#"<span class="pill st-{}">{label}</span>"#, state.as_str())
+fn mode_badge(mode: RepoMode) -> &'static str {
+    match mode {
+        RepoMode::Merge => r#"<span class="badge b-green">Merge mode</span>"#,
+        RepoMode::Shadow => r#"<span class="badge b-violet">Shadow mode</span>"#,
+    }
 }
 
-/// The overview: one card per repository.
-pub fn render_overview(repos: &[RepoOverview], now: DateTime<Utc>) -> String {
-    let mut s = String::from(
-        r#"<h1>Repositories</h1><p class="sub">Where Sheltie is installed and you have access.</p>"#,
+fn state_badge(state: ChangeState) -> String {
+    let (label, tone) = match state {
+        ChangeState::Pending => ("Waiting", "b-gray"),
+        ChangeState::Ready => ("Ready", "b-blue"),
+        ChangeState::Verifying => ("Verifying", "b-amber"),
+        ChangeState::Merging => ("Resolving", "b-violet"),
+        ChangeState::Committable => ("Landing", "b-green"),
+        ChangeState::Landed => ("Landed", "b-green"),
+        ChangeState::Returned => ("Returned", "b-red"),
+        ChangeState::Closed => ("Closed", "b-gray"),
+    };
+    format!(r#"<span class="badge {tone}">{label}</span>"#)
+}
+
+/// Bars of `values` (one per day, oldest first, the last one today), as an inline SVG with a
+/// tooltip per bar. `class` sizes it.
+fn day_bars(values: &[u32], now: DateTime<Utc>, class: &str, id: &str) -> String {
+    let n = values.len().max(1);
+    let max = values.iter().copied().max().unwrap_or(0).max(1);
+    let (w, h, gap) = (n * 10, 48, 3);
+    let mut s = format!(
+        r#"<svg class="{class}" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img" aria-label="Landings per day"><defs><linearGradient id="{id}" x1="0" y1="1" x2="0" y2="0"><stop class="stop-a" offset="0"/><stop class="stop-b" offset="1"/></linearGradient></defs>"#
     );
-    if repos.is_empty() {
-        s.push_str(r#"<div class="table"><div class="empty">No repositories yet. Install the GitHub App on a repository you can access. Installed it after signing in? <a href="/auth/login">Sign in again</a> to refresh your repositories.</div></div>"#);
+    for (i, &v) in values.iter().enumerate() {
+        let bar = if v == 0 {
+            2
+        } else {
+            (f64::from(v) / f64::from(max) * f64::from(h - 4))
+                .round()
+                .max(4.0) as u32
+        };
+        let back = i64::try_from(n - 1 - i).unwrap_or(0);
+        let day = (now - chrono::Duration::days(back)).format("%b %-d");
+        let plural = if v == 1 { "" } else { "s" };
+        let _ = write!(
+            s,
+            r#"<rect class="{}" x="{}" y="{}" width="{}" height="{bar}" rx="1.5"{}><title>{day}: {v} landing{plural}</title></rect>"#,
+            if v == 0 { "bar-zero" } else { "bar" },
+            i * 10,
+            h - bar,
+            10 - gap,
+            if v == 0 {
+                String::new()
+            } else {
+                format!(r#" fill="url(#{id})""#)
+            },
+        );
+    }
+    s.push_str("</svg>");
+    s
+}
+
+/// Two horizontal bars: Sheltie's median time to land against the one-at-a-time queue's.
+fn compare_bars(sheltie: i64, serial: i64) -> String {
+    let max = sheltie.max(serial).max(1) as f64;
+    let width = |v: i64| ((v as f64 / max) * 100.0).max(1.5);
+    format!(
+        r#"<div class="compare"><div class="crow"><span class="clabel">Sheltie</span><svg class="cbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="ctrack" width="100" height="10" rx="5"/><rect class="cfill-a" width="{:.1}" height="10" rx="5"/></svg><span class="cval">{}</span></div><div class="crow"><span class="clabel">One at a time</span><svg class="cbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="ctrack" width="100" height="10" rx="5"/><rect class="cfill-b" width="{:.1}" height="10" rx="5"/></svg><span class="cval">{}</span></div></div>"#,
+        width(sheltie),
+        duration(sheltie),
+        width(serial),
+        duration(serial)
+    )
+}
+
+/// The "Time saved" panel of a repository page.
+fn savings_panel(sv: &Savings, mode: RepoMode, predicted_wait_minutes: Option<i64>) -> String {
+    let days = sheltie_store::DETAIL_DAYS;
+    let (headline, caption) = match (mode, sv.wait_saved_seconds, predicted_wait_minutes) {
+        (RepoMode::Shadow, _, Some(m)) => (
+            duration(m * 60),
+            "less waiting predicted · shadow mode, Sheltie only predicts".to_owned(),
+        ),
+        (_, Some(w), _) if w >= 0 => (
+            duration(w),
+            "less waiting than a one-at-a-time merge queue".to_owned(),
+        ),
+        (_, Some(w), _) => (
+            duration(w),
+            "more waiting than a one-at-a-time merge queue".to_owned(),
+        ),
+        (_, None, _) if !sv.enough_data() => (
+            "—".to_owned(),
+            format!(
+                "Not enough data yet: {} of {} landings needed",
+                sv.landings,
+                sheltie_store::MIN_LANDINGS
+            ),
+        ),
+        (_, None, _) => (
+            "—".to_owned(),
+            "No CI time measured on the default branch yet".to_owned(),
+        ),
+    };
+    let compare = match (sv.median_actual_seconds, sv.median_serial_seconds) {
+        (Some(a), Some(b)) if sv.enough_data() => format!(
+            r#"<div class="hero-side"><div class="kicker">Median time from ready to landed</div>{}<p class="fine">CI on the default branch takes {} (median, measured).</p></div>"#,
+            compare_bars(a, b),
+            sv.ci_seconds.map(duration).unwrap_or_default()
+        ),
+        _ => String::new(),
+    };
+    let author = sv.author_minutes_saved * 60;
+    format!(
+        r#"<section class="hero"><div class="hero-main"><div class="kicker">Time saved · last {days} days</div><div class="big">{headline}</div><p class="caption">{caption}</p></div>{compare}</section>
+<div class="metrics">
+<div class="metric"><span class="mlabel">Author time saved</span><b>{}</b><span class="mnote">{} min per conflict, {} per replay (assumed)</span></div>
+<div class="metric"><span class="mlabel">Conflicts resolved</span><b>{}</b><span class="mnote">{} by the merge engine · {} re-derived</span></div>
+<div class="metric"><span class="mlabel">Landed</span><b>{}</b><span class="mnote">through Sheltie</span></div>
+<div class="metric"><span class="mlabel">Bad commits reverted</span><b>{}</b><span class="mnote">found and undone automatically</span></div>
+</div>
+<details class="how"><summary>How this is estimated</summary><p>Waiting time compares Sheltie's real landing times with a one-at-a-time merge queue simulated from the same ready times: each pull request lands one CI run after the later of its ready time and the previous landing. The CI time is the median measured on the default branch. Author time counts conflicts Sheltie resolved without the author, at the minutes per fix set in <code>[estimates]</code> in <code>.sheltie/merge.toml</code>. <a href="{DOCS_URL}/dashboard.html#time-saved">More</a></p></details>"#,
+        duration(i64::try_from(author).unwrap_or(i64::MAX)),
+        sv.minutes_per_conflict,
+        sv.minutes_per_replay,
+        sv.conflicts_resolved + sv.replays,
+        sv.conflicts_resolved,
+        sv.replays,
+        sv.landings,
+        sv.reverts,
+    )
+}
+
+fn empty(text: &str) -> String {
+    format!(r#"<div class="empty">{text}</div>"#)
+}
+
+/// The overview: totals, then one card per repository.
+pub fn render_overview(cards: &[RepoCard], now: DateTime<Utc>) -> String {
+    let mut s = String::from(
+        r#"<div class="head"><div><div class="kicker">Overview</div><h1>Repositories</h1><p class="sub">Where Sheltie is installed and you have access.</p></div></div>"#,
+    );
+    if cards.is_empty() {
+        s.push_str(&empty(r#"<b>No repositories yet</b>Install the GitHub App on a repository you can access. Installed it after signing in? <a href="/auth/login">Sign in again</a> to refresh your repositories."#));
         return s;
     }
-    s.push_str(r#"<div class="repos">"#);
-    for r in repos {
-        let last = r.last_landed.map_or_else(
+    let waited: i64 = cards
+        .iter()
+        .filter_map(|c| c.savings.wait_saved_seconds)
+        .filter(|w| *w > 0)
+        .sum();
+    let author: u64 = cards.iter().map(|c| c.savings.author_minutes_saved).sum();
+    let landed: usize = cards.iter().map(|c| c.savings.landings).sum();
+    let conflicts: u32 = cards
+        .iter()
+        .map(|c| c.savings.conflicts_resolved + c.savings.replays)
+        .sum();
+    let _ = write!(
+        s,
+        r#"<div class="totals"><div><span>Waiting saved</span><b>{}</b></div><div><span>Author time saved</span><b>{}</b></div><div><span>Landed</span><b>{landed}</b></div><div><span>Conflicts resolved</span><b>{conflicts}</b></div><p class="fine">Last {} days, all repositories.</p></div><div class="cards">"#,
+        if waited > 0 {
+            duration(waited)
+        } else {
+            "—".into()
+        },
+        duration(i64::try_from(author * 60).unwrap_or(i64::MAX)),
+        sheltie_store::DETAIL_DAYS,
+    );
+    for (i, c) in cards.iter().enumerate() {
+        let o = &c.overview;
+        let (owner, repo) = o
+            .name
+            .as_str()
+            .split_once('/')
+            .unwrap_or(("", o.name.as_str()));
+        let last = o.last_landed.map_or_else(
             || "Nothing landed yet".to_owned(),
             |t| format!("Last landed {}", ago(t, now)),
         );
+        let saved = match (
+            o.mode,
+            c.savings.wait_saved_seconds,
+            c.predicted_wait_minutes,
+        ) {
+            (RepoMode::Shadow, _, Some(m)) if m > 0 => {
+                format!("{} less waiting predicted", duration(m * 60))
+            }
+            (_, Some(w), _) if w > 0 => format!("{} less waiting", duration(w)),
+            _ => format!(
+                "{} landed in {} days",
+                c.savings.landings,
+                sheltie_store::DETAIL_DAYS
+            ),
+        };
         let _ = write!(
             s,
-            r#"<a class="repo" href="/dashboard/{name}"><div class="name">{name}{mode}</div>
-<div class="nums"><span><b>{}</b>ready</span><span><b>{}</b>in flight</span><span><b>{}</b>landed today</span><span><b>{}</b>returned</span></div>
-<div class="last">{last}</div></a>"#,
-            r.ready,
-            r.in_flight,
-            r.landed_today,
-            r.returned_today,
-            name = esc(r.name.as_str()),
-            mode = mode_pill(r.mode),
+            r#"<a class="card" href="/dashboard/{name}"><div class="card-top"><div class="rname"><span>{}/</span>{}</div>{}</div>
+{}<div class="card-stats"><div><b>{}</b><span>Ready</span></div><div><b>{}</b><span>In flight</span></div><div><b>{}</b><span>Landed 24h</span></div><div><b>{}</b><span>Returned 24h</span></div></div>
+<div class="card-foot"><span class="saved">{}</span><span>{last}</span></div></a>"#,
+            esc(owner),
+            esc(repo),
+            mode_badge(o.mode),
+            day_bars(&c.landed_daily, now, "spark", &format!("g{i}")),
+            o.ready,
+            o.in_flight,
+            o.landed_today,
+            o.returned_today,
+            esc(&saved),
+            name = esc(o.name.as_str()),
         );
     }
     s.push_str("</div>");
     s
 }
 
-/// One repository: headline numbers, the queue, landings, returned changes and leases.
+/// One repository: time saved, activity, the queue, landings, returned changes and leases.
 pub fn render_repo(d: &RepoDetail, web: &str, now: DateTime<Utc>) -> String {
     let o = &d.overview;
     let name = esc(o.name.as_str());
-    let pr_link = |n: u64| format!(r#"<a href="{}/{name}/pull/{n}">#{n}</a>"#, esc(web));
+    let web = esc(web);
+    let pr_link = |n: u64| format!(r#"<a class="num-chip" href="{web}/{name}/pull/{n}">#{n}</a>"#);
     let title = |t: &Option<String>| t.as_deref().map(esc).unwrap_or_default();
+    let (owner, repo) = o
+        .name
+        .as_str()
+        .split_once('/')
+        .unwrap_or(("", o.name.as_str()));
     let mut s = format!(
-        r#"<div class="crumbs"><a href="/dashboard">Repositories</a> /</div><h1>{name}{}{}</h1><p class="sub"><a href="{}/{name}">Open on GitHub</a></p>"#,
-        mode_pill(o.mode),
+        r#"<nav class="crumbs"><a href="/dashboard">Repositories</a><span>/</span>{}</nav><div class="head"><div><h1><span class="owner">{}/</span>{}</h1><div class="badges">{}{}</div></div><a class="btn-ghost" href="{web}/{name}">Open on GitHub ↗</a></div>"#,
+        esc(owner),
+        esc(owner),
+        esc(repo),
+        mode_badge(o.mode),
         if o.merge_engine {
-            r#"<span class="pill engine">merge engine</span>"#
+            r#"<span class="badge b-sable">Merge engine</span>"#
         } else {
             ""
         },
-        esc(web)
     );
+    s.push_str(&savings_panel(&d.savings, o.mode, d.predicted_wait_minutes));
+
     let _ = write!(
         s,
-        r#"<div class="tiles"><div class="tile"><b>{}</b><span>Ready</span></div><div class="tile"><b>{}</b><span>In flight</span></div><div class="tile"><b>{}</b><span>Landed in 24 h</span></div><div class="tile"><b>{}</b><span>Returned in 24 h</span></div></div>"#,
-        o.ready, o.in_flight, o.landed_today, o.returned_today
+        r#"<section class="panel activity"><div class="panel-head"><h2>Activity</h2><span class="fine">Landings per day, last {} days</span></div>{}<div class="axis"><span>{}</span><span>Today</span></div>
+<div class="now"><div><b>{}</b><span>Ready</span></div><div><b>{}</b><span>In flight</span></div><div><b>{}</b><span>Landed in 24 h</span></div><div><b>{}</b><span>Returned in 24 h</span></div></div></section>"#,
+        sheltie_store::DETAIL_DAYS,
+        day_bars(&d.landed_daily, now, "chart", "gchart"),
+        (now - chrono::Duration::days(i64::from(sheltie_store::DETAIL_DAYS) - 1)).format("%b %-d"),
+        o.ready,
+        o.in_flight,
+        o.landed_today,
+        o.returned_today
     );
 
     let _ = write!(
         s,
-        r#"<h2>Queue <small>{} open</small></h2><div class="table">"#,
+        r#"<section class="panel"><div class="panel-head"><h2>Queue</h2><span class="count">{}</span></div>"#,
         d.queue.len()
     );
     if d.queue.is_empty() {
-        s.push_str(r#"<div class="empty">No open pull requests.</div>"#);
+        s.push_str(&empty("<b>Queue is empty</b>No open pull requests."));
     } else {
-        s.push_str("<table><tr><th>Pull request</th><th>State</th><th>Footprint</th><th>Next</th><th>Updated</th></tr>");
+        s.push_str(r#"<div class="scroll"><table><thead><tr><th>Pull request</th><th>State</th><th>Footprint</th><th>Next</th><th class="r">Updated</th></tr></thead><tbody>"#);
         for q in &d.queue {
             let footprint = match (q.writes, q.reads) {
-                (Some(w), Some(r)) => format!("writes {w} · affects {r}"),
+                (Some(w), Some(r)) => format!(
+                    r#"<span class="fp"><b>{w}</b> write{} · <b>{r}</b> affected</span>"#,
+                    if w == 1 { "" } else { "s" }
+                ),
                 _ => r#"<span class="muted">not uploaded</span>"#.into(),
             };
-            let _ = write!(
-                s,
-                r#"<tr><td class="pr">{} <span class="title">{}</span></td><td>{}</td><td class="num">{footprint}</td><td>{}</td><td class="muted num">{}</td></tr>"#,
-                pr_link(q.pr.0),
-                title(&q.title),
-                state_pill(q.state),
-                q.plan
-                    .as_deref()
-                    .map(|p| esc(&if o.mode == RepoMode::Merge {
+            let plan = q
+                .plan
+                .as_deref()
+                .map(|p| {
+                    esc(&if o.mode == RepoMode::Merge {
                         p.replacen("would ", "will ", 1)
                     } else {
                         p.to_owned()
-                    }))
-                    .unwrap_or_else(|| "—".into()),
+                    })
+                })
+                .unwrap_or_else(|| "—".into());
+            let _ = write!(
+                s,
+                r#"<tr><td><div class="prcell">{}<span class="ttl">{}</span></div></td><td>{}</td><td>{footprint}</td><td class="plan">{plan}</td><td class="r muted nowrap">{}</td></tr>"#,
+                pr_link(q.pr.0),
+                title(&q.title),
+                state_badge(q.state),
                 ago(q.since, now)
             );
         }
-        s.push_str("</table>");
+        s.push_str("</tbody></table></div>");
     }
-    s.push_str("</div>");
+    s.push_str("</section>");
 
-    s.push_str(r#"<h2>Recently landed</h2><div class="table">"#);
+    s.push_str(r#"<section class="panel"><div class="panel-head"><h2>Recently landed</h2></div>"#);
     if d.landed.is_empty() {
-        s.push_str(r#"<div class="empty">Nothing landed through Sheltie yet.</div>"#);
+        s.push_str(&empty(
+            "<b>Nothing landed yet</b>Landings through Sheltie appear here.",
+        ));
     } else {
-        s.push_str("<table><tr><th>Pull request</th><th>Commit</th><th>Proven by</th><th>Conflict</th><th>When</th></tr>");
+        s.push_str(r#"<ol class="timeline">"#);
         for l in &d.landed {
             let short = l.commit.as_str().get(..7).unwrap_or_default();
+            let conflict = l.resolution.map_or(String::new(), |t| {
+                format!(
+                    r#"<span class="badge b-sable">{}</span>"#,
+                    esc(tier_words(t))
+                )
+            });
             let _ = write!(
                 s,
-                r#"<tr><td class="pr">{} <span class="title">{}</span></td><td><a href="{}/{name}/commit/{}"><code>{short}</code></a></td><td>{}</td><td class="muted">{}</td><td class="muted num">{}</td></tr>"#,
+                r#"<li><span class="dot" aria-hidden="true"></span><div class="tl-main">{}<span class="ttl">{}</span></div><div class="tl-meta"><a class="sha" href="{web}/{name}/commit/{}">{short}</a><span class="badge b-green">{}</span>{conflict}<span class="muted nowrap">{}</span></div></li>"#,
                 pr_link(l.pr.0),
                 title(&l.title),
-                esc(web),
                 l.commit.as_str(),
                 guarantee_label(l.guarantee),
-                l.resolution.map_or("—", tier_words),
                 ago(l.at, now)
             );
         }
-        s.push_str("</table>");
+        s.push_str("</ol>");
     }
-    s.push_str("</div>");
+    s.push_str("</section>");
 
     if !d.returned.is_empty() {
-        s.push_str(r#"<h2>Returned to their authors</h2><div class="table"><table><tr><th>Pull request</th><th>Why</th><th>When</th></tr>"#);
+        s.push_str(r#"<section class="panel"><div class="panel-head"><h2>Returned to their authors</h2></div><ul class="rows">"#);
         for r in &d.returned {
             let _ = write!(
                 s,
-                r#"<tr><td class="pr">{} <span class="title">{}</span></td><td>{}</td><td class="muted num">{}</td></tr>"#,
+                r#"<li><div class="prcell">{}<span class="ttl">{}</span><span class="muted nowrap push">{}</span></div><p class="why">{}</p></li>"#,
                 pr_link(r.pr.0),
                 title(&r.title),
+                ago(r.at, now),
                 inline_code(&r.reason),
-                ago(r.at, now)
             );
         }
-        s.push_str("</table></div>");
+        s.push_str("</ul></section>");
     }
 
     if !d.leases.is_empty() {
-        s.push_str(r#"<h2>Agents at work <small>claimed issues</small></h2><div class="table"><table><tr><th>Issue</th><th>Agent</th><th>Claim ends</th></tr>"#);
+        s.push_str(r#"<section class="panel"><div class="panel-head"><h2>Agents at work</h2><span class="fine">Claimed issues</span></div><ul class="rows">"#);
         for l in &d.leases {
             let mins = (l.expires_at - now).num_minutes().max(0);
             let _ = write!(
                 s,
-                r#"<tr><td class="pr"><a href="{}/{name}/issues/{n}">#{n}</a> <span class="title">{}</span></td><td><code>{}</code></td><td class="muted num">in {} h {} min</td></tr>"#,
-                esc(web),
+                r#"<li><div class="prcell"><a class="num-chip" href="{web}/{name}/issues/{n}">#{n}</a><span class="ttl">{}</span><code class="push">{}</code><span class="muted nowrap">ends in {} h {} min</span></div></li>"#,
                 title(&l.title),
                 esc(&l.holder),
                 mins / 60,
@@ -347,7 +577,7 @@ pub fn render_repo(d: &RepoDetail, web: &str, now: DateTime<Utc>) -> String {
                 n = l.issue,
             );
         }
-        s.push_str("</table></div>");
+        s.push_str("</ul></section>");
     }
     s
 }
@@ -357,7 +587,7 @@ fn signin_page() -> Response {
         StatusCode::OK,
         "Sign in",
         &top_bar(None),
-        r#"<div class="signin"><img src="/dashboard/assets/logo.svg" alt=""><h1>Sheltie dashboard</h1><p class="sub">See the merge queue, landings and agents of the repositories you can access on GitHub.</p><a class="btn" href="/auth/login">Sign in with GitHub</a></div>"#,
+        r#"<div class="signin"><img src="/dashboard/assets/logo.svg" alt="" width="64" height="64"><h1>Sheltie dashboard</h1><p class="sub">The merge queue, landings, time saved and agents of the repositories you can access on GitHub.</p><a class="btn" href="/auth/login"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Sign in with GitHub</a><p class="fine">Read-only. Sheltie sees only repositories where its App is installed.</p></div>"#,
     )
 }
 
@@ -365,12 +595,12 @@ pub(crate) async fn overview(State(st): State<DashState>, headers: HeaderMap) ->
     let Some(session) = st.session(&headers).await else {
         return signin_page();
     };
-    match st.store.repo_overviews(&session.repos).await {
-        Ok(repos) => html(
+    match st.store.repo_cards(&session.repos).await {
+        Ok(cards) => html(
             StatusCode::OK,
             "Repositories",
             &top_bar(Some(&session.login)),
-            &render_overview(&repos, Utc::now()),
+            &render_overview(&cards, Utc::now()),
         ),
         Err(e) => {
             tracing::error!(error = %e, "dashboard overview failed");
@@ -515,9 +745,11 @@ pub(crate) async fn logout(State(st): State<DashState>, headers: HeaderMap) -> R
 }
 
 pub(crate) async fn asset(Path(file): Path<String>) -> Response {
-    let (body, kind) = match file.as_str() {
-        "dashboard.css" => (CSS, "text/css; charset=utf-8"),
-        "logo.svg" => (LOGO, "image/svg+xml"),
+    let (body, kind): (&'static [u8], &'static str) = match file.as_str() {
+        "dashboard.css" => (CSS.as_bytes(), "text/css; charset=utf-8"),
+        "logo.svg" => (LOGO.as_bytes(), "image/svg+xml"),
+        "Geist-Variable.woff2" => (FONT_SANS, "font/woff2"),
+        "GeistMono-Variable.woff2" => (FONT_MONO, "font/woff2"),
         _ => return StatusCode::NOT_FOUND.into_response(),
     };
     let mut res = body.into_response();
@@ -567,24 +799,51 @@ mod tests {
         assert_eq!(cookie(&h, SESSION_COOKIE), None);
     }
 
-    #[test]
-    fn titles_are_escaped() {
-        use sheltie_core::{PrNumber, RepoId};
-        use sheltie_store::QueueItem;
-        let now = Utc::now();
-        let d = RepoDetail {
-            overview: RepoOverview {
-                id: RepoId(1),
-                name: RepoFullName::parse("acme/widgets").unwrap(),
-                mode: RepoMode::Merge,
-                merge_engine: true,
-                pending: 0,
-                ready: 1,
-                in_flight: 0,
-                landed_today: 0,
-                returned_today: 0,
-                last_landed: None,
-            },
+    fn now() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2026-10-17T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc)
+    }
+
+    fn overview(mode: RepoMode) -> sheltie_store::RepoOverview {
+        sheltie_store::RepoOverview {
+            id: sheltie_core::RepoId(1),
+            name: RepoFullName::parse("acme/widgets").unwrap(),
+            mode,
+            merge_engine: true,
+            pending: 0,
+            ready: 1,
+            in_flight: 2,
+            landed_today: 7,
+            returned_today: 1,
+            last_landed: Some(now() - chrono::Duration::minutes(5)),
+        }
+    }
+
+    fn savings(landings: usize, saved: Option<i64>) -> Savings {
+        Savings {
+            landings,
+            ci_seconds: Some(540),
+            median_actual_seconds: Some(180),
+            median_serial_seconds: Some(1500),
+            wait_saved_seconds: saved,
+            conflicts_resolved: 6,
+            replays: 1,
+            reverts: 1,
+            author_minutes_saved: 6 * 15 + 30,
+            minutes_per_conflict: 15,
+            minutes_per_replay: 30,
+        }
+    }
+
+    fn detail(mode: RepoMode, sv: Savings) -> RepoDetail {
+        use sheltie_core::{CommitSha, GuaranteeTier, PrNumber, ResolutionTier};
+        use sheltie_store::{LandingItem, QueueItem};
+        RepoDetail {
+            overview: overview(mode),
+            landed_daily: vec![0, 2, 5, 1, 0, 0, 3],
+            savings: sv,
+            predicted_wait_minutes: (mode == RepoMode::Shadow).then_some(95),
             queue: vec![QueueItem {
                 pr: PrNumber(7),
                 title: Some("<img src=x onerror=alert(1)>".into()),
@@ -592,15 +851,76 @@ mod tests {
                 writes: Some(2),
                 reads: Some(3),
                 plan: Some("would land now".into()),
-                since: now,
+                since: now(),
             }],
-            landed: vec![],
+            landed: vec![LandingItem {
+                pr: PrNumber(6),
+                title: Some("Rename rate()".into()),
+                commit: CommitSha::parse("a".repeat(40)).unwrap(),
+                guarantee: GuaranteeTier::SpeculationVerified,
+                resolution: Some(ResolutionTier::ReplayFull),
+                at: now() - chrono::Duration::minutes(3),
+            }],
             returned: vec![],
             leases: vec![],
-        };
-        let page = render_repo(&d, "https://github.com", now);
+        }
+    }
+
+    #[test]
+    fn titles_are_escaped() {
+        let page = render_repo(
+            &detail(RepoMode::Merge, savings(12, Some(9000))),
+            "https://github.com",
+            now(),
+        );
         assert!(!page.contains("<img src=x"), "{page}");
         assert!(page.contains("&lt;img src=x onerror=alert(1)&gt;"));
-        assert!(page.contains("writes 2 · affects 3"));
+        assert!(page.contains("<b>2</b> writes · <b>3</b> affected"));
+    }
+
+    #[test]
+    fn durations() {
+        assert_eq!(duration(45), "45 s");
+        assert_eq!(duration(12 * 60 + 10), "12 min");
+        assert_eq!(duration(3600), "1 h");
+        assert_eq!(duration(4 * 3600 + 720), "4.2 h");
+        assert_eq!(duration(3 * 86_400 + 43_200), "3.5 d");
+        assert_eq!(duration(-600), "10 min");
+    }
+
+    #[test]
+    fn repository_page() {
+        let html = render_repo(
+            &detail(RepoMode::Merge, savings(12, Some(9000))),
+            "https://github.com",
+            now(),
+        );
+        insta::assert_snapshot!(html);
+    }
+
+    #[test]
+    fn time_saved_states() {
+        let panel = |mode, sv| savings_panel(&sv, mode, (mode == RepoMode::Shadow).then_some(95));
+        assert!(
+            panel(RepoMode::Merge, savings(12, Some(9000)))
+                .contains("2.5 h</div><p class=\"caption\">less waiting")
+        );
+        assert!(panel(RepoMode::Merge, savings(12, Some(-600))).contains("more waiting"));
+        assert!(panel(RepoMode::Merge, savings(4, None)).contains("4 of 10 landings needed"));
+        assert!(
+            panel(RepoMode::Shadow, savings(0, None))
+                .contains("1.6 h</div><p class=\"caption\">less waiting predicted")
+        );
+    }
+
+    #[test]
+    fn overview_page() {
+        let card = RepoCard {
+            overview: overview(RepoMode::Merge),
+            landed_daily: vec![1, 0, 4],
+            savings: savings(12, Some(9000)),
+            predicted_wait_minutes: None,
+        };
+        insta::assert_snapshot!(render_overview(&[card], now()));
     }
 }

@@ -10,6 +10,7 @@
 - [Merge rules](merge-rules.md)
 - [Intent replay](intent-replay.md)
 - [Coordinating agents](agents.md)
+- [Dashboard](dashboard.md)
 
 # Project
 

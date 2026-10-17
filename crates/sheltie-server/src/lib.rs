@@ -21,11 +21,13 @@ use tokio::sync::{Notify, watch};
 
 mod committer;
 mod coordination;
+mod estimates;
 mod shadow;
 mod sweeper;
 
 pub use committer::{Committer, MERGE_EVENT, REAPPROVAL_LABEL, REPLAY_EVENT, REPLAYED_LABEL};
 pub use coordination::CoordinationWorker;
+pub use estimates::EstimatesSync;
 pub use shadow::{BranchCiWorker, ShadowScheduler};
 pub use sweeper::{Sweeper, VERIFIED_BRANCH};
 
@@ -290,6 +292,7 @@ struct GitHub {
     shadow: ShadowScheduler,
     branch_ci: BranchCiWorker,
     sweeper: Sweeper,
+    estimates: EstimatesSync,
     agents: sheltie_api::Agents,
     coordination: CoordinationWorker,
     dashboard: Option<sheltie_api::Dashboard>,
@@ -368,6 +371,11 @@ impl Server {
                     readiness: ReadinessSync::new(store.clone(), Arc::clone(&app)),
                     branch_ci: BranchCiWorker::new(store.clone(), Arc::clone(&app)),
                     sweeper: Sweeper::new(store.clone(), Arc::clone(&app), config.epoch),
+                    estimates: EstimatesSync::new(
+                        store.clone(),
+                        Arc::clone(&app),
+                        Duration::from_secs(600),
+                    ),
                     shadow: ShadowScheduler::new(
                         store.clone(),
                         config.epoch,
@@ -418,12 +426,14 @@ impl Server {
                 shadow,
                 branch_ci,
                 sweeper,
+                estimates,
                 agents,
                 coordination,
                 dashboard,
             }) => {
                 let coordination_wake = Arc::new(Notify::new());
                 workers.push(tokio::spawn(sweeper.run(stopped(stop_rx.clone()))));
+                workers.push(tokio::spawn(estimates.run(stopped(stop_rx.clone()))));
                 let check_runs_wake = Arc::clone(&shadow.changed);
                 let readiness_wake = Arc::new(Notify::new());
                 let branch_ci_wake = Arc::new(Notify::new());

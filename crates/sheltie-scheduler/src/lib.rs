@@ -15,6 +15,7 @@ use serde::Serialize;
 use sheltie_core::{Footprint, Relation, TargetId};
 
 pub mod report;
+pub mod savings;
 
 /// Largest group built as a speculative chain; bigger ones are group-tested batches.
 pub const MAX_CHAIN: usize = 8;

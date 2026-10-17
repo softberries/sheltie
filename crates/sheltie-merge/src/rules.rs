@@ -52,6 +52,35 @@ struct RawRules {
     sequence: Vec<RawSequence>,
     #[serde(default)]
     replay: Option<ReplayConfig>,
+    #[serde(default)]
+    estimates: Estimates,
+}
+
+/// Assumptions for the dashboard's time-saved estimate, `[estimates]`. Unset values use
+/// Sheltie's defaults (15 minutes per conflict, 30 per replay).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Estimates {
+    /// Minutes an author spends fixing a conflict the merge engine resolved (tiers 1-3).
+    pub minutes_per_conflict: Option<u32>,
+    /// Minutes an author spends redoing a change that was re-derived from its intent (tier 4).
+    pub minutes_per_replay: Option<u32>,
+}
+
+impl Estimates {
+    fn validate(&self) -> Result<(), RulesError> {
+        for (name, v) in [
+            ("minutes_per_conflict", self.minutes_per_conflict),
+            ("minutes_per_replay", self.minutes_per_replay),
+        ] {
+            if v.is_some_and(|m| m > 1440) {
+                return Err(RulesError(format!(
+                    "[estimates] `{name}` must be at most 1440"
+                )));
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Intent replay settings (tier 4). Off unless `enabled`.
@@ -205,6 +234,8 @@ pub struct Rules {
     pub sequences: Vec<Sequence>,
     /// Tier-4 settings.
     pub replay: ReplayConfig,
+    /// Time-saved assumptions.
+    pub estimates: Estimates,
 }
 
 fn globs(paths: &[String]) -> Result<GlobSet, RulesError> {
@@ -274,11 +305,13 @@ impl Rules {
             .collect::<Result<_, _>>()?;
         let replay = raw.replay.unwrap_or_default();
         replay.validate()?;
+        raw.estimates.validate()?;
         Ok(Self {
             derived,
             sets,
             sequences,
             replay,
+            estimates: raw.estimates,
         })
     }
 
@@ -318,6 +351,16 @@ paths = ["config/*.txt"]
 paths = ["migrations/*.sql"]
 key = "^(\\d+)_"
 "#;
+
+    #[test]
+    fn estimates() {
+        let r = Rules::parse("[estimates]\nminutes_per_conflict = 20\n").unwrap();
+        assert_eq!(r.estimates.minutes_per_conflict, Some(20));
+        assert_eq!(r.estimates.minutes_per_replay, None);
+        assert_eq!(Rules::parse("").unwrap().estimates, Estimates::default());
+        assert!(Rules::parse("[estimates]\nminutes_per_replay = 5000\n").is_err());
+        assert!(Rules::parse("[estimates]\nhours = 1\n").is_err());
+    }
 
     #[test]
     fn parses_and_classifies() {

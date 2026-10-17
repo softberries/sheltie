@@ -12,7 +12,7 @@ use sheltie_core::{PrNumber, RepoId};
 use sheltie_github::GitHubApp;
 use sheltie_scheduler::report::{LandedInWindow, suspected_misses};
 use sheltie_scheduler::{Candidate, plan_epoch};
-use sheltie_store::{PredictionRow, RepoMode, Store, StoreError};
+use sheltie_store::{CiState, PredictionRow, RepoMode, Store, StoreError};
 
 use crate::committer::Committer;
 use tokio::sync::Notify;
@@ -52,6 +52,13 @@ impl BranchCiWorker {
             {
                 Ok(data) => {
                     let state = sheltie_github::ci::evaluate(&data);
+                    if state == CiState::Success
+                        && let Some(seconds) = sheltie_github::ci::duration_seconds(&data)
+                    {
+                        self.store
+                            .record_ci_seconds(job.repo, &job.sha, seconds)
+                            .await?;
+                    }
                     if let Some(window) = self.store.apply_branch_ci(&job, state).await? {
                         let landed: Vec<LandedInWindow<i64>> = window
                             .landed
