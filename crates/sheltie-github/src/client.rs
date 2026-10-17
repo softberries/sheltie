@@ -43,6 +43,8 @@ pub struct GitHubApp {
     app: Octocrab,
     installations: Mutex<HashMap<InstallationId, Arc<Octocrab>>>,
     api_url: String,
+    /// `repo/label` pairs known to exist with Sheltie's color and description.
+    pub(crate) labels_ready: Mutex<std::collections::HashSet<String>>,
 }
 
 impl GitHubApp {
@@ -64,6 +66,7 @@ impl GitHubApp {
         Ok(Self {
             app: builder.build()?,
             installations: Mutex::new(HashMap::new()),
+            labels_ready: Mutex::new(std::collections::HashSet::new()),
             api_url: api_url
                 .unwrap_or("https://api.github.com")
                 .trim_end_matches('/')

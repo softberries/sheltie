@@ -15,7 +15,7 @@ use sheltie_graph::predict::{Touches, predict, touches_in_text};
 use sheltie_store::{Claim, IssueNotice, IssueRow, Lease, Store, StoreError, Waiter};
 
 /// Label on an issue whose assignee waits for an overlapping lease.
-pub const BLOCKED_LABEL: &str = "sheltie: blocked";
+pub const BLOCKED_LABEL: &str = sheltie_github::labels::BLOCKED.name;
 
 /// Most issues considered by [`Coordinator::safe_issues`].
 const MAX_ISSUES: i64 = 500;
@@ -354,11 +354,10 @@ impl Coordinator {
             let graph = self.snapshot(repo).await?;
             let p = Self::issue_prediction(graph.as_ref(), &issue);
             let notice = p.known.then(|| IssueNotice {
-                comment: Some(format!(
-                    "Sheltie predicts this issue writes {} and affects {}{}. Agents assigned to issues that overlap it are serialized.",
-                    code_list(&p.writes),
-                    code_list(&p.reads),
-                    if p.leaky { " (a non-hermetic target widens this)" } else { "" }
+                comment: Some(sheltie_github::comments::issue_footprint(
+                    &code_list(&p.writes),
+                    &code_list(&p.reads),
+                    p.leaky,
                 )),
                 ..IssueNotice::default()
             });
@@ -379,10 +378,7 @@ impl Coordinator {
         match reply.status.as_str() {
             "granted" | "renewed" => {
                 let notice = w.notified.then(|| IssueNotice {
-                    comment: Some(format!(
-                        "The overlapping work is done; this issue is now claimed for `{}`.",
-                        w.holder
-                    )),
+                    comment: Some(sheltie_github::comments::issue_unblocked(&w.holder)),
                     remove_label: Some(BLOCKED_LABEL.into()),
                     ..IssueNotice::default()
                 });
@@ -392,7 +388,7 @@ impl Coordinator {
             "taken" => {
                 let other = reply.lease.map(|l| l.holder).unwrap_or_default();
                 let notice = IssueNotice {
-                    comment: Some(format!("This issue is already claimed by `{other}`.")),
+                    comment: Some(sheltie_github::comments::issue_taken(&other)),
                     ..IssueNotice::default()
                 };
                 self.store.remove_waiter(w, Some(&notice)).await?;
@@ -400,12 +396,11 @@ impl Coordinator {
             _ => {
                 if let Some(b) = &reply.blocked_by {
                     let notice = IssueNotice {
-                        comment: Some(format!(
-                            "Sheltie is holding this issue for `{}`: it overlaps #{}, which `{}` is working on (shared: {}). It is claimed automatically when that work lands or its lease ends.",
-                            w.holder,
+                        comment: Some(sheltie_github::comments::issue_blocked(
+                            &w.holder,
                             b.lease.issue,
-                            b.lease.holder,
-                            code_list(&b.overlap)
+                            &b.lease.holder,
+                            &code_list(&b.overlap),
                         )),
                         add_label: Some(BLOCKED_LABEL.into()),
                         ..IssueNotice::default()

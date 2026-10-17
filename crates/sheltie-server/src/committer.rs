@@ -27,9 +27,9 @@ pub const MERGE_EVENT: &str = "sheltie-merge";
 /// The `repository_dispatch` event type that starts the intent-replay workflow (tier 4).
 pub const REPLAY_EVENT: &str = "sheltie-replay";
 /// Label on a pull request that landed through a replay.
-pub const REPLAYED_LABEL: &str = "sheltie: replayed";
+pub const REPLAYED_LABEL: &str = sheltie_github::labels::REPLAYED.name;
 /// Label on a pull request whose replay needs a human to approve it.
-pub const REAPPROVAL_LABEL: &str = "sheltie: needs re-approval";
+pub const REAPPROVAL_LABEL: &str = sheltie_github::labels::NEEDS_REAPPROVAL.name;
 
 /// A replay that has not reported for this long is given up on (agent runs are slow).
 const REPLAY_TIMEOUT_MINUTES: i64 = 90;
@@ -541,9 +541,9 @@ impl Committer {
             }
             CiState::Failure | CiState::Error => {
                 let reason = format!(
-                    "CI failed with the change merged onto `{}` at {} (branch `{}`)",
+                    "CI failed with the change merged onto `{}` at `{}` (branch `{}`)",
                     repo.default_branch,
-                    &run.onto.as_str()[..12],
+                    &run.onto.as_str()[..7],
                     run.branch
                 );
                 self.github
@@ -787,9 +787,13 @@ impl Committer {
                             .add_labels(repo.installation, &repo.full_name, pr, &[REAPPROVAL_LABEL])
                             .await?;
                         let reason = format!(
-                            "it was re-derived from its intent on branch `{branch}`, but the result differs from the reviewed change (similarity {similarity:.2}, below {threshold:.2}). Review that branch and push it to this pull request to land it"
+                            "it was re-derived from its intent on branch `{branch}`, but the result differs from the reviewed change (similarity {similarity:.2}, below {threshold:.2}); review that branch and push it to this pull request to land it"
                         );
-                        self.return_change(repo, run.change_db_id, &reason).await?;
+                        let body = sheltie_github::comments::needs_reapproval(
+                            &branch, similarity, threshold,
+                        );
+                        self.return_with(repo, run.change_db_id, &reason, &body)
+                            .await?;
                     }
                 }
                 Some(outcome) => {
@@ -819,15 +823,29 @@ impl Committer {
         id: i64,
         reason: &str,
     ) -> anyhow::Result<Outcome> {
+        self.return_with(
+            repo,
+            id,
+            reason,
+            &sheltie_github::comments::returned(reason),
+        )
+        .await
+    }
+
+    /// Returns a change with its own comment instead of the generic one.
+    async fn return_with(
+        &self,
+        repo: &RepoAccess,
+        id: i64,
+        reason: &str,
+        body: &str,
+    ) -> anyhow::Result<Outcome> {
         let Some(c) = self.store.committer_change(id).await? else {
             return Ok(Outcome::Waiting);
         };
         self.store.mark_returned(id, reason).await?;
-        let body = format!(
-            "Sheltie could not land this pull request: {reason}.\n\nPush a new commit and Sheltie will pick it up again."
-        );
         self.github
-            .comment(repo.installation, &repo.full_name, c.change.pr, &body)
+            .comment(repo.installation, &repo.full_name, c.change.pr, body)
             .await
             .context("commenting on the pull request")?;
         tracing::info!(repo = %repo.full_name, change = %c.change, reason, "returned");

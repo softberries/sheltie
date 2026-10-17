@@ -437,6 +437,14 @@ async fn agents_by_assignment_are_serialized(_: PgPoolOptions, db: PgConnectOpti
                 .any(|(n, b)| *n == 2 && b.contains("now claimed for `agent-b`"))
     })
     .await;
+    assert!(
+        env.fake
+            .state()
+            .label_defs
+            .iter()
+            .any(|(n, c)| n == sheltie_api::coordination::BLOCKED_LABEL && c == "d4c5f9"),
+        "the label is created with its color"
+    );
     let blocked_comments = env
         .fake
         .state()
