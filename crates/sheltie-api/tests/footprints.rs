@@ -85,10 +85,15 @@ impl Harness {
         if let Some(t) = token {
             request = request.header("authorization", format!("Bearer {t}"));
         }
-        let response = router(self.store.clone(), None, Some(self.footprints.clone()))
-            .oneshot(request.body(Body::from(body.to_vec())).unwrap())
-            .await
-            .unwrap();
+        let response = router(
+            self.store.clone(),
+            None,
+            Some(self.footprints.clone()),
+            None,
+        )
+        .oneshot(request.body(Body::from(body.to_vec())).unwrap())
+        .await
+        .unwrap();
         let status = response.status();
         let bytes = response.into_body().collect().await.unwrap().to_bytes();
         (status, serde_json::from_slice(&bytes).unwrap())

@@ -72,6 +72,7 @@ async fn open_pr(store: &Store, head: char) {
         default_branch: Some("main".into()),
         merge_commit: None,
         intent: sheltie_core::intake::IntentField::Unknown,
+        closes: None,
     });
     store
         .ingest(

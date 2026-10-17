@@ -16,6 +16,8 @@ sheltie-core = { workspace = true }
 sheltie-scheduler = { workspace = true }
 sheltie-commit = { workspace = true }
 sheltie-merge = { workspace = true }
+getrandom = { workspace = true }
+hex = { workspace = true }
 sheltie-sweeper = { workspace = true }
 sheltie-store = { workspace = true }
 anyhow = { workspace = true }
@@ -30,6 +32,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
+rmcp = { workspace = true, features = ["client", "transport-streamable-http-client-reqwest"] }
 sheltie-github = { workspace = true, features = ["test-support"] }
 wiremock = { workspace = true }
 reqwest = { workspace = true }

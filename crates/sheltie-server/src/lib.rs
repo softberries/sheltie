@@ -20,10 +20,12 @@ use tokio::net::TcpListener;
 use tokio::sync::{Notify, watch};
 
 mod committer;
+mod coordination;
 mod shadow;
 mod sweeper;
 
 pub use committer::{Committer, MERGE_EVENT, REAPPROVAL_LABEL, REPLAY_EVENT, REPLAYED_LABEL};
+pub use coordination::CoordinationWorker;
 pub use shadow::{BranchCiWorker, ShadowScheduler};
 pub use sweeper::{Sweeper, VERIFIED_BRANCH};
 
@@ -44,10 +46,54 @@ pub struct Config {
     pub bind: SocketAddr,
     /// Connection pool settings.
     pub pool: PoolConfig,
+    /// Agent coordination settings.
+    pub agents: AgentsConfig,
     /// Time between scheduler epochs.
     pub epoch: Duration,
     /// GitHub App settings; without them the server serves only `/healthz`.
     pub github: Option<GitHubConfig>,
+}
+
+/// Agent coordination settings (M7).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AgentsConfig {
+    /// How long a lease lasts unless renewed.
+    pub lease_ttl: Duration,
+    /// Public host names of this server, accepted by the MCP endpoint (loopback always is).
+    pub public_hosts: Vec<String>,
+}
+
+impl Default for AgentsConfig {
+    fn default() -> Self {
+        Self {
+            lease_ttl: Duration::from_secs(4 * 3600),
+            public_hosts: Vec::new(),
+        }
+    }
+}
+
+/// `SHELTIE_LEASE_TTL_HOURS` (1-168, default 4) and `SHELTIE_PUBLIC_HOSTS` (comma-separated).
+fn agents_config(lookup: &impl Fn(&str) -> Option<String>) -> anyhow::Result<AgentsConfig> {
+    let mut config = AgentsConfig::default();
+    if let Some(value) = lookup("SHELTIE_LEASE_TTL_HOURS").filter(|v| !v.is_empty()) {
+        match value.parse::<u64>() {
+            Ok(hours @ 1..=168) => config.lease_ttl = Duration::from_secs(hours * 3600),
+            _ => anyhow::bail!(
+                "SHELTIE_LEASE_TTL_HOURS {value:?} must be a number of hours from 1 to 168"
+            ),
+        }
+    }
+    if let Some(hosts) = lookup("SHELTIE_PUBLIC_HOSTS") {
+        for host in hosts.split(',').map(str::trim).filter(|h| !h.is_empty()) {
+            let valid = host.len() <= 253
+                && host
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'-' | b':'));
+            anyhow::ensure!(valid, "SHELTIE_PUBLIC_HOSTS: {host:?} is not a host name");
+            config.public_hosts.push(host.to_owned());
+        }
+    }
+    Ok(config)
 }
 
 /// GitHub App settings.
@@ -77,7 +123,8 @@ impl Config {
     /// optional GitHub App settings: `SHELTIE_GITHUB_APP_ID`, `SHELTIE_GITHUB_PRIVATE_KEY_PATH`,
     /// `SHELTIE_GITHUB_WEBHOOK_SECRET` (all or none), `SHELTIE_GITHUB_API_URL`, and for
     /// footprint uploads `SHELTIE_OIDC_AUDIENCE` (default `sheltie`) and `SHELTIE_OIDC_ISSUER`
-    /// (default GitHub Actions on github.com).
+    /// (default GitHub Actions on github.com). Agent coordination reads `SHELTIE_LEASE_TTL_HOURS`
+    /// (default 4) and `SHELTIE_PUBLIC_HOSTS` (host names the MCP endpoint accepts).
     pub fn from_env() -> anyhow::Result<Self> {
         Self::from_lookup(|key| std::env::var(key).ok())
     }
@@ -100,6 +147,7 @@ impl Config {
             database,
             bind,
             pool: PoolConfig::default(),
+            agents: agents_config(&lookup)?,
             epoch: epoch(&lookup)?,
             github: github_config(&lookup)?,
         })
@@ -187,6 +235,8 @@ struct GitHub {
     shadow: ShadowScheduler,
     branch_ci: BranchCiWorker,
     sweeper: Sweeper,
+    agents: sheltie_api::Agents,
+    coordination: CoordinationWorker,
 }
 
 impl Server {
@@ -215,7 +265,21 @@ impl Server {
                 let verifier =
                     OidcVerifier::new(github.oidc).context("creating the OIDC verifier")?;
                 let app = Arc::new(app);
+                let coordinator = Arc::new(sheltie_api::coordination::Coordinator::new(
+                    store.clone(),
+                    config.agents.lease_ttl,
+                ));
                 Some(GitHub {
+                    agents: sheltie_api::Agents {
+                        coordinator: Arc::clone(&coordinator),
+                        mcp_hosts: config.agents.public_hosts.clone(),
+                    },
+                    coordination: CoordinationWorker::new(
+                        store.clone(),
+                        Arc::clone(&app),
+                        coordinator,
+                        config.epoch,
+                    ),
                     webhooks: Webhooks {
                         secret: github.webhook_secret,
                         wake: Arc::clone(&intake),
@@ -269,7 +333,7 @@ impl Server {
         };
 
         let mut workers = Vec::new();
-        let (webhooks, footprints) = match self.github {
+        let (webhooks, footprints, agents) = match self.github {
             Some(GitHub {
                 webhooks,
                 footprints,
@@ -278,7 +342,10 @@ impl Server {
                 shadow,
                 branch_ci,
                 sweeper,
+                agents,
+                coordination,
             }) => {
+                let coordination_wake = Arc::new(Notify::new());
                 workers.push(tokio::spawn(sweeper.run(stopped(stop_rx.clone()))));
                 let check_runs_wake = Arc::clone(&shadow.changed);
                 let readiness_wake = Arc::new(Notify::new());
@@ -289,6 +356,7 @@ impl Server {
                         Arc::clone(&check_runs_wake),
                         Arc::clone(&readiness_wake),
                         Arc::clone(&branch_ci_wake),
+                        Arc::clone(&coordination_wake),
                     ],
                     stopped(stop_rx.clone()),
                 )));
@@ -302,13 +370,16 @@ impl Server {
                     readiness.run(readiness_wake, stopped(stop_rx.clone())),
                 ));
                 workers.push(tokio::spawn(shadow.run(stopped(stop_rx.clone()))));
-                (Some(webhooks), Some(footprints))
+                workers.push(tokio::spawn(
+                    coordination.run(coordination_wake, stopped(stop_rx.clone())),
+                ));
+                (Some(webhooks), Some(footprints), Some(agents))
             }
-            None => (None, None),
+            None => (None, None, None),
         };
 
         tracing::info!(addr = %addr, github = webhooks.is_some(), "sheltie-server listening");
-        let router = sheltie_api::router(self.store, webhooks, footprints);
+        let router = sheltie_api::router(self.store, webhooks, footprints, agents);
         let served = axum::serve(self.listener, router)
             .with_graceful_shutdown(stopped(stop_rx))
             .await
@@ -368,6 +439,35 @@ mod tests {
     fn reads_bind_address() {
         let config = config(&[("DATABASE_URL", URL), ("SHELTIE_BIND", "0.0.0.0:9000")]).unwrap();
         assert_eq!(config.bind, "0.0.0.0:9000".parse().unwrap());
+    }
+
+    #[test]
+    fn agent_settings() {
+        let c = config(&[("DATABASE_URL", URL)]).unwrap();
+        assert_eq!(c.agents, AgentsConfig::default());
+        let c = config(&[
+            ("DATABASE_URL", URL),
+            ("SHELTIE_LEASE_TTL_HOURS", "8"),
+            (
+                "SHELTIE_PUBLIC_HOSTS",
+                "sheltie.example.com, sheltie.example.com:8443",
+            ),
+        ])
+        .unwrap();
+        assert_eq!(c.agents.lease_ttl, Duration::from_secs(8 * 3600));
+        assert_eq!(
+            c.agents.public_hosts,
+            ["sheltie.example.com", "sheltie.example.com:8443"]
+        );
+        for (key, bad) in [
+            ("SHELTIE_LEASE_TTL_HOURS", "0"),
+            ("SHELTIE_PUBLIC_HOSTS", "a b"),
+        ] {
+            assert!(
+                config(&[("DATABASE_URL", URL), (key, bad)]).is_err(),
+                "{key}={bad}"
+            );
+        }
     }
 
     #[test]

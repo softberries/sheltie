@@ -90,7 +90,17 @@ pub fn footprint(
         unowned |= owners.is_empty();
         writes.extend(owners.into_iter().cloned());
     }
+    expand(base, head, writes, unowned, extra_reads)
+}
 
+/// R, tests and leakiness for a write set (see [`footprint`]).
+fn expand(
+    base: &GraphSnapshot,
+    head: &GraphSnapshot,
+    writes: BTreeSet<TargetId>,
+    unowned: bool,
+    extra_reads: &BTreeSet<TargetId>,
+) -> Footprint {
     let readers = reverse_edges(base, head);
     let mut reads = writes.clone();
     reads.extend(extra_reads.iter().cloned());
@@ -200,6 +210,8 @@ fn reverse_edges(
     }
     readers
 }
+
+pub mod predict;
 
 #[cfg(test)]
 mod tests;
