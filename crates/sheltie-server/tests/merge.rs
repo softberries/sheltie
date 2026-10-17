@@ -443,32 +443,79 @@ async fn a_bad_landing_is_blamed_and_reverted(_: PgPoolOptions, db: PgConnectOpt
     env.stop().await;
 }
 
+impl Env {
+    /// #1 lands and turns main red, with nothing landing after it. Returns the red commit.
+    async fn lone_red_commit(&mut self) -> String {
+        let root = self.root.clone();
+        self.fake.state().ci.insert(root, "SUCCESS".into());
+        self.push_main().await;
+        let h1 = self.open_pr(1, "Billing retries").await;
+        self.footprint(&h1, &["billing"]).await;
+        self.wait_state(1, &h1, ChangeState::Ready).await;
+        assert!(
+            self.store
+                .set_repo_mode(
+                    &RepoFullName::parse("acme/widgets").unwrap(),
+                    RepoMode::Merge
+                )
+                .await
+                .unwrap()
+        );
+        self.wait_state(1, &h1, ChangeState::Landed).await;
+        let m1 = self.main_head();
+        self.fake.state().ci.insert(m1.clone(), "FAILURE".into());
+        self.push_main().await;
+        // A test must fail twice: Sheltie runs the commit's CI again on a probe branch.
+        let probe = format!("sheltie/bisect/{}", &m1[..12]);
+        self.wait_fake("the re-run probe", |st| st.refs.get(&probe) == Some(&m1))
+            .await;
+        m1
+    }
+}
+
 #[sqlx::test(migrations = false)]
-async fn a_single_red_commit_is_not_reverted(_: PgPoolOptions, db: PgConnectOptions) {
+async fn a_lone_red_commit_that_passes_again_is_not_reverted(
+    _: PgPoolOptions,
+    db: PgConnectOptions,
+) {
     let mut env = Env::start(db).await;
-    let root = env.root.clone();
-    env.fake.state().ci.insert(root, "SUCCESS".into());
-    env.push_main().await;
-    let h1 = env.open_pr(1, "Billing retries").await;
-    env.footprint(&h1, &["billing"]).await;
-    env.wait_state(1, &h1, ChangeState::Ready).await;
-    assert!(
-        env.store
-            .set_repo_mode(
-                &RepoFullName::parse("acme/widgets").unwrap(),
-                RepoMode::Merge
-            )
-            .await
-            .unwrap()
-    );
-    env.wait_state(1, &h1, ChangeState::Landed).await;
-    let m1 = env.main_head();
-    env.fake.state().ci.insert(m1.clone(), "FAILURE".into());
-    env.push_main().await;
-    // Give the sweeper several rounds: a lone red may be flaky, so nothing is reverted.
+    let m1 = env.lone_red_commit().await;
+    env.fake
+        .state()
+        .rerun_ci
+        .insert(m1.clone(), "SUCCESS".into());
+    let probe = format!("sheltie/bisect/{}", &m1[..12]);
+    env.wait_fake("the probe to be removed", |st| {
+        !st.refs.contains_key(&probe)
+    })
+    .await;
+    // Give the sweeper more rounds: flaky, so nothing is reverted or probed again.
     tokio::time::sleep(Duration::from_secs(2)).await;
     assert_eq!(env.main_head(), m1);
-    assert!(env.fake.state().opened.is_empty());
+    {
+        let st = env.fake.state();
+        assert!(st.opened.is_empty());
+        assert!(!st.refs.contains_key(&probe));
+    }
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn a_lone_red_commit_that_fails_again_is_reverted(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let m1 = env.lone_red_commit().await;
+    env.fake
+        .state()
+        .rerun_ci
+        .insert(m1.clone(), "FAILURE".into());
+    env.wait_fake("the revert to land", |st| {
+        st.refs
+            .get("main")
+            .and_then(|h| st.commits.get(h))
+            .is_some_and(|c| c.message.contains(&format!("Sheltie-Revert: {m1}")))
+    })
+    .await;
+    env.wait_comment(1, "reverted it in #1000").await;
     env.stop().await;
 }
 
@@ -873,6 +920,26 @@ async fn without_an_intent_the_change_is_returned(_: PgPoolOptions, db: PgConnec
     env.wait_state(1, &h1, ChangeState::Returned).await;
     env.wait_comment(1, "sheltie-intent").await;
     assert!(env.replay_dispatches().is_empty());
+    env.stop().await;
+}
+
+#[sqlx::test(migrations = false)]
+async fn a_failed_merge_workflow_returns_the_change(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    let (_, h2) = env.conflicting_pair().await;
+    let onto = env.fake.state().dispatches[0].1["onto"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let status = env
+        .merge_report(json!({
+            "pr": 2, "head": h2, "onto": onto, "result": null, "files": [], "unresolved": [],
+            "failed": true
+        }))
+        .await;
+    assert_eq!(status, reqwest::StatusCode::ACCEPTED);
+    env.wait_state(2, &h2, ChangeState::Returned).await;
+    env.wait_comment(2, "workflow failed").await;
     env.stop().await;
 }
 

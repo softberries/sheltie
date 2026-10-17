@@ -136,6 +136,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- A lone red commit on the default branch is no longer left red: Sheltie runs its CI again on
+  `sheltie/bisect/<sha>` and reverts it if it fails twice, or treats it as flaky if it passes.
+- Branch CI ignores Sheltie's own check run, which reflects its verdict on a pull request, not CI
+  (a returned pull request's head was reported as the default branch turning red).
+- A merge or replay workflow that fails before reporting now tells Sheltie (`"failed": true` for
+  merges), so the change is returned or escalated at once instead of after a timeout.
+- GitHub API requests time out (10 s to connect, 30 s per request) instead of stalling a worker.
 - Adding a valid `sheltie-intent` block to a returned pull request's description now retries it,
   as the returned comment says; before, only a new push did.
 - A merge-engine or replay result that was verified while `main` moved on landed the pull

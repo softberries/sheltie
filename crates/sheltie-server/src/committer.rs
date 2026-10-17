@@ -633,6 +633,11 @@ impl Committer {
                     )
                     .await?;
                 }
+                Some(MergeOutcome::Failed) => {
+                    let reason = "the `sheltie-merge` workflow failed before it could merge; \
+                                  check its run in the repository's Actions tab, then push again";
+                    self.return_change(repo, run.change_db_id, reason).await?;
+                }
                 None if chrono::Utc::now() - run.requested_at
                     > chrono::Duration::minutes(NO_CI_TIMEOUT_MINUTES) =>
                 {
