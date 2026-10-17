@@ -15,6 +15,16 @@
 //! [[sequence]]         # numbered files: renumber the later side on collision
 //! paths = ["migrations/*.sql"]
 //! key = "^(\\d+)_"
+//!
+//! [replay]             # tier 4: re-derive a change from its intent (off by default)
+//! enabled = true
+//! test_command = "cargo test --workspace -- {tests}"
+//! model = "sonnet"
+//! max_turns = 30
+//! max_budget_usd = 3.0
+//! daily_budget_usd = 20.0
+//! similarity_threshold = 0.6
+//! max_attempts = 2
 //! ```
 
 use globset::{Glob, GlobSet, GlobSetBuilder};
@@ -40,6 +50,86 @@ struct RawRules {
     set: Vec<RawPaths>,
     #[serde(default)]
     sequence: Vec<RawSequence>,
+    #[serde(default)]
+    replay: Option<ReplayConfig>,
+}
+
+/// Intent replay settings (tier 4). Off unless `enabled`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields, default)]
+pub struct ReplayConfig {
+    /// Whether Sheltie may replay changes in this repository.
+    pub enabled: bool,
+    /// Runs acceptance tests; `{tests}` is replaced by the intent's test names, each quoted.
+    pub test_command: Option<String>,
+    /// Model for the agent.
+    pub model: String,
+    /// Most agent turns per run.
+    pub max_turns: u32,
+    /// Most estimated spend per run, in US dollars.
+    pub max_budget_usd: f64,
+    /// Most estimated spend per repository per day, in US dollars.
+    pub daily_budget_usd: f64,
+    /// Below this similarity to the original diff, a replay needs re-approval.
+    pub similarity_threshold: f32,
+    /// Most replay attempts per change before a human takes over.
+    pub max_attempts: u32,
+}
+
+impl Default for ReplayConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            test_command: None,
+            model: "sonnet".into(),
+            max_turns: 30,
+            max_budget_usd: 3.0,
+            daily_budget_usd: 20.0,
+            similarity_threshold: 0.6,
+            max_attempts: 2,
+        }
+    }
+}
+
+impl ReplayConfig {
+    fn validate(&self) -> Result<(), RulesError> {
+        let fail = |m: &str| Err(RulesError(format!("[replay] {m}")));
+        if let Some(cmd) = &self.test_command
+            && (cmd.trim().is_empty()
+                || cmd.len() > 500
+                || cmd.chars().any(char::is_control)
+                || !cmd.contains("{tests}"))
+        {
+            return fail(
+                "`test_command` must be one line of at most 500 characters containing {tests}",
+            );
+        }
+        if self.model.is_empty()
+            || self.model.len() > 100
+            || !self
+                .model
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'.' | b'_'))
+        {
+            return fail("`model` must be a model alias or id");
+        }
+        if !(1..=200).contains(&self.max_turns) {
+            return fail("`max_turns` must be 1..=200");
+        }
+        if !(self.max_budget_usd > 0.0 && self.max_budget_usd <= 100.0) {
+            return fail("`max_budget_usd` must be in (0, 100]");
+        }
+        if !(self.daily_budget_usd > 0.0 && self.daily_budget_usd <= 10_000.0) {
+            return fail("`daily_budget_usd` must be in (0, 10000]");
+        }
+        if !(0.0..=1.0).contains(&self.similarity_threshold) {
+            return fail("`similarity_threshold` must be in [0, 1]");
+        }
+        if !(1..=5).contains(&self.max_attempts) {
+            return fail("`max_attempts` must be 1..=5");
+        }
+        Ok(())
+    }
 }
 
 #[derive(Deserialize)]
@@ -113,6 +203,8 @@ pub struct Rules {
     sets: Vec<GlobSet>,
     /// Tier-3 sequence rules.
     pub sequences: Vec<Sequence>,
+    /// Tier-4 settings.
+    pub replay: ReplayConfig,
 }
 
 fn globs(paths: &[String]) -> Result<GlobSet, RulesError> {
@@ -180,10 +272,13 @@ impl Rules {
                 })
             })
             .collect::<Result<_, _>>()?;
+        let replay = raw.replay.unwrap_or_default();
+        replay.validate()?;
         Ok(Self {
             derived,
             sets,
             sequences,
+            replay,
         })
     }
 
@@ -236,6 +331,25 @@ key = "^(\\d+)_"
             Some(Kind::Sequence(_))
         ));
         assert_eq!(r.kind("src/lib.rs"), None);
+    }
+
+    #[test]
+    fn replay_defaults_and_bounds() {
+        assert!(!Rules::parse("").unwrap().replay.enabled);
+        let r =
+            Rules::parse("[replay]\nenabled = true\ntest_command = \"cargo test -- {tests}\"\n")
+                .unwrap();
+        assert!(r.replay.enabled);
+        assert_eq!((r.replay.max_turns, r.replay.max_attempts), (30, 2));
+        for bad in [
+            "[replay]\ntest_command = \"cargo test\"",
+            "[replay]\nmax_turns = 0",
+            "[replay]\nsimilarity_threshold = 1.5",
+            "[replay]\nmodel = \"x; rm\"",
+            "[replay]\nunknown = 1",
+        ] {
+            assert!(Rules::parse(bad).is_err(), "accepted {bad:?}");
+        }
     }
 
     #[test]

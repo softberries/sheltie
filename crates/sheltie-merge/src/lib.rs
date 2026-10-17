@@ -6,4 +6,5 @@
 
 pub mod engine;
 pub mod lines;
+pub mod replay;
 pub mod rules;
