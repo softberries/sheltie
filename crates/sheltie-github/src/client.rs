@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, Mutex, PoisonError};
+use std::time::Duration;
 
 use chrono::Utc;
 use octocrab::Octocrab;
@@ -17,6 +18,11 @@ use crate::ci;
 use crate::readiness::{self, PullRequestData};
 
 use crate::check_run::{CHECK_NAME, CheckConclusion, CheckRunSpec, CheckStatus};
+
+/// Time to open a connection to GitHub.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+/// Time to send a request or read its response.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Errors from the GitHub client.
 #[derive(Debug, thiserror::Error)]
@@ -41,6 +47,8 @@ pub enum GitHubError {
 /// refreshed shortly before it expires.
 pub struct GitHubApp {
     app: Octocrab,
+    /// This App's id, to tell its own check suites from the repository's CI.
+    pub(crate) app_id: u64,
     installations: Mutex<HashMap<InstallationId, Arc<Octocrab>>>,
     api_url: String,
     /// `repo/label` pairs known to exist with Sheltie's color and description.
@@ -57,7 +65,13 @@ impl GitHubApp {
     ) -> Result<Self, GitHubError> {
         let key = octocrab::EncodingKey::from_rsa_pem(private_key_pem)
             .map_err(|_| GitHubError::InvalidKey)?;
-        let mut builder = Octocrab::builder().app(AppId(app_id), key);
+        // A hung request would stall the worker loop that made it; installation clients share
+        // these settings.
+        let mut builder = Octocrab::builder()
+            .app(AppId(app_id), key)
+            .set_connect_timeout(Some(CONNECT_TIMEOUT))
+            .set_read_timeout(Some(REQUEST_TIMEOUT))
+            .set_write_timeout(Some(REQUEST_TIMEOUT));
         if let Some(url) = api_url {
             builder = builder
                 .base_uri(url)
@@ -65,6 +79,7 @@ impl GitHubApp {
         }
         Ok(Self {
             app: builder.build()?,
+            app_id,
             installations: Mutex::new(HashMap::new()),
             labels_ready: Mutex::new(std::collections::HashSet::new()),
             api_url: api_url

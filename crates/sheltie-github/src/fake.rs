@@ -50,6 +50,9 @@ pub struct FakeState {
     pub conflicting: BTreeSet<String>,
     /// CI state per commit (`SUCCESS`, `FAILURE`, `PENDING`).
     pub ci: HashMap<String, String>,
+    /// CI of a commit when it runs again on a `sheltie/` branch pointing at it (a probe), per
+    /// commit (`SUCCESS`, `FAILURE`); no entry means that run has not happened yet.
+    pub rerun_ci: HashMap<String, String>,
     /// CI state given to new merge commits on verify branches (default `SUCCESS`).
     pub verify_ci: Option<String>,
     /// PR heads that break CI on any verify or speculation build that contains them.
@@ -156,6 +159,10 @@ impl FakeGitHub {
             .route(
                 "/repos/{o}/{r}/git/refs/heads/{*branch}",
                 patch(update_ref).delete(delete_ref),
+            )
+            .route(
+                "/repos/{o}/{r}/commits/{sha}/check-suites",
+                get(check_suites),
             )
             .route("/repos/{o}/{r}/merges", post(merge))
             .route("/repos/{o}/{r}/compare/{spec}", get(compare))
@@ -514,6 +521,31 @@ async fn comment(
     StatusCode::CREATED
 }
 
+/// Check suites of a commit: one GitHub Actions suite per `sheltie/` branch at it whose run
+/// finished (`rerun_ci`).
+async fn check_suites(
+    State(s): Shared,
+    Path((_o, _r, sha)): Path<(String, String, String)>,
+) -> Json<Value> {
+    let st = lock(&s);
+    let suites: Vec<Value> = match st.rerun_ci.get(&sha) {
+        None => Vec::new(),
+        Some(state) => st
+            .refs
+            .iter()
+            .filter(|(name, at)| name.starts_with("sheltie/") && **at == sha)
+            .map(|(name, _)| {
+                json!({
+                    "head_branch": name, "status": "completed",
+                    "conclusion": state.to_lowercase(), "latest_check_runs_count": 1,
+                    "app": { "id": 15368 }
+                })
+            })
+            .collect(),
+    };
+    Json(json!({ "total_count": suites.len(), "check_suites": suites }))
+}
+
 async fn graphql(State(s): Shared, Json(body): Json<Value>) -> Json<Value> {
     let query = body["query"].as_str().unwrap_or_default();
     let vars = &body["variables"];
@@ -537,6 +569,18 @@ async fn graphql(State(s): Shared, Json(body): Json<Value>) -> Json<Value> {
         } } } }));
     }
     let oid = vars["oid"].as_str().unwrap_or_default();
-    let rollup = st.ci.get(oid).map(|state| json!({ "state": state }));
+    // One context standing for the commit's CI state.
+    let rollup = st.ci.get(oid).map(|state| {
+        let context = match state.as_str() {
+            "SUCCESS" | "FAILURE" => {
+                json!({ "__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": state })
+            }
+            "PENDING" => {
+                json!({ "__typename": "CheckRun", "name": "test", "status": "IN_PROGRESS", "conclusion": null })
+            }
+            other => json!({ "__typename": "StatusContext", "state": other }),
+        };
+        json!({ "contexts": { "pageInfo": { "hasNextPage": false }, "nodes": [context] } })
+    });
     Json(json!({ "data": { "repository": { "object": { "statusCheckRollup": rollup } } } }))
 }

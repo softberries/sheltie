@@ -109,6 +109,39 @@ impl GitHubApp {
         sha(r.object.sha)
     }
 
+    /// The CI of `sha` from the runs triggered by pushing `branch` only, or `None` if none ran
+    /// there yet. Used to run a commit's CI again (a probe branch) and read just that run.
+    pub async fn branch_run_ci(
+        &self,
+        inst: InstallationId,
+        repo: &RepoFullName,
+        sha: &CommitSha,
+        branch: &str,
+    ) -> Result<Option<sheltie_store::CiState>, GitHubError> {
+        #[derive(Deserialize)]
+        struct Suites {
+            check_suites: Vec<crate::ci::Suite>,
+        }
+        let (status, body) = self
+            .raw(
+                inst,
+                "GET",
+                &format!(
+                    "/repos/{repo}/commits/{}/check-suites?per_page=100",
+                    sha.as_str()
+                ),
+                None,
+            )
+            .await?;
+        expect(status, &[200], &body)?;
+        let suites: Suites = parse(&body)?;
+        Ok(crate::ci::branch_suites_state(
+            &suites.check_suites,
+            branch,
+            self.app_id,
+        ))
+    }
+
     /// Creates (or resets) a Sheltie work branch at `at`.
     pub async fn reset_branch(
         &self,

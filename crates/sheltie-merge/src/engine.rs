@@ -324,5 +324,6 @@ fn report(
         result,
         files,
         unresolved,
+        failed: false,
     }
 }

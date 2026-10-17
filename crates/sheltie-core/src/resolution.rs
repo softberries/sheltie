@@ -89,6 +89,9 @@ pub struct MergeReport {
     pub files: Vec<FileResolution>,
     /// Files that could not be resolved.
     pub unresolved: Vec<RepoPath>,
+    /// The workflow failed before it could merge; then there is no result and nothing else.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub failed: bool,
 }
 
 impl MergeReport {
@@ -120,6 +123,14 @@ impl MergeReport {
         {
             return Err(crate::InvalidReport("invalid path".into()));
         }
+        if self.failed {
+            if self.result.is_some() || !self.files.is_empty() || !self.unresolved.is_empty() {
+                return Err(crate::InvalidReport(
+                    "a failed run reports no result and no files".into(),
+                ));
+            }
+            return Ok(());
+        }
         if self.result.is_some() == !self.unresolved.is_empty() {
             return Err(crate::InvalidReport(
                 "a result needs no unresolved files, and vice versa".into(),
@@ -132,6 +143,31 @@ impl MergeReport {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn failed_merge_reports() {
+        let report = |extra: &str| -> MergeReport {
+            serde_json::from_str(&format!(
+                r#"{{"pr": 2, "head": "{h}", "onto": "{o}", "result": null, "files": [], "unresolved": []{extra}}}"#,
+                h = "a".repeat(40),
+                o = "b".repeat(40),
+            ))
+            .unwrap()
+        };
+        assert!(report("").validate().is_err(), "neither a result nor files");
+        let failed = report(r#", "failed": true"#);
+        assert!(failed.failed);
+        assert!(failed.validate().is_ok());
+        let mut with_files = failed.clone();
+        with_files.unresolved = vec![RepoPath::new("src/lib.rs")];
+        assert!(with_files.validate().is_err());
+        assert!(!report("").failed, "defaults to false");
+        assert!(
+            !serde_json::to_string(&report(""))
+                .unwrap()
+                .contains("failed")
+        );
+    }
 
     #[test]
     fn tiers_are_ordered_by_cost() {

@@ -30,6 +30,8 @@ pub struct Sweeper {
     pub poll: Duration,
     /// The red tip each repository was last warned about, so a red stretch is logged once.
     warned: Arc<Mutex<HashMap<RepoId, CommitSha>>>,
+    /// A lone red commit per repository whose CI passed when run again (flaky): not probed again.
+    flaky: Arc<Mutex<HashMap<RepoId, CommitSha>>>,
 }
 
 fn short(sha: &CommitSha) -> &str {
@@ -44,6 +46,7 @@ impl Sweeper {
             github,
             poll,
             warned: Arc::default(),
+            flaky: Arc::default(),
         }
     }
 
@@ -158,7 +161,59 @@ impl Sweeper {
                 tracing::warn!(repo = %access.full_name, culprit = %chain[i], red = %tip.sha, "culprit found; reverting");
                 self.revert(repo, access, &chain[i], &tip.sha, None).await?;
             }
+            Analysis::Confirm(i) => self.confirm(repo, access, &chain[i]).await?,
             Analysis::Wait | Analysis::Green => {}
+        }
+        Ok(())
+    }
+
+    /// A lone red tip: runs its CI again on `sheltie/bisect/<sha>` and reads just that run. Red
+    /// again makes it the culprit (a test must fail twice); green means the first run was flaky.
+    async fn confirm(
+        &self,
+        repo: RepoId,
+        access: &RepoAccess,
+        commit: &CommitSha,
+    ) -> anyhow::Result<()> {
+        let known_flaky = self
+            .flaky
+            .lock()
+            .map(|f| f.get(&repo) == Some(commit))
+            .unwrap_or(false);
+        if known_flaky {
+            return Ok(());
+        }
+        let (inst, name) = (access.installation, &access.full_name);
+        let probe = format!("sheltie/bisect/{}", short(commit));
+        match self
+            .github
+            .branch_run_ci(inst, name, commit, &probe)
+            .await?
+        {
+            None => {
+                self.github.reset_branch(inst, name, &probe, commit).await?;
+                let first = self
+                    .warned
+                    .lock()
+                    .map(|mut w| w.insert(repo, commit.clone()).as_ref() != Some(commit))
+                    .unwrap_or(true);
+                if first {
+                    tracing::info!(repo = %name, commit = %commit, "lone red commit: running its CI again");
+                }
+            }
+            Some(CiState::Failure | CiState::Error) => {
+                self.github.delete_branch(inst, name, &probe).await?;
+                tracing::warn!(repo = %name, culprit = %commit, "red again on a re-run; reverting");
+                self.revert(repo, access, commit, commit, None).await?;
+            }
+            Some(CiState::Success) => {
+                self.github.delete_branch(inst, name, &probe).await?;
+                if let Ok(mut f) = self.flaky.lock() {
+                    f.insert(repo, commit.clone());
+                }
+                tracing::warn!(repo = %name, commit = %commit, "green on a re-run; treating the red as flaky");
+            }
+            Some(CiState::Pending | CiState::None) => {}
         }
         Ok(())
     }
