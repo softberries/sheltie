@@ -109,6 +109,60 @@ pub struct GitHubConfig {
     pub api_url: Option<String>,
     /// How footprint uploads from GitHub Actions are authenticated.
     pub oidc: OidcConfig,
+    /// The dashboard's sign-in settings; without them there is no dashboard.
+    pub dashboard: Option<DashboardConfig>,
+}
+
+/// Dashboard settings: the App's OAuth credentials and where users reach the server.
+#[derive(Clone)]
+pub struct DashboardConfig {
+    /// The server's public URL, e.g. `https://sheltie.example.com`.
+    pub public_url: String,
+    /// The App's OAuth client id.
+    pub client_id: String,
+    /// The App's OAuth client secret.
+    pub client_secret: secrecy::SecretString,
+    /// GitHub's web URL; `https://github.com` unless on GitHub Enterprise Server.
+    pub web_url: Option<String>,
+}
+
+impl fmt::Debug for DashboardConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DashboardConfig")
+            .field("public_url", &self.public_url)
+            .field("client_id", &self.client_id)
+            .finish_non_exhaustive()
+    }
+}
+
+/// `SHELTIE_PUBLIC_URL`, `SHELTIE_GITHUB_CLIENT_ID` and `SHELTIE_GITHUB_CLIENT_SECRET` (all or
+/// none), and `SHELTIE_GITHUB_WEB_URL`.
+fn dashboard_config(
+    lookup: &impl Fn(&str) -> Option<String>,
+) -> anyhow::Result<Option<DashboardConfig>> {
+    const VARS: [&str; 3] = [
+        "SHELTIE_PUBLIC_URL",
+        "SHELTIE_GITHUB_CLIENT_ID",
+        "SHELTIE_GITHUB_CLIENT_SECRET",
+    ];
+    let values = VARS.map(|k| lookup(k).filter(|v| !v.is_empty()));
+    let [Some(public_url), Some(client_id), Some(secret)] = values else {
+        if values.iter().any(Option::is_some) {
+            anyhow::bail!("set all of {} or none of them", VARS.join(", "));
+        }
+        return Ok(None);
+    };
+    let public_url = public_url.trim_end_matches('/').to_owned();
+    anyhow::ensure!(
+        public_url.starts_with("https://") || public_url.starts_with("http://"),
+        "SHELTIE_PUBLIC_URL {public_url:?} must be an http(s) URL"
+    );
+    Ok(Some(DashboardConfig {
+        public_url,
+        client_id,
+        client_secret: secrecy::SecretString::from(secret),
+        web_url: lookup("SHELTIE_GITHUB_WEB_URL").filter(|v| !v.is_empty()),
+    }))
 }
 
 /// The variables that configure the GitHub App; all or none must be set.
@@ -186,6 +240,7 @@ fn github_config(lookup: &impl Fn(&str) -> Option<String>) -> anyhow::Result<Opt
         webhook_secret,
         api_url: lookup("SHELTIE_GITHUB_API_URL").filter(|v| !v.is_empty()),
         oidc: oidc_config(lookup),
+        dashboard: dashboard_config(lookup)?,
     }))
 }
 
@@ -237,6 +292,7 @@ struct GitHub {
     sweeper: Sweeper,
     agents: sheltie_api::Agents,
     coordination: CoordinationWorker,
+    dashboard: Option<sheltie_api::Dashboard>,
 }
 
 impl Server {
@@ -269,7 +325,27 @@ impl Server {
                     store.clone(),
                     config.agents.lease_ttl,
                 ));
+                let dashboard = match &github.dashboard {
+                    Some(d) => Some(sheltie_api::Dashboard {
+                        oauth: Arc::new(
+                            sheltie_github::oauth::OAuthApp::new(
+                                d.client_id.clone(),
+                                d.client_secret.clone(),
+                                d.web_url.as_deref(),
+                                github.api_url.as_deref(),
+                            )
+                            .context("creating the OAuth client")?,
+                        ),
+                        public_url: d.public_url.clone(),
+                        github_web_url: d
+                            .web_url
+                            .clone()
+                            .unwrap_or_else(|| "https://github.com".into()),
+                    }),
+                    None => None,
+                };
                 Some(GitHub {
+                    dashboard,
                     agents: sheltie_api::Agents {
                         coordinator: Arc::clone(&coordinator),
                         mcp_hosts: config.agents.public_hosts.clone(),
@@ -333,7 +409,7 @@ impl Server {
         };
 
         let mut workers = Vec::new();
-        let (webhooks, footprints, agents) = match self.github {
+        let (webhooks, footprints, agents, dashboard) = match self.github {
             Some(GitHub {
                 webhooks,
                 footprints,
@@ -344,6 +420,7 @@ impl Server {
                 sweeper,
                 agents,
                 coordination,
+                dashboard,
             }) => {
                 let coordination_wake = Arc::new(Notify::new());
                 workers.push(tokio::spawn(sweeper.run(stopped(stop_rx.clone()))));
@@ -373,13 +450,13 @@ impl Server {
                 workers.push(tokio::spawn(
                     coordination.run(coordination_wake, stopped(stop_rx.clone())),
                 ));
-                (Some(webhooks), Some(footprints), Some(agents))
+                (Some(webhooks), Some(footprints), Some(agents), dashboard)
             }
-            None => (None, None, None),
+            None => (None, None, None, None),
         };
 
         tracing::info!(addr = %addr, github = webhooks.is_some(), "sheltie-server listening");
-        let router = sheltie_api::router(self.store, webhooks, footprints, agents);
+        let router = sheltie_api::router(self.store, webhooks, footprints, agents, dashboard);
         let served = axum::serve(self.listener, router)
             .with_graceful_shutdown(stopped(stop_rx))
             .await

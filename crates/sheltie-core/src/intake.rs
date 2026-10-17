@@ -103,6 +103,9 @@ pub struct PrEvent {
     /// Issues the description closes, when the event carries the description.
     #[serde(default)]
     pub closes: Option<std::collections::BTreeSet<crate::IssueNumber>>,
+    /// The pull request's title, at most 300 characters, when the event carries it.
+    #[serde(default)]
+    pub title: Option<String>,
 }
 
 /// The intent block of a pull request description.

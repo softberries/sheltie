@@ -55,6 +55,7 @@ fn pr(number: u64, head: char, kind: PrEventKind, merge: Option<char>, secs: i64
         merge_commit: merge.map(sha),
         intent: sheltie_core::intake::IntentField::Unknown,
         closes: None,
+        title: None,
     })
 }
 

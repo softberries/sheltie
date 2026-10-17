@@ -57,6 +57,7 @@ impl Env {
                     audience: "sheltie".into(),
                     jwks_url: format!("{}/.well-known/jwks", fake.uri()),
                 },
+                dashboard: None,
             }),
         };
         let server = Server::start(config).await.unwrap();

@@ -66,6 +66,8 @@ pub struct FakeState {
     pub labels: Vec<(u64, String)>,
     /// Labels defined in the repository, as (name, color).
     pub label_defs: Vec<(String, String)>,
+    /// OAuth: the user who signs in with code `good`, and the repository ids they can access.
+    pub oauth_user: Option<(String, Vec<u64>)>,
     /// Check runs: id → last request body.
     pub check_runs: BTreeMap<u64, Value>,
     /// If set, the next fast-forward of this branch first moves it to a new commit (an
@@ -163,6 +165,13 @@ impl FakeGitHub {
             .route("/repos/{o}/{r}/contents/{*path}", get(contents))
             .route("/repos/{o}/{r}/issues/{n}/labels", post(add_labels))
             .route("/repos/{o}/{r}/labels", post(create_label))
+            .route("/login/oauth/access_token", post(oauth_token))
+            .route("/user", get(oauth_user))
+            .route("/user/installations", get(oauth_installations))
+            .route(
+                "/user/installations/{id}/repositories",
+                get(oauth_repositories),
+            )
             .route(
                 "/repos/{o}/{r}/issues/{n}/labels/{name}",
                 axum::routing::delete(remove_label),
@@ -421,6 +430,45 @@ async fn add_labels(
             .push((n, l.as_str().unwrap_or_default().to_owned()));
     }
     Json(json!([]))
+}
+
+async fn oauth_token(State(s): Shared, Json(body): Json<Value>) -> Json<Value> {
+    let ok = body["code"] == "good" && lock(&s).oauth_user.is_some();
+    Json(if ok {
+        json!({ "access_token": "ghu_fake", "token_type": "bearer" })
+    } else {
+        json!({ "error": "bad_verification_code" })
+    })
+}
+
+fn oauth_ok(headers: &axum::http::HeaderMap) -> bool {
+    headers.get("authorization").and_then(|v| v.to_str().ok()) == Some("Bearer ghu_fake")
+}
+
+async fn oauth_user(State(s): Shared, headers: axum::http::HeaderMap) -> Response {
+    match (&lock(&s).oauth_user, oauth_ok(&headers)) {
+        (Some((login, _)), true) => Json(json!({ "login": login })).into_response(),
+        _ => status(StatusCode::UNAUTHORIZED, "Bad credentials"),
+    }
+}
+
+async fn oauth_installations(headers: axum::http::HeaderMap) -> Response {
+    if !oauth_ok(&headers) {
+        return status(StatusCode::UNAUTHORIZED, "Bad credentials");
+    }
+    Json(json!({ "total_count": 1, "installations": [{ "id": 77 }] })).into_response()
+}
+
+async fn oauth_repositories(State(s): Shared, headers: axum::http::HeaderMap) -> Response {
+    if !oauth_ok(&headers) {
+        return status(StatusCode::UNAUTHORIZED, "Bad credentials");
+    }
+    let repos: Vec<Value> = lock(&s)
+        .oauth_user
+        .as_ref()
+        .map(|(_, ids)| ids.iter().map(|id| json!({ "id": id })).collect())
+        .unwrap_or_default();
+    Json(json!({ "total_count": repos.len(), "repositories": repos })).into_response()
 }
 
 async fn create_label(State(s): Shared, Json(body): Json<Value>) -> Response {

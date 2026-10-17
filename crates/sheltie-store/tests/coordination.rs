@@ -246,6 +246,7 @@ async fn finished_leases_are_released(pool: PgPool) {
                 merge_commit: None,
                 intent: sheltie_core::intake::IntentField::Missing,
                 closes: Some(BTreeSet::from([IssueNumber(2)])),
+                title: None,
             }),
         )
         .await
