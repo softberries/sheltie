@@ -1,0 +1,10 @@
+[Unit]
+Description=Run sheltie-backup daily at 03:45 UTC
+
+[Timer]
+OnCalendar=*-*-* 03:45:00 UTC
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

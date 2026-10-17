@@ -10,3 +10,4 @@
 /fixtures/**/target
 __pycache__/
 .playwright-mcp/
+/secrets/
