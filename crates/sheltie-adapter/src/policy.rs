@@ -17,15 +17,8 @@ pub const DEFAULT_IGNORE: &[&str] = &[
 ];
 
 /// Files outside the build that are still worth tracking (two PRs editing one conflict),
-/// but do not affect any target.
-pub const DEFAULT_PLAIN: &[&str] = &[
-    ".github/**",
-    "rustfmt.toml",
-    ".rustfmt.toml",
-    "clippy.toml",
-    ".clippy.toml",
-    "deny.toml",
-];
+/// but do not affect any target, whatever the build tool. Adapters add their own.
+pub const COMMON_PLAIN: &[&str] = &[".github/**", ".gitlab-ci.yml", ".pre-commit-config.yaml"];
 
 /// Classifies files that no module owns. Anything neither ignored nor plain is assumed to
 /// be read at build or test time and makes the footprint leaky.
@@ -44,11 +37,13 @@ impl PathPolicy {
         })
     }
 
-    pub(crate) fn is_ignored(&self, path: &RepoPath) -> bool {
+    /// Whether no build reads the file.
+    pub fn is_ignored(&self, path: &RepoPath) -> bool {
         self.ignore.is_match(path.as_str())
     }
 
-    pub(crate) fn is_plain(&self, path: &RepoPath) -> bool {
+    /// Whether the file is data outside the build: tracked, but not leaky.
+    pub fn is_plain(&self, path: &RepoPath) -> bool {
         self.plain.is_match(path.as_str())
     }
 }
@@ -56,7 +51,7 @@ impl PathPolicy {
 impl Default for PathPolicy {
     fn default() -> Self {
         // The default patterns are constants and known to be valid.
-        Self::new(DEFAULT_IGNORE, DEFAULT_PLAIN)
+        Self::new(DEFAULT_IGNORE, COMMON_PLAIN)
             .unwrap_or_else(|e| unreachable!("default globs: {e}"))
     }
 }

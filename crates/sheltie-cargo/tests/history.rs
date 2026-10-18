@@ -112,7 +112,13 @@ fn landings_are_first_parent_commits_with_footprints() {
     let scratch = Path::new(env!("CARGO_TARGET_TMPDIR"));
     for mode in [Footprints::Predicted, Footprints::Exact] {
         let mut calls = 0;
-        let h = history(&g, "main", &found, mode, &policy, scratch, |done, total| {
+        let cx = sheltie_cargo::history::Context {
+            adapter: &sheltie_cargo::Cargo,
+            git: &g,
+            policy: &policy,
+            scratch,
+        };
+        let h = history(cx, "main", &found, mode, |done, total| {
             calls += 1;
             assert_eq!(total, 3);
             assert_eq!(done, calls);

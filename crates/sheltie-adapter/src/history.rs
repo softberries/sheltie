@@ -12,7 +12,7 @@ use sheltie_core::{CommitSha, Footprint, RepoPath, TargetId};
 use sheltie_graph::predict::{Touches, predict};
 use sheltie_scheduler::roi::HistoricalChange;
 
-use crate::{Error, Git, PathPolicy};
+use crate::{Adapter, Error, Git, PathPolicy};
 
 /// How each landing's footprint is computed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,12 +26,12 @@ pub enum Footprints {
 
 impl Footprints {
     /// How the report describes it.
-    pub fn describe(self) -> &'static str {
+    pub fn describe(self, adapter: &dyn Adapter) -> String {
         match self {
             Footprints::Predicted => {
-                "predicted from each landing's changed files against today's build graph (pessimistic: every change is assumed to alter its targets' interfaces)"
+                "predicted from each landing's changed files against today's build graph (pessimistic: every change is assumed to alter its targets' interfaces)".to_owned()
             }
-            Footprints::Exact => "computed by sheltie-cargo for every landing, as CI would",
+            Footprints::Exact => format!("computed by {} for every landing, as CI would", adapter.name()),
         }
     }
 }
@@ -94,18 +94,45 @@ pub fn landings(git: &Git, branch: &str, days: u32) -> Result<Vec<Landing>, Erro
     Ok(landings)
 }
 
+/// What computing footprints needs: the adapter, the repository, the path policy and a
+/// scratch directory for checkouts.
+#[derive(Clone, Copy)]
+pub struct Context<'a> {
+    /// The build-tool adapter.
+    pub adapter: &'a dyn Adapter,
+    /// The repository.
+    pub git: &'a Git,
+    /// Files outside the build.
+    pub policy: &'a PathPolicy,
+    /// Where temporary checkouts go.
+    pub scratch: &'a Path,
+}
+
+impl std::fmt::Debug for Context<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Context")
+            .field("adapter", &self.adapter.name())
+            .field("git", self.git)
+            .finish_non_exhaustive()
+    }
+}
+
 /// The footprint of every landing. `progress` is called after each one with (done, total).
 pub fn history(
-    git: &Git,
+    cx: Context<'_>,
     branch: &str,
     landings: &[Landing],
     mode: Footprints,
-    policy: &PathPolicy,
-    scratch: &Path,
     mut progress: impl FnMut(usize, usize),
 ) -> Result<History, Error> {
+    let Context {
+        adapter,
+        git,
+        policy,
+        scratch,
+    } = cx;
     let snapshot = match mode {
-        Footprints::Predicted => Some(crate::graph(git, branch, policy, scratch)?),
+        Footprints::Predicted => Some(adapter.graph(git, branch, policy, scratch)?),
         Footprints::Exact => None,
     };
     let mut changes = Vec::with_capacity(landings.len());
@@ -120,7 +147,8 @@ pub fn history(
                     .collect();
                 Some(predicted(snapshot, paths))
             }
-            None => crate::compute(git, l.parent.as_str(), l.sha.as_str(), policy, scratch)
+            None => adapter
+                .compute(git, l.parent.as_str(), l.sha.as_str(), policy, scratch)
                 .ok()
                 .map(|r| r.footprint),
         };

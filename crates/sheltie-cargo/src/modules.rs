@@ -14,7 +14,7 @@ use syn::visit_mut::VisitMut;
 use syn::{Attribute, Item, Meta, Visibility};
 
 use crate::Error;
-use crate::git::{Git, TreeFiles};
+use sheltie_adapter::git::{Git, TreeFiles};
 
 /// A path as written in source: its segments, e.g. `["crate", "invoice", "bill"]`.
 pub(crate) type PathRef = Vec<String>;
