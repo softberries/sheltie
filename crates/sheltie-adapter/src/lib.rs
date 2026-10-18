@@ -1,7 +1,7 @@
 //! Shared core of Sheltie's build-tool adapters.
 //!
 //! Adapters run on CI runners, never in the control plane. Each one turns a source tree into a
-//! [`GraphSnapshot`](sheltie_graph::GraphSnapshot) and lets [`sheltie_graph::footprint`]
+//! [`GraphSnapshot`] and lets [`sheltie_graph::footprint`]
 //! compare the snapshots of a change's base and head. This crate holds what they share:
 //!
 //! - [`Git`]: reading trees and blobs straight from git, without a checkout;
