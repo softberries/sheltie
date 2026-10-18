@@ -12,8 +12,8 @@ use sheltie_core::{
     ChangeState, CommitSha, GuaranteeTier, PrNumber, RepoFullName, RepoId, ResolutionTier,
 };
 use sheltie_store::{
-    LandingItem, LeaseItem, QueueItem, RepoCard, RepoDetail, RepoMode, RepoOverview, ReturnedItem,
-    Savings,
+    AgentSpend, LandingItem, LeaseItem, QueueItem, RepoCard, RepoDetail, RepoMode, RepoOverview,
+    ReturnedItem, Savings,
 };
 
 /// A plausible, repeatable landings-per-day series (weekends quieter).
@@ -120,24 +120,55 @@ fn main() -> std::io::Result<()> {
         }
     };
     let payments = savings(214, [540, 190, 1430], Some(246_100), [23, 4, 1]);
+    // Four replays in 30 days, the last one today.
+    let spend = |total: f64| {
+        let mut daily_usd = vec![0.0; 30];
+        for (day, usd) in [(4, 0.62), (11, 1.48), (19, 0.0), (23, 0.91), (29, 1.07)] {
+            daily_usd[day] = usd * total / 4.08;
+        }
+        AgentSpend {
+            replays: 4,
+            passed: 3,
+            cost_usd: total,
+            daily_usd,
+            last_day_usd: 1.07 * total / 4.08,
+            daily_budget_usd: Some(20.0),
+            tokens: Some(sheltie_core::TokenUsage {
+                input: 38_400,
+                output: 61_900,
+                cache_read: 2_870_000,
+                cache_write: 214_000,
+            }),
+            runs_with_tokens: 4,
+        }
+    };
     let cards = vec![
         RepoCard {
             overview: repos[0].clone(),
             landed_daily: daily(14, 12, 1),
             savings: payments.clone(),
             predicted_wait_minutes: None,
+            spend: spend(4.08),
         },
         RepoCard {
             overview: repos[1].clone(),
             landed_daily: daily(14, 6, 4),
             savings: savings(96, [420, 150, 610], Some(41_800), [9, 1, 0]),
             predicted_wait_minutes: None,
+            spend: AgentSpend {
+                daily_usd: vec![0.0; 30],
+                ..AgentSpend::default()
+            },
         },
         RepoCard {
             overview: repos[2].clone(),
             landed_daily: vec![0; 14],
             savings: savings(0, [300, 0, 0], None, [0, 0, 0]),
             predicted_wait_minutes: Some(312),
+            spend: AgentSpend {
+                daily_usd: vec![0.0; 30],
+                ..AgentSpend::default()
+            },
         },
     ];
     let detail = RepoDetail {
@@ -145,6 +176,7 @@ fn main() -> std::io::Result<()> {
         landed_daily: daily(30, 12, 1),
         savings: payments,
         predicted_wait_minutes: None,
+        spend: spend(4.08),
         queue: vec![
             q(318, "Retry webhooks with exponential backoff", ChangeState::Verifying, Some((2, 5)), Some("would reverify 1 target touched by changes landed since its base"), 3),
             q(321, "Add refund reasons to the ledger", ChangeState::Merging, Some((3, 7)), Some("writes the same targets as #317; would go to the merge engine"), 6),

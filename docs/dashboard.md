@@ -5,6 +5,7 @@ have access on GitHub:
 
 - **Time saved** over the last 30 days (below).
 - **Activity**: landings per day, and what is ready, in flight, landed and returned now.
+- **Agent spend**: what intent replays cost, in estimated dollars and tokens (below).
 - **Queue**: open pull requests, their state, footprint and what Sheltie will do next.
 - **Recently landed**: each landing's commit, how it was proven safe, and which tier resolved a
   conflict.
@@ -48,3 +49,25 @@ What it does not claim:
   estimate.
 - In shadow mode nothing lands through Sheltie, so the panel shows the *predicted* saving: the
   time merges waited after Sheltie would have landed them.
+
+## Agent spend
+
+Only [intent replay](intent-replay.md) uses a model. Structural merges, regenerated files,
+declared rules, footprints and scheduling cost nothing. The panel shows, for the last 30 days:
+
+- **Estimated spend**, per day and in total, with the number of replays and how many passed
+  the checks.
+- **The last 24 hours against `daily_budget_usd`**, when replay is enabled. That is the
+  window the budget limits. The bar turns red from 80%.
+- **Tokens**: input, output, and prompt-cache reads and writes, summed over the whole agent
+  run, including subagents. Replays run by a replay workflow older than this feature report
+  no tokens. The panel then says how many of the replays the counts cover.
+- **Per replay** (average cost) and **per hour saved**: the spend divided by the author time
+  saved in the same period (see [Time saved](#time-saved)).
+
+The overview adds each repository's spend to its card and the total to the summary.
+
+The amounts are the agent's own estimates (Claude Code's `total_cost_usd`), not your bill.
+Replays run on your CI runners with your API key, so check your provider's console for actual
+charges.
+

@@ -861,7 +861,8 @@ impl Env {
             .replay_report(json!({
                 "pr": 1, "head": head, "onto": onto, "tier": "replay_full", "result": result,
                 "checks": { "outside_scope": [], "acceptance_passed": true, "similarity": similarity },
-                "cost_usd": 0.4, "turns": 7, "error": null
+                "cost_usd": 0.4, "turns": 7, "error": null,
+                "tokens": { "input": 1200, "output": 800, "cache_read": 50000, "cache_write": 3000 }
             }))
             .await;
         assert_eq!(status, reqwest::StatusCode::ACCEPTED);
@@ -911,6 +912,24 @@ async fn a_semantic_conflict_is_replayed_and_lands(_: PgPoolOptions, db: PgConne
         .await,
         reqwest::StatusCode::CONFLICT
     );
+
+    // The dashboard's agent spend counts the replay, its cost and its tokens.
+    let repo = env.store.installed_repos().await.unwrap()[0];
+    env.store.set_replay_budget(repo, Some(20.0)).await.unwrap();
+    let spend = env.store.agent_spend(repo, 30).await.unwrap();
+    assert_eq!(
+        (spend.replays, spend.passed, spend.runs_with_tokens),
+        (1, 1, 1)
+    );
+    assert!((spend.cost_usd - 0.4).abs() < 1e-9 && (spend.last_day_usd - 0.4).abs() < 1e-9);
+    assert_eq!(spend.daily_usd.len(), 30);
+    assert!(
+        (spend.daily_usd[29] - 0.4).abs() < 1e-9,
+        "{:?}",
+        spend.daily_usd
+    );
+    assert_eq!(spend.daily_budget_usd, Some(20.0));
+    assert_eq!(spend.tokens.map(|t| t.total()), Some(55_000));
     env.stop().await;
 }
 

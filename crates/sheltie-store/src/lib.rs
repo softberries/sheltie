@@ -19,6 +19,7 @@ mod reality;
 mod replays;
 mod savings;
 mod speculation;
+mod spend;
 mod stats;
 mod sweeps;
 
@@ -38,6 +39,7 @@ pub use reality::{BranchCiJob, CiState, RedWindow};
 pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
 pub use sheltie_scheduler::savings::{MIN_LANDINGS, Savings};
 pub use speculation::{SpecBuild, SpecGroup};
+pub use spend::AgentSpend;
 pub use stats::Stats;
 pub use sweeps::{Culprit, LandedChange, Tip};
 
