@@ -46,6 +46,16 @@ with everything. Declare data files that do not, one glob per line:
 
 Two changes to the same plain file still conflict (and go to the merge engine).
 
+### Pull requests from forks
+
+GitHub gives workflow runs for pull requests from forks a read-only token and no OIDC token,
+so their footprint cannot be uploaded. The workflow then skips the upload with a notice
+instead of failing, and the Sheltie check keeps waiting for the footprint: Sheltie never
+lands a fork's pull request. Review and merge it by hand as usual. Once it is on the default
+branch, sweeps cover it like any other commit, and because its footprint is unknown, ready
+pull requests are rebuilt on top of it before they land. Fork pull requests are not
+[replayed](intent-replay.md) either.
+
 ## Merge engine (optional)
 
 Resolves conflicts with tiers 1–3 (see [Merge rules](merge-rules.md)). Sheltie starts it with

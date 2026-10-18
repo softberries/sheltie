@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- The footprint workflow no longer fails on pull requests from forks, which get no OIDC
+  token: it skips the upload with a notice, and Sheltie leaves the pull request to be merged
+  by hand. See "Pull requests from forks" in `docs/workflows.md`.
+
 ## [0.3.0] - 2026-10-18
 
 ### Added

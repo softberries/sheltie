@@ -37,6 +37,29 @@ Before work starts, it also keeps agents off overlapping issues.
 Builds, tests and agent jobs run on **your** runners with **your** API keys. The control plane
 only does set arithmetic and talks to GitHub.
 
+## Demo
+
+[softberries/sheltie-demo-cargo-shop](https://github.com/softberries/sheltie-demo-cargo-shop/pulls?q=is%3Apr+is%3Amerged)
+is a small Cargo workspace where a script opens a batch of agent-style pull requests: mostly
+independent, some editing the same files, one breaking another only when combined. Two
+batches ran on 2026-10-17 against [demo.sheltie.dev](https://demo.sheltie.dev) in merge mode
+with the merge engine on. Measured by Sheltie, against a one-at-a-time merge queue simulated
+from the same ready times and the median CI time on `main` (1 min 50 s), as the
+[dashboard](https://sheltie.dev/docs/dashboard.html#time-saved) does:
+
+| | Sheltie | One at a time |
+| --- | ---: | ---: |
+| Pull requests landed | 17 | 17 |
+| Median time from ready to landed | **18 s** | 7 min 7 s |
+| Longest wait | **6 min 37 s** | 14 min 5 s |
+| Total waiting | **23 min** | 2 h 8 min |
+
+12 landed footprint-proven with no extra CI run; 5 were verified in a combined build. The merge
+engine resolved 3 by declared merge rules, and 2 that broke only when combined with an earlier
+change were re-derived from their intent by Claude Code (about $0.04 together). One more
+(#5) went back to its author because the merge workflow was not installed yet in the first
+batch.
+
 ## Self-host in about 30 minutes
 
 You need a host with Docker and a public HTTPS name, and a browser to register the GitHub App.
