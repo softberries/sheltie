@@ -1,0 +1,33 @@
+---
+source: crates/sheltie-scheduler/src/roi.rs
+expression: text
+---
+Sheltie ROI report · acme/widgets
+30 landings on main, 2027-01-15 to 2027-01-15
+
+  4 d 13 h less waiting and 30 fewer CI runs than a one-at-a-time merge queue
+
+                            One at a time        Sheltie
+  Waiting, total                 4 d 13 h            0 s
+  Waiting, median              3 h 31 min            0 s
+  Waiting, 90th percentile     6 h 19 min            0 s
+  Extra CI runs                        30              0
+
+With Sheltie, of 30 changes
+     30  land as soon as they are ready
+      0  rebuild on the new head first
+      0  build together with a conflicting change
+      0  go to the merge engine (same targets written)
+
+Parallelism
+  27 agents at once keep 80% of changes landing on their own
+      1  conflicting pair through t0
+      1  conflicting pair through t1
+      1  conflicting pair through t2
+
+Assumptions
+  · 30 landings on main from 2027-01-15 to 2027-01-15, each ready when it landed.
+  · CI takes 15 min per run, and every run passes.
+  · Footprints predicted from changed files.
+  · Waiting is wall-clock time from ready to landed; the pull requests' own CI is the same in both queues and not counted.
+  · 2 landings without a footprint left out.

@@ -14,6 +14,7 @@ use sheltie_core::{Footprint, Relation, TargetId};
 
 pub mod capacity;
 pub mod report;
+pub mod roi;
 pub mod savings;
 
 /// Largest group built as a speculative chain; bigger ones are group-tested batches.

@@ -2491,6 +2491,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
+ "chrono",
  "clap",
  "globset",
  "hex",
@@ -2503,6 +2504,7 @@ dependencies = [
  "sha2 0.11.1",
  "sheltie-core",
  "sheltie-graph",
+ "sheltie-scheduler",
  "syn 3.0.9",
  "thiserror",
  "toml",

@@ -11,3 +11,4 @@
 - [Intent replay](intent-replay.md)
 - [Coordinating agents](agents.md)
 - [Dashboard](dashboard.md)
+- [ROI report](roi.md)
