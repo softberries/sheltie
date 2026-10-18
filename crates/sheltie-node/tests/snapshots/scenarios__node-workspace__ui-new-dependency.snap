@@ -1,0 +1,22 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "@shop/ui starts depending on @shop/api-client: a new edge, and an interface change (dependencies are published) that reaches the web app.",
+  "footprint": {
+    "writes": [
+      "@shop/ui"
+    ],
+    "reads": [
+      "@shop/ui",
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/ui",
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

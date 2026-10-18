@@ -1,0 +1,18 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit the Prettier configuration: tracked, but outside the build.",
+  "footprint": {
+    "writes": [
+      "file:.prettierrc"
+    ],
+    "reads": [
+      "file:.prettierrc"
+    ],
+    "tests": [],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

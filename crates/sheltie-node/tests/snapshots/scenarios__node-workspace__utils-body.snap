@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in an exported function of @shop/utils: no dependent is affected.",
+  "footprint": {
+    "writes": [
+      "@shop/utils"
+    ],
+    "reads": [
+      "@shop/utils"
+    ],
+    "tests": [
+      "@shop/utils"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

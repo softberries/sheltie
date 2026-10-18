@@ -1,0 +1,27 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change the pnpm lockfile: every package reads $lockfile.",
+  "footprint": {
+    "writes": [
+      "$lockfile"
+    ],
+    "reads": [
+      "$lockfile",
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

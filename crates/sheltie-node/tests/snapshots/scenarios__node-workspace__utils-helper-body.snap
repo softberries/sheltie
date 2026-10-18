@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body change in a non-exported helper of @shop/utils.",
+  "footprint": {
+    "writes": [
+      "@shop/utils"
+    ],
+    "reads": [
+      "@shop/utils"
+    ],
+    "tests": [
+      "@shop/utils"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

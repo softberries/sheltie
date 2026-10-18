@@ -19,6 +19,7 @@ sheltie-graph = { path = "crates/sheltie-graph" }
 sheltie-adapter = { path = "crates/sheltie-adapter" }
 sheltie-cargo = { path = "crates/sheltie-cargo" }
 sheltie-go = { path = "crates/sheltie-go" }
+sheltie-node = { path = "crates/sheltie-node" }
 sheltie-github = { path = "crates/sheltie-github" }
 sheltie-scheduler = { path = "crates/sheltie-scheduler" }
 sheltie-merge = { path = "crates/sheltie-merge" }

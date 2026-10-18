@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit a JSON data file inside @shop/api-client: owned by the package, not its interface.",
+  "footprint": {
+    "writes": [
+      "@shop/api-client"
+    ],
+    "reads": [
+      "@shop/api-client"
+    ],
+    "tests": [
+      "@shop/api-client"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
