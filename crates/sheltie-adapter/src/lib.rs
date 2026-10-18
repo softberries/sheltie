@@ -10,7 +10,8 @@
 //!   tools whose graph is read from their manifests ([`Generic`] runs the whole pipeline);
 //! - [`history`] and [`cli`]: the merge-history replay behind `roi` and the
 //!   `footprint` / `graph` / `roi` command line every adapter binary shares;
-//! - [`scan`]: hashing helpers for line-based interface extraction.
+//! - [`scan`]: hashing helpers for line-based interface extraction;
+//! - [`jvm`]: the public surface of Java and Kotlin sources (Maven and Gradle adapters).
 
 use std::collections::BTreeSet;
 use std::marker::PhantomData;
@@ -22,6 +23,7 @@ use sheltie_graph::GraphSnapshot;
 pub mod cli;
 pub mod git;
 pub mod history;
+pub mod jvm;
 pub mod policy;
 pub mod scan;
 pub mod workspace;
