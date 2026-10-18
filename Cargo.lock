@@ -2591,6 +2591,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-gradle"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "insta",
+ "regex",
+ "serde",
+ "sheltie-adapter",
+ "sheltie-core",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-graph"
 version = "0.3.0"
 dependencies = [

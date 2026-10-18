@@ -4,6 +4,9 @@ Each `<fixture>.toml` lists scripted changes to a fixture in `fixtures/`. The te
 of the fixture's adapter (`crates/sheltie-<tool>/tests/scenarios.rs`: `sheltie-cargo` for
 `cargo-*`, `sheltie-go` for `go-*`, `sheltie-node` for `node-*`, `sheltie-python` for
 `python-*`, `sheltie-maven` for `maven-*`, `sheltie-gradle` for `gradle-*`) commits the
+Each `<fixture>.toml` lists scripted changes to a fixture in `fixtures/`. The test harness of
+the fixture's adapter (`crates/sheltie-cargo/tests/scenarios.rs` for `cargo-*`,
+`crates/sheltie-maven/…` for `maven-*`, `crates/sheltie-gradle/…` for `gradle-*`) commits the
 fixture as the base, applies one scenario as the head commit, computes the footprint and
 compares it with the snapshot in that crate's `tests/snapshots/`.
 
