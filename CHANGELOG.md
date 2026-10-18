@@ -12,6 +12,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   once while at least 80% of their changes land without a combined build or the merge engine,
   from the footprints of the last 90 days of merged pull requests. It shows the clean share
   for 1 to 64 agents and the targets behind most conflicts. See `docs/dashboard.md`.
+- `sheltie-cargo roi`: replays the last 90 days of a branch through the scheduler, locally,
+  and reports the waiting time and CI runs saved against a one-at-a-time merge queue, what
+  Sheltie would have done with each change, and the parallelism estimate. Footprints are
+  predicted from changed files, or computed per landing with `--exact`. See `docs/roi.md`.
 
 ## [0.2.0] - 2026-10-18
 

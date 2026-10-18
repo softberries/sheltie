@@ -16,6 +16,7 @@ pub use sheltie_core::FootprintReport;
 use sheltie_core::{DiffHash, RepoPath, TargetId};
 
 mod git;
+pub mod history;
 mod lockfile;
 mod metadata;
 mod modules;

@@ -184,7 +184,7 @@ pub fn build_report(input: &ReportInput) -> ShadowReport {
 }
 
 /// Nearest-rank percentile of sorted values.
-fn percentile(sorted: &[i64], p: usize) -> Option<i64> {
+pub(crate) fn percentile(sorted: &[i64], p: usize) -> Option<i64> {
     if sorted.is_empty() {
         return None;
     }
