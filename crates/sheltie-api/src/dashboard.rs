@@ -19,7 +19,8 @@ use sheltie_core::{ChangeState, RepoFullName};
 use sheltie_github::check_run::{DOCS_URL, tier_words};
 use sheltie_github::oauth::OAuthApp;
 use sheltie_store::{
-    AgentSpend, Capacity, DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store,
+    AgentSpend, Capacity, DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Scorecard,
+    Store,
 };
 
 const SESSION_COOKIE: &str = "sheltie_session";
@@ -434,8 +435,13 @@ fn spend_panel(sp: &AgentSpend, sv: &Savings, now: DateTime<Utc>) -> String {
         )
     });
     let replays = |n: u32| format!("{n} replay{}", if n == 1 { "" } else { "s" });
+    let model = sp
+        .model
+        .as_deref()
+        .map(|m| format!(" · {}", esc(m)))
+        .unwrap_or_default();
     let mut s = format!(
-        r#"{head}<div class="spend-body"><div class="spend-main"><div class="amount">{}</div><p class="caption">{} · {} passed the checks</p>{budget}</div><div class="spend-chart">{}<div class="axis"><span>{}</span><span>Today</span></div></div></div><div class="spend-stats">"#,
+        r#"{head}<div class="spend-body"><div class="spend-main"><div class="amount">{}</div><p class="caption">{} · {} passed the checks{model}</p>{budget}</div><div class="spend-chart">{}<div class="axis"><span>{}</span><span>Today</span></div></div></div><div class="spend-stats">"#,
         usd(sp.cost_usd),
         replays(sp.replays),
         sp.passed,
@@ -483,6 +489,86 @@ fn spend_panel(sp: &AgentSpend, sv: &Savings, now: DateTime<Utc>) -> String {
     let _ = write!(
         s,
         r#"<div><span class="mlabel">Per hour saved</span>{per_hour}</div></div><p class="fine spend-note">Costs are Claude Code's own estimates, not your bill. Replays run on your CI runners with your API key. <a href="{DOCS_URL}/dashboard.html#agent-spend">More</a></p></section>"#
+    );
+    s
+}
+
+/// "4.2 h", "35 min", "2.1 d".
+fn hours_words(h: f64) -> String {
+    if h < 1.0 {
+        format!("{:.0} min", (h * 60.0).max(1.0))
+    } else if h < 48.0 {
+        format!("{h:.1} h")
+    } else {
+        format!("{:.1} d", h / 24.0)
+    }
+}
+
+fn agents_panel(cards: &[Scorecard]) -> String {
+    let days = sheltie_store::DETAIL_DAYS;
+    let mut s = format!(
+        r#"<section class="panel agents"><div class="panel-head"><h2>Agents</h2><span class="fine">Pull requests opened in the last {days} days, by who opened them</span></div>"#
+    );
+    if cards.is_empty() {
+        let _ = write!(
+            s,
+            "{}</section>",
+            empty(&format!(
+                "<b>No pull requests in the last {days} days</b>Each agent's merge rate, reverts, replays and review rounds appear here."
+            ))
+        );
+        return s;
+    }
+    let pct = |r: Option<f64>| r.map_or_else(|| "—".to_owned(), |r| format!("{:.0}%", r * 100.0));
+    let of = |n: u32, whole: u32| {
+        if n == 0 {
+            r#"<span class="muted">0</span>"#.to_owned()
+        } else {
+            format!(
+                r#"{n} <span class="muted">{}</span>"#,
+                pct(sheltie_store::Scorecard::rate(n, whole))
+            )
+        }
+    };
+    s.push_str(r#"<div class="scroll"><table><thead><tr><th>Agent</th><th class="r">PRs</th><th class="r">Merged</th><th class="r">Returned</th><th class="r">Reverted</th><th class="r">Replayed</th><th class="r">Review rounds</th><th class="r">Time to merge</th><th class="r">Replay cost</th></tr></thead><tbody>"#);
+    for c in cards {
+        let name = match c.key.agent.as_str() {
+            sheltie_core::agents::PEOPLE => {
+                r#"<span class="agent-people">People</span>"#.to_owned()
+            }
+            sheltie_core::agents::UNKNOWN => {
+                r#"<span class="muted">Not recorded</span>"#.to_owned()
+            }
+            a => format!("<b>{}</b>", esc(a)),
+        };
+        let model = c
+            .key
+            .model
+            .as_deref()
+            .map(|m| format!(r#" <span class="badge b-violet">{}</span>"#, esc(m)))
+            .unwrap_or_default();
+        let _ = write!(
+            s,
+            r#"<tr><td><div class="agent-cell">{name}{model}</div></td><td class="r num">{}</td><td class="r num">{} <span class="muted">{}</span></td><td class="r num">{}</td><td class="r num">{}</td><td class="r num">{}</td><td class="r num">{}</td><td class="r num">{}</td><td class="r num">{}</td></tr>"#,
+            c.prs,
+            c.merged,
+            pct(c.merge_rate),
+            of(c.returned, c.prs),
+            of(c.reverted, c.merged),
+            of(c.replayed, c.merged),
+            c.review_rounds
+                .map_or_else(|| "—".to_owned(), |r| format!("{r:.1}")),
+            c.median_hours_to_merge
+                .map_or_else(|| "—".to_owned(), hours_words),
+            c.cost_per_merged().filter(|v| *v > 0.0).map_or_else(
+                || "—".to_owned(),
+                |v| format!("{} <span class=\"muted\">/ merged</span>", usd(v))
+            ),
+        );
+    }
+    let _ = write!(
+        s,
+        r#"</tbody></table></div><p class="fine spend-note">Merged counts against closed without merging; reverted and replayed against merged. Agents are named by <code>[[agents]]</code> in <code>.sheltie/merge.toml</code>, bot accounts by their login; people are grouped together. <a href="{DOCS_URL}/dashboard.html#agents">More</a></p></section>"#
     );
     s
 }
@@ -685,6 +771,7 @@ pub fn render_repo(d: &RepoDetail, web: &str, now: DateTime<Utc>) -> String {
         o.returned_today
     );
     s.push_str(&capacity_panel(d.capacity.as_ref()));
+    s.push_str(&agents_panel(&d.scorecards));
     s.push_str(&spend_panel(&d.spend, &d.savings, now));
 
     let _ = write!(
@@ -1063,6 +1150,7 @@ mod tests {
                 cache_write: 96_000,
             }),
             runs_with_tokens: 2,
+            model: Some("claude-sonnet-5-5".into()),
         }
     }
 
@@ -1112,6 +1200,7 @@ mod tests {
             predicted_wait_minutes: (mode == RepoMode::Shadow).then_some(95),
             spend: spend(),
             capacity: Some(capacity()),
+            scorecards: scorecards(),
             queue: vec![QueueItem {
                 pr: PrNumber(7),
                 title: Some("<img src=x onerror=alert(1)>".into()),
@@ -1205,6 +1294,59 @@ mod tests {
         assert_eq!(tokens(1_000_000_000), "1.0B");
     }
 
+    fn scorecards() -> Vec<Scorecard> {
+        use sheltie_store::AgentKey;
+        let card = |agent: &str, model: Option<&str>, prs, merged, closed| Scorecard {
+            key: AgentKey {
+                agent: agent.into(),
+                model: model.map(Into::into),
+            },
+            prs,
+            merged,
+            closed,
+            returned: 2,
+            reverted: 1,
+            replayed: 0,
+            merge_rate: Scorecard::rate(merged, merged + closed),
+            review_rounds: Some(0.4),
+            heads_per_pr: 1.5,
+            median_hours_to_merge: Some(3.25),
+            replay_cost_usd: 2.0,
+        };
+        vec![
+            card("codex", Some("gpt-5-codex"), 24, 18, 4),
+            card("<i>bot</i>", None, 9, 0, 0),
+            card(sheltie_core::agents::PEOPLE, None, 6, 5, 0),
+        ]
+    }
+
+    #[test]
+    fn agents_panel_states() {
+        let full = agents_panel(&scorecards());
+        assert!(
+            full.contains("<b>codex</b> <span class=\"badge b-violet\">gpt-5-codex</span>"),
+            "{full}"
+        );
+        assert!(
+            full.contains(r#"<td class="r num">18 <span class="muted">82%</span></td>"#),
+            "{full}"
+        );
+        assert!(
+            full.contains(r#"2 <span class="muted">8%</span>"#),
+            "returned of PRs"
+        );
+        assert!(
+            full.contains("3.2 h") && full.contains("$0.11 <span class=\"muted\">/ merged</span>")
+        );
+        assert!(full.contains("&lt;i&gt;bot&lt;/i&gt;"), "escaped");
+        assert!(full.contains(r#"<span class="agent-people">People</span>"#));
+        // No merges: rates and cost per merged are dashes.
+        assert!(full.contains(r#"<td class="r num">0 <span class="muted">—</span></td>"#));
+        assert!(agents_panel(&[]).contains("No pull requests in the last 30 days"));
+        assert_eq!(hours_words(0.25), "15 min");
+        assert_eq!(hours_words(50.0), "2.1 d");
+    }
+
     #[test]
     fn parallelism_states() {
         let full = capacity_panel(Some(&capacity()));
@@ -1256,7 +1398,7 @@ mod tests {
             full.contains(r#"<div class="amount">$4.35</div>"#),
             "{full}"
         );
-        assert!(full.contains("3 replays · 2 passed the checks"));
+        assert!(full.contains("3 replays · 2 passed the checks · claude-sonnet-5-5"));
         assert!(full.contains("$3.10 of $20.00") && full.contains("pbar-c"));
         assert!(full.contains("<b>1.9M</b>") && full.contains("from 2 of 3 replays"));
         // 2 h of author time saved for $4.35.

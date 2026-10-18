@@ -30,6 +30,7 @@
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use regex::Regex;
 use serde::Deserialize;
+use sheltie_core::agents::{AgentRule, validate_rules};
 
 /// Largest accepted rules file.
 pub const MAX_RULES_BYTES: usize = 64 * 1024;
@@ -54,6 +55,8 @@ struct RawRules {
     replay: Option<ReplayConfig>,
     #[serde(default)]
     estimates: Estimates,
+    #[serde(default)]
+    agents: Vec<AgentRule>,
 }
 
 /// Assumptions for the dashboard's time-saved estimate, `[estimates]`. Unset values use
@@ -236,6 +239,8 @@ pub struct Rules {
     pub replay: ReplayConfig,
     /// Time-saved assumptions.
     pub estimates: Estimates,
+    /// Rules naming the agents behind pull requests, for the scorecards.
+    pub agents: Vec<AgentRule>,
 }
 
 fn globs(paths: &[String]) -> Result<GlobSet, RulesError> {
@@ -306,12 +311,14 @@ impl Rules {
         let replay = raw.replay.unwrap_or_default();
         replay.validate()?;
         raw.estimates.validate()?;
+        validate_rules(&raw.agents).map_err(|e| RulesError(e.to_string()))?;
         Ok(Self {
             derived,
             sets,
             sequences,
             replay,
             estimates: raw.estimates,
+            agents: raw.agents,
         })
     }
 
@@ -351,6 +358,31 @@ paths = ["config/*.txt"]
 paths = ["migrations/*.sql"]
 key = "^(\\d+)_"
 "#;
+
+    #[test]
+    fn agents() {
+        let r = Rules::parse(
+            r#"
+[[agents]]
+name = "codex"
+model = "gpt-5-codex"
+branch = "codex/"
+
+[[agents]]
+name = "claude"
+label = "agent: claude"
+"#,
+        )
+        .unwrap();
+        assert_eq!(r.agents.len(), 2);
+        assert_eq!(r.agents[0].model.as_deref(), Some("gpt-5-codex"));
+        assert!(Rules::parse("").unwrap().agents.is_empty());
+        assert!(
+            Rules::parse("[[agents]]\nname = \"x\"\n").is_err(),
+            "no condition"
+        );
+        assert!(Rules::parse("[[agents]]\nname = \"x\"\nbranch = \"a\"\nemail = \"e\"\n").is_err());
+    }
 
     #[test]
     fn estimates() {

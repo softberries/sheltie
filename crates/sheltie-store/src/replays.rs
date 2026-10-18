@@ -162,7 +162,7 @@ impl Store {
             "UPDATE replay_runs SET reported_at = now(), result_sha = $2, checks_passed = $3,
                  similarity = $4, cost_usd = $5, turns = $6, error = $7,
                  input_tokens = $8, output_tokens = $9, cache_read_tokens = $10,
-                 cache_write_tokens = $11
+                 cache_write_tokens = $11, model = $12
              WHERE id = $1",
         )
         .bind(run)
@@ -176,6 +176,7 @@ impl Store {
         .bind(tokens.map(|t| t.output))
         .bind(tokens.map(|t| t.cache_read))
         .bind(tokens.map(|t| t.cache_write))
+        .bind(report.model.as_deref())
         .execute(&self.pool)
         .await?;
         Ok(ReplayReportOutcome::Stored)

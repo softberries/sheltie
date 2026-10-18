@@ -74,6 +74,7 @@ async fn open_pr(store: &Store, head: char) {
         intent: sheltie_core::intake::IntentField::Unknown,
         closes: None,
         title: None,
+        origin: None,
     });
     store
         .ingest(

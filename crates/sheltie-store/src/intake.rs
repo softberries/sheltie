@@ -135,6 +135,20 @@ async fn apply_pr_event(
             .execute(&mut *conn)
             .await?;
     }
+    if let Some(o) = &e.origin {
+        sqlx::query(
+            "UPDATE changes SET author_login = $3, author_bot = $4, head_ref = $5, labels = $6
+             WHERE repo_id = $1 AND pr_number = $2",
+        )
+        .bind(repo_id)
+        .bind(pr)
+        .bind(o.author.as_str())
+        .bind(o.bot)
+        .bind(&o.head_ref)
+        .bind(&o.labels)
+        .execute(&mut *conn)
+        .await?;
+    }
     if let Some(closes) = &e.closes {
         crate::coordination::set_pr_closes(conn, repo_id, pr, closes).await?;
     }

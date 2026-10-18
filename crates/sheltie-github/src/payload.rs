@@ -7,6 +7,7 @@
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use sheltie_core::IssueNumber;
+use sheltie_core::agents::{MAX_LABELS, PrOrigin};
 use sheltie_core::coordination::closing_references;
 use sheltie_core::intake::{
     ChecksEvent, InstallationEvent, Intake, IntentField, IssueEvent, IssueEventKind, PrEvent,
@@ -249,6 +250,25 @@ fn pr_event(
     if pr.number == 0 {
         return Err("pull request number 0".into());
     }
+    // Who opened it, for the agent scorecards. Unusable values drop the origin, not the event.
+    let origin = match (&pr.user, branch_name(pr.head.git_ref.clone())) {
+        (Some(user), Ok(head_ref)) => login(user.login.clone()).ok().map(|author| {
+            Box::new(PrOrigin {
+                author,
+                bot: user.kind.as_deref() == Some("Bot"),
+                head_ref,
+                labels: pr
+                    .labels
+                    .iter()
+                    .map(|l| l.name.as_str())
+                    .filter(|n| (1..=100).contains(&n.len()) && !n.chars().any(char::is_control))
+                    .take(MAX_LABELS)
+                    .map(str::to_owned)
+                    .collect(),
+            })
+        }),
+        _ => None,
+    };
     Ok(Intake::Pr(PrEvent {
         installation: InstallationId(installation.id),
         repo: repo_ref(repository)?,
@@ -264,6 +284,7 @@ fn pr_event(
         intent: IntentField::from_description(pr.body.as_deref()),
         closes: Some(closing_references(pr.body.as_deref().unwrap_or_default())),
         title: pr.title.map(|t| t.chars().take(300).collect()),
+        origin,
         merge_commit: match (kind, pr.merge_commit_sha) {
             (PrEventKind::Merged, Some(sha)) => {
                 Some(CommitSha::parse(sha).map_err(|e| e.to_string())?)
@@ -365,6 +386,23 @@ struct PullRequest {
     body: Option<String>,
     #[serde(default)]
     title: Option<String>,
+    #[serde(default)]
+    user: Option<PrUser>,
+    #[serde(default)]
+    labels: Vec<Label>,
+}
+
+#[derive(Deserialize)]
+struct PrUser {
+    login: String,
+    /// `User`, `Bot` or `Organization`.
+    #[serde(rename = "type", default)]
+    kind: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct Label {
+    name: String,
 }
 
 #[derive(Deserialize)]

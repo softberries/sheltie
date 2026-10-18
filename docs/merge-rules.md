@@ -72,3 +72,29 @@ minutes_per_replay = 30     # an author redoing a change Sheltie re-derived from
 ```
 
 The server reads this file from the default branch every 10 minutes.
+
+## `[[agents]]`
+
+Names the agents behind pull requests, for the [agent scorecards](dashboard.md#agents). Each
+rule has a `name`, an optional `model`, and at least one condition; every condition given
+must match, and the first matching rule wins.
+
+```toml
+[[agents]]
+name = "codex"
+model = "gpt-5-codex"   # optional, shown next to the name
+branch = "codex/"       # the head branch starts with this
+
+[[agents]]
+name = "claude"
+label = "agent: claude" # the pull request has this label (case-insensitive)
+
+[[agents]]
+name = "release-bot"
+author = "acme-release[bot]"  # the author's login (case-insensitive)
+```
+
+Without a matching rule, a pull request opened by a bot account counts as that bot
+(`claude[bot]` becomes `claude`), and pull requests opened by people are grouped as
+"People". Names are at most 40 characters; at most 50 rules. The server reads this file from
+the default branch every 10 minutes, and the rules apply to past pull requests too.

@@ -7,6 +7,7 @@ have access on GitHub:
 - **Activity**: landings per day, and what is ready, in flight, landed and returned now.
 - **Parallelism**: how many agents the repository can take at once before their changes
   start colliding (below).
+- **Agents**: a scorecard per agent that opens pull requests (below).
 - **Agent spend**: what intent replays cost, in estimated dollars and tokens (below).
 - **Queue**: open pull requests, their state, footprint and what Sheltie will do next.
 - **Recently landed**: each landing's commit, how it was proven safe, and which tier resolved a
@@ -80,13 +81,41 @@ What it does not claim:
 - Pull requests whose footprint was never uploaded are left out. With fewer than 20
   footprints, there is no estimate.
 
+## Agents
+
+One row per agent, for the pull requests opened in the last 30 days:
+
+- **PRs** opened, and **merged** with the merge rate: merged against closed without merging.
+  Open pull requests count in neither.
+- **Returned**: Sheltie sent the pull request back to its author at least once (a conflict it
+  could not resolve, or CI failing on the combined state), out of all pull requests.
+- **Reverted**: a sweep found it broke the default branch and Sheltie reverted it, out of the
+  merged ones. Reverts done by hand are not counted.
+- **Replayed**: merged after Sheltie [re-derived it from its intent](intent-replay.md), out
+  of the merged ones.
+- **Review rounds**: reviews requesting changes, per merged pull request.
+- **Time to merge**: median time from Sheltie first seeing the pull request to its merge.
+- **Replay cost**: what Sheltie's replays of the agent's pull requests cost, per merged pull
+  request. It is not what the agent itself cost: Sheltie does not see that.
+
+Which agent opened a pull request comes from [`[[agents]]`](merge-rules.md#agents) rules in
+`.sheltie/merge.toml`: by author, branch prefix or label. Without a rule, bot accounts count
+as themselves and people are grouped as "People", so the panel never ranks colleagues.
+Pull requests opened before Sheltie recorded authors show as "Not recorded".
+
+The same table is available as text, Markdown or JSON:
+
+```sh
+sheltie-server scorecard --repo acme/widgets --days 30
+```
+
 ## Agent spend
 
 Only [intent replay](intent-replay.md) uses a model. Structural merges, regenerated files,
 declared rules, footprints and scheduling cost nothing. The panel shows, for the last 30 days:
 
-- **Estimated spend**, per day and in total, with the number of replays and how many passed
-  the checks.
+- **Estimated spend**, per day and in total, with the number of replays, how many passed
+  the checks, and the model most replays used.
 - **The last 24 hours against `daily_budget_usd`**, when replay is enabled. That is the
   window the budget limits. The bar turns red from 80%.
 - **Tokens**: input, output, and prompt-cache reads and writes, summed over the whole agent

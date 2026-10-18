@@ -132,7 +132,24 @@ struct Agent {
     cost_usd: f64,
     turns: u32,
     tokens: Option<TokenUsage>,
+    model: Option<String>,
     error: Option<String>,
+}
+
+/// The model with the most output tokens in Claude Code's `modelUsage`, if any.
+fn main_model(json: &serde_json::Value) -> Option<String> {
+    let models = json.get("modelUsage")?.as_object()?;
+    models
+        .iter()
+        .max_by_key(|(name, m)| {
+            (
+                m.get("outputTokens")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
+                std::cmp::Reverse((*name).clone()),
+            )
+        })
+        .map(|(name, _)| name.chars().take(100).collect())
 }
 
 /// Token counts from Claude Code's JSON result: `modelUsage` covers the whole run (subagents
@@ -189,6 +206,7 @@ fn run_agent(request: &ReplayRequest, prompt: &str) -> Result<Agent, EngineError
         .and_then(serde_json::Value::as_u64)
         .map_or(0, |t| t.min(u64::from(u32::MAX)) as u32);
     let tokens = json.as_ref().and_then(token_usage);
+    let model = json.as_ref().and_then(main_model);
     let is_error = field("is_error")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
@@ -212,6 +230,7 @@ fn run_agent(request: &ReplayRequest, prompt: &str) -> Result<Agent, EngineError
         cost_usd,
         turns,
         tokens,
+        model,
         error,
     })
 }
@@ -352,6 +371,7 @@ pub fn replay(request: &ReplayRequest) -> Result<ReplayReport, EngineError> {
         cost_usd: 0.0,
         turns: 0,
         tokens: None,
+        model: None,
         error: None,
     };
     let abort = |repo: &std::path::Path| -> Result<(), EngineError> {
@@ -368,6 +388,7 @@ pub fn replay(request: &ReplayRequest) -> Result<ReplayReport, EngineError> {
     report.cost_usd = agent.cost_usd;
     report.turns = agent.turns;
     report.tokens = agent.tokens;
+    report.model = agent.model;
     if let Some(error) = agent.error {
         report.error = Some(error);
         abort(repo)?;
@@ -484,6 +505,16 @@ mod tests {
     fn quoting() {
         assert_eq!(shell_quote("a::b"), "'a::b'");
         assert_eq!(shell_quote("it's"), "'it'\\''s'");
+    }
+
+    #[test]
+    fn the_main_model_has_the_most_output() {
+        let json = serde_json::json!({"modelUsage": {
+            "claude-haiku-5-5": {"outputTokens": 5},
+            "claude-sonnet-5-5": {"outputTokens": 900},
+        }});
+        assert_eq!(main_model(&json).as_deref(), Some("claude-sonnet-5-5"));
+        assert_eq!(main_model(&serde_json::json!({"usage": {}})), None);
     }
 
     #[test]

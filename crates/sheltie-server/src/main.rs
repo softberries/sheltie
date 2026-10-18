@@ -33,6 +33,19 @@ enum Command {
         #[arg(long, value_parser = ["text", "markdown", "json"])]
         format: Option<String>,
     },
+    /// Prints each agent's scorecard for a repository: merge rate, returns, reverts,
+    /// replays, review rounds and time to merge of the pull requests it opened.
+    Scorecard {
+        /// Repository as `owner/name`.
+        #[arg(long)]
+        repo: String,
+        /// Pull requests opened in the last this many days.
+        #[arg(long, default_value_t = 30, value_parser = clap::value_parser!(u32).range(1..=366))]
+        days: u32,
+        /// Output format; defaults to `text` on a terminal and `markdown` otherwise.
+        #[arg(long, value_parser = ["text", "markdown", "json"])]
+        format: Option<String>,
+    },
     /// Administers repositories.
     Repo {
         #[command(subcommand)]
@@ -137,6 +150,28 @@ async fn main() -> anyhow::Result<()> {
             };
             use std::io::Write as _;
             writeln!(std::io::stdout(), "{out}")?;
+        }
+        Command::Scorecard { repo, days, format } => {
+            let repo = RepoFullName::parse(repo)?;
+            let config = Config::from_env()?;
+            let store = Store::connect(config.database, &config.pool)
+                .await
+                .context("connecting to Postgres")?;
+            let id = store
+                .repo_id_by_name(&repo)
+                .await?
+                .with_context(|| format!("Sheltie has no data for {repo}"))?;
+            let cards = store.agent_scorecards(id, days).await?;
+            let terminal = std::io::IsTerminal::is_terminal(&std::io::stdout());
+            let format =
+                format.unwrap_or_else(|| if terminal { "text" } else { "markdown" }.into());
+            let out = match format.as_str() {
+                "json" => serde_json::to_string_pretty(&cards)?,
+                "markdown" => sheltie_core::agents::to_markdown(&cards, days),
+                _ => sheltie_core::agents::to_text(&cards, days),
+            };
+            use std::io::Write as _;
+            write!(std::io::stdout(), "{out}")?;
         }
         Command::Repo {
             command: RepoCommand::SetMode { repo, mode },
