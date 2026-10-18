@@ -1,0 +1,31 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a requirement to go.mod: every package reads $workspace.",
+  "footprint": {
+    "writes": [
+      "$workspace"
+    ],
+    "reads": [
+      "$workspace",
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/internal/util",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing",
+      "example.com/shop/search"
+    ],
+    "tests": [
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/internal/util",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing",
+      "example.com/shop/search"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

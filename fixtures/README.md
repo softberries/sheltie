@@ -7,8 +7,12 @@ Sample repositories and scripted scenarios used by integration and snapshot test
   projects are a single crate, so module-level footprints are tested here first.
 - `cargo-workspace/`: the five-crate `ledger` workspace, a copy of
   `softberries/sheltie-playground-cargo`.
+- `go-workspace/`: the `example.com/shop` Go module: `pricing` read by `cart`, `invoice` and
+  `cmd/shop`, an independent `search` with `testdata/`, a shared `internal/util`, and test
+  files (including an external `_test` package).
 - `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
-  footprints are in `crates/sheltie-cargo/tests/snapshots/`.
+  footprints are in `crates/sheltie-cargo/tests/snapshots/` and
+  `crates/sheltie-go/tests/snapshots/`.
 
 Planned for M4–M5: `Cargo.lock` and registry-file conflicts between PRs, and a seeded bad commit.
 

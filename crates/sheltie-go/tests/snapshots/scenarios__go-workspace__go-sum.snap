@@ -1,0 +1,31 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change go.sum (drop the go.mod checksum line): every package reads $lockfile.",
+  "footprint": {
+    "writes": [
+      "$lockfile"
+    ],
+    "reads": [
+      "$lockfile",
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/internal/util",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing",
+      "example.com/shop/search"
+    ],
+    "tests": [
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/internal/util",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing",
+      "example.com/shop/search"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -1,0 +1,150 @@
+# Scenarios for fixtures/go-workspace (module example.com/shop, six packages).
+
+independent = [
+    # The unit is the package: two changes to pricing never commute, even in different files.
+    ["pricing-body", "search-body", "invoice-body", "cart-test"],
+    ["pricing-helper", "search-body", "invoice-body", "cart-test"],
+    ["pricing-rate", "search-body", "util-body"],
+    ["total-signature", "search-testdata"],
+]
+
+[[scenarios]]
+name = "pricing-body"
+description = "Body-only change in pricing.Total: no other package is affected."
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "		net += l.Net()"
+replace = "		net = net + l.Net()"
+
+[[scenarios]]
+name = "pricing-helper"
+description = "Change the signature of an unexported helper: invisible outside pricing."
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "func percent(m Money, pct int64) Money {"
+replace = "func percent(m Money, pct int) Money {\n\tp := int64(pct)"
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "v := int64(m) * pct"
+replace = "v := int64(m) * p"
+[[scenarios.replace]]
+path = "pricing/pricing_test.go"
+find = "percent(5, 50)"
+replace = "percent(5, int(50))"
+
+[[scenarios]]
+name = "pricing-comment"
+description = "Reformat and reword comments of exported declarations: not an interface change."
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "// Total is the gross total of the lines, tax included.\nfunc Total(lines []Line) Money {"
+replace = "// Total returns the gross total (tax included).\nfunc Total(\n\tlines []Line,\n) Money {"
+
+[[scenarios]]
+name = "pricing-rate"
+description = "Change an exported constant: cart, invoice and cmd/shop import pricing and read it."
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "const Rate = 20"
+replace = "const Rate = 21"
+
+[[scenarios]]
+name = "total-signature"
+description = "Change an exported function's signature: an interface change reaching cart, invoice and cmd/shop."
+[[scenarios.replace]]
+path = "pricing/pricing.go"
+find = "func Total(lines []Line) Money {"
+replace = "func Total(lines ...Line) Money {"
+
+[[scenarios]]
+name = "search-body"
+description = "Body-only change in search.Find."
+[[scenarios.replace]]
+path = "search/search.go"
+find = "return out[i].SKU < out[j].SKU"
+replace = "return strings.Compare(out[i].SKU, out[j].SKU) < 0"
+
+[[scenarios]]
+name = "invoice-body"
+description = "Body-only change in invoice.Render."
+[[scenarios.replace]]
+path = "invoice/invoice.go"
+find = "\"Invoice %s\\n\""
+replace = "\"INVOICE %s\\n\""
+
+[[scenarios]]
+name = "util-body"
+description = "Body-only change in internal/util: invoice and search are not affected."
+[[scenarios.replace]]
+path = "internal/util/util.go"
+find = "return strings.ToLower(strings.TrimSpace(s))"
+replace = "return strings.TrimSpace(strings.ToLower(s))"
+
+[[scenarios]]
+name = "cart-imports-util"
+description = "cart starts importing internal/util: a new edge; util's interface is unchanged, so only cart is affected."
+[[scenarios.replace]]
+path = "cart/cart.go"
+find = "\t\"example.com/shop/pricing\"\n"
+replace = "\t\"example.com/shop/internal/util\"\n\t\"example.com/shop/pricing\"\n"
+[[scenarios.replace]]
+path = "cart/cart.go"
+find = "if c.lines[i].SKU == line.SKU {"
+replace = "if util.Fold(c.lines[i].SKU) == util.Fold(line.SKU) {"
+
+[[scenarios]]
+name = "cart-test"
+description = "Change cart's external test package only: cart's tests run, nothing else."
+[[scenarios.replace]]
+path = "cart/cart_test.go"
+find = "Quantity: 1, Unit: 250})\n\tif"
+replace = "Quantity: 1, Unit: 250})\n\tif c.ID == \"\" {\n\t\tt.Fatal(\"no id\")\n\t}\n\tif"
+
+[[scenarios]]
+name = "go-mod"
+description = "Add a requirement to go.mod: every package reads $workspace."
+[[scenarios.replace]]
+path = "go.mod"
+find = "require github.com/google/uuid v1.6.0"
+replace = "require (\n\tgithub.com/google/uuid v1.6.0\n\tgolang.org/x/text v0.14.0\n)"
+
+[[scenarios]]
+name = "go-sum"
+description = "Change go.sum (drop the go.mod checksum line): every package reads $lockfile."
+[[scenarios.replace]]
+path = "go.sum"
+find = "github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=\n"
+replace = ""
+
+[[scenarios]]
+name = "search-embed"
+description = "search starts embedding a file: the package is no longer hermetic."
+[[scenarios.write]]
+path = "search/stopwords.go"
+content = "package search\n\nimport _ \"embed\"\n\n//go:embed stopwords.txt\nvar stopwords string\n"
+[[scenarios.write]]
+path = "search/stopwords.txt"
+content = "the\na\nan\n"
+
+[[scenarios]]
+name = "util-cgo"
+description = "internal/util starts using cgo: not hermetic."
+[[scenarios.write]]
+path = "internal/util/clock.go"
+content = "package util\n\n// #include <time.h>\nimport \"C\"\n\n// Now is the C library's clock.\nfunc Now() int64 { return int64(C.time(nil)) }\n"
+
+[[scenarios]]
+name = "search-testdata"
+description = "Edit a data file in search/testdata: owned by no package, so search/files, which is not hermetic."
+[[scenarios.replace]]
+path = "search/testdata/products.txt"
+find = "cof-1,Coffee beans"
+replace = "cof-1,Coffee beans\ntea-3,Mint tea"
+
+[[scenarios]]
+name = "readme"
+description = "Edit the README: ignored."
+[[scenarios.replace]]
+path = "README.md"
+find = "stands alone"
+replace = "is independent"

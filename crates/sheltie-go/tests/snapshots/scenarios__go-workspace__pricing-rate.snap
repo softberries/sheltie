@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change an exported constant: cart, invoice and cmd/shop import pricing and read it.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/pricing"
+    ],
+    "reads": [
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing"
+    ],
+    "tests": [
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/invoice",
+      "example.com/shop/pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

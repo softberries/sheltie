@@ -1,0 +1,40 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: edges
+---
+{
+  "$lockfile": [],
+  "$workspace": [],
+  "example.com/shop/cart": [
+    "$lockfile",
+    "$workspace",
+    "example.com/shop/pricing"
+  ],
+  "example.com/shop/cmd/shop": [
+    "$lockfile",
+    "$workspace",
+    "example.com/shop/cart",
+    "example.com/shop/invoice",
+    "example.com/shop/pricing",
+    "example.com/shop/search"
+  ],
+  "example.com/shop/internal/util": [
+    "$lockfile",
+    "$workspace"
+  ],
+  "example.com/shop/invoice": [
+    "$lockfile",
+    "$workspace",
+    "example.com/shop/internal/util",
+    "example.com/shop/pricing"
+  ],
+  "example.com/shop/pricing": [
+    "$lockfile",
+    "$workspace"
+  ],
+  "example.com/shop/search": [
+    "$lockfile",
+    "$workspace",
+    "example.com/shop/internal/util"
+  ]
+}

@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in pricing.Total: no other package is affected.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/pricing"
+    ],
+    "reads": [
+      "example.com/shop/pricing"
+    ],
+    "tests": [
+      "example.com/shop/pricing"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

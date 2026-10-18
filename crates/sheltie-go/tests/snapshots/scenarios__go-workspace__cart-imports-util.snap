@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "cart starts importing internal/util: a new edge; util's interface is unchanged, so only cart is affected.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/cart"
+    ],
+    "reads": [
+      "example.com/shop/cart"
+    ],
+    "tests": [
+      "example.com/shop/cart"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
