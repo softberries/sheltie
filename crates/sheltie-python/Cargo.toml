@@ -1,0 +1,28 @@
+[package]
+name = "sheltie-python"
+description = "Python build-graph adapter (library and sheltie-python CLI)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "sheltie-python"
+path = "src/main.rs"
+
+[dependencies]
+sheltie-adapter = { workspace = true }
+sheltie-core = { workspace = true }
+anyhow = { workspace = true }
+globset = { workspace = true }
+toml = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true
