@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Block-body change of a Kotlin function in :core: no other project is affected.",
+  "footprint": {
+    "writes": [
+      ":core"
+    ],
+    "reads": [
+      ":core"
+    ],
+    "tests": [
+      ":core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

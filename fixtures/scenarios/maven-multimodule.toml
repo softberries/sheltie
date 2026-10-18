@@ -1,0 +1,118 @@
+# Scenarios for fixtures/maven-multimodule (shop-parent with core, api -> core, app -> api).
+
+independent = [
+    ["core-body", "api-body", "app-body", "readme"],
+    ["core-test", "api-body", "app-resource"],
+]
+
+[[scenarios]]
+name = "core-body"
+description = "Method-body change in core: no other module is affected."
+[[scenarios.replace]]
+path = "core/src/main/java/com/acme/shop/core/PriceCalculator.java"
+find = "        return net.plus(tax(net));"
+replace = "        Money tax = tax(net);\n        return net.plus(tax);"
+
+[[scenarios]]
+name = "api-body"
+description = "Method-body change in api."
+[[scenarios.replace]]
+path = "api/src/main/java/com/acme/shop/api/OrderService.java"
+find = "        return calculator.gross(orders.get(order - 1));"
+replace = "        List<Money> lines = orders.get(order - 1);\n        return calculator.gross(lines);"
+
+[[scenarios]]
+name = "app-body"
+description = "Method-body change in app."
+[[scenarios.replace]]
+path = "app/src/main/java/com/acme/shop/app/App.java"
+find = "\" cents\""
+replace = "\" ct\""
+
+[[scenarios]]
+name = "core-private"
+description = "Change a private member of core: invisible to other modules."
+[[scenarios.replace]]
+path = "core/src/main/java/com/acme/shop/core/PriceCalculator.java"
+find = "    private Money tax(Money net) {"
+replace = "    private Money tax(final Money net) {"
+
+[[scenarios]]
+name = "core-signature"
+description = "Change a public signature in core: api, which depends on core, reads the change, and so does app, which depends on api (api's interface folds in core's)."
+[[scenarios.replace]]
+path = "core/src/main/java/com/acme/shop/core/Money.java"
+find = "    public Money percent(int pct) {"
+replace = "    public Money percent(long pct) {"
+
+[[scenarios]]
+name = "core-constant"
+description = "Change a public constant in core (inlined by javac): an interface change."
+[[scenarios.replace]]
+path = "core/src/main/java/com/acme/shop/core/PriceCalculator.java"
+find = "public static final int STANDARD_RATE = 20;"
+replace = "public static final int STANDARD_RATE = 21;"
+
+[[scenarios]]
+name = "core-test"
+description = "Change a test in core: tests are not part of the interface."
+[[scenarios.replace]]
+path = "core/src/test/java/com/acme/shop/core/PriceCalculatorTest.java"
+find = "new Money(400), new Money(600)"
+replace = "new Money(600), new Money(400)"
+
+[[scenarios]]
+name = "core-resource"
+description = "Change a resource of core: owned by core, not part of its interface."
+[[scenarios.replace]]
+path = "core/src/main/resources/rates.properties"
+find = "reduced=5"
+replace = "reduced=7"
+
+[[scenarios]]
+name = "app-resource"
+description = "Change a resource of app."
+[[scenarios.replace]]
+path = "app/src/main/resources/application.properties"
+find = "shop.currency=EUR"
+replace = "shop.currency=PLN"
+
+[[scenarios]]
+name = "app-new-dependency"
+description = "app starts depending on core directly: the change reads core (a new dependency), and app's POM is part of its interface."
+[[scenarios.replace]]
+path = "app/pom.xml"
+find = "  <dependencies>\n"
+replace = "  <dependencies>\n    <dependency>\n      <groupId>com.acme.shop</groupId>\n      <artifactId>core</artifactId>\n      <version>${project.version}</version>\n    </dependency>\n"
+
+[[scenarios]]
+name = "parent-pom"
+description = "Change a property in the parent POM: every module inherits it."
+[[scenarios.replace]]
+path = "pom.xml"
+find = "<junit.version>5.11.3</junit.version>"
+replace = "<junit.version>5.11.4</junit.version>"
+
+[[scenarios]]
+name = "exec-plugin"
+description = "api starts running exec-maven-plugin: its build is no longer hermetic."
+[[scenarios.replace]]
+path = "api/pom.xml"
+find = "</dependencies>\n"
+replace = "</dependencies>\n\n  <build>\n    <plugins>\n      <plugin>\n        <groupId>org.codehaus.mojo</groupId>\n        <artifactId>exec-maven-plugin</artifactId>\n        <version>3.5.0</version>\n      </plugin>\n    </plugins>\n  </build>\n"
+
+[[scenarios]]
+name = "maven-config"
+description = "Change .mvn/maven.config: workspace configuration, read by every module."
+[[scenarios.replace]]
+path = ".mvn/maven.config"
+find = "--no-transfer-progress"
+replace = "--no-transfer-progress\n--fail-at-end"
+
+[[scenarios]]
+name = "readme"
+description = "Edit the README: ignored."
+[[scenarios.replace]]
+path = "README.md"
+find = "A three-module Maven build"
+replace = "A small three-module Maven build"

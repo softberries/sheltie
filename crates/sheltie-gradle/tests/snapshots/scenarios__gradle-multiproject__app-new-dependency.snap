@@ -1,0 +1,21 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": ":app starts depending on :core: the change reads :core (a new dependency), and :app's build script is part of its interface.",
+  "footprint": {
+    "writes": [
+      ":app"
+    ],
+    "reads": [
+      ":app",
+      ":core"
+    ],
+    "tests": [
+      ":app"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

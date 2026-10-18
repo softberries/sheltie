@@ -1,0 +1,25 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a dependency lockfile to :core: every project reads $lockfile.",
+  "footprint": {
+    "writes": [
+      "$lockfile"
+    ],
+    "reads": [
+      "$lockfile",
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "tests": [
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -1,0 +1,24 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change an expression-bodied public function in :core: its inferred type depends on the body, so it is an interface change.",
+  "footprint": {
+    "writes": [
+      ":core"
+    ],
+    "reads": [
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "tests": [
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -1,0 +1,110 @@
+# Scenarios for fixtures/gradle-multiproject (:core Kotlin, :api Java -> :core via
+# projects.core, :app Java -> project(":api"), Kotlin DSL, version catalog).
+
+independent = [
+    ["core-body", "api-body", "app-body", "readme"],
+    ["core-test", "api-body", "app-body"],
+]
+
+[[scenarios]]
+name = "core-body"
+description = "Block-body change of a Kotlin function in :core: no other project is affected."
+[[scenarios.replace]]
+path = "core/src/main/kotlin/com/acme/shop/core/Pricing.kt"
+find = "    return net + tax(net, rate)"
+replace = "    val tax = tax(net, rate)\n    return net + tax"
+
+[[scenarios]]
+name = "api-body"
+description = "Method-body change in :api (Java)."
+[[scenarios.replace]]
+path = "api/src/main/java/com/acme/shop/api/OrderService.java"
+find = "        return Pricing.gross(orders.get(order - 1), Pricing.STANDARD_RATE);"
+replace = "        List<Money> lines = orders.get(order - 1);\n        return Pricing.gross(lines, Pricing.STANDARD_RATE);"
+
+[[scenarios]]
+name = "app-body"
+description = "Method-body change in :app."
+[[scenarios.replace]]
+path = "app/src/main/java/com/acme/shop/app/App.java"
+find = "\" cents\""
+replace = "\" ct\""
+
+[[scenarios]]
+name = "core-private"
+description = "Change a private Kotlin function in :core: invisible to other projects."
+[[scenarios.replace]]
+path = "core/src/main/kotlin/com/acme/shop/core/Pricing.kt"
+find = "private fun tax(net: Money, rate: Int): Money = net.percent(rate)"
+replace = "private fun tax(net: Money, rate: Int): Money = net.percent(rate) + Money(0)"
+
+[[scenarios]]
+name = "core-signature"
+description = "Change a public Kotlin signature in :core: :api reads the change through projects.core, and :app, which depends on :api, reads it too."
+[[scenarios.replace]]
+path = "core/src/main/kotlin/com/acme/shop/core/Money.kt"
+find = "    fun percent(pct: Int): Money {"
+replace = "    fun percent(pct: Long): Money {"
+
+[[scenarios]]
+name = "core-expression-body"
+description = "Change an expression-bodied public function in :core: its inferred type depends on the body, so it is an interface change."
+[[scenarios.replace]]
+path = "core/src/main/kotlin/com/acme/shop/core/Pricing.kt"
+find = "fun standardTax(amount: Money) = tax(amount, STANDARD_RATE)"
+replace = "fun standardTax(amount: Money) = tax(amount, STANDARD_RATE).cents"
+
+[[scenarios]]
+name = "core-test"
+description = "Change a test in :core: tests are not part of the interface."
+[[scenarios.replace]]
+path = "core/src/test/kotlin/com/acme/shop/core/PricingTest.kt"
+find = "listOf(Money(400), Money(600))"
+replace = "listOf(Money(600), Money(400))"
+
+[[scenarios]]
+name = "core-resource"
+description = "Change a resource of :core: owned by :core, not part of its interface."
+[[scenarios.replace]]
+path = "core/src/main/resources/rates.properties"
+find = "reduced=5"
+replace = "reduced=7"
+
+[[scenarios]]
+name = "app-new-dependency"
+description = ":app starts depending on :core: the change reads :core (a new dependency), and :app's build script is part of its interface."
+[[scenarios.replace]]
+path = "app/build.gradle.kts"
+find = "    implementation(project(\":api\"))\n"
+replace = "    implementation(project(\":api\"))\n    implementation(projects.core)\n"
+
+[[scenarios]]
+name = "settings"
+description = "Change settings.gradle.kts: workspace configuration, read by every project."
+[[scenarios.replace]]
+path = "settings.gradle.kts"
+find = "rootProject.name = \"shop\""
+replace = "rootProject.name = \"acme-shop\""
+
+[[scenarios]]
+name = "version-catalog"
+description = "Bump a version in the version catalog: workspace configuration, read by every project."
+[[scenarios.replace]]
+path = "gradle/libs.versions.toml"
+find = "junit = \"5.11.3\""
+replace = "junit = \"5.11.4\""
+
+[[scenarios]]
+name = "lockfile"
+description = "Add a dependency lockfile to :core: every project reads $lockfile."
+[[scenarios.write]]
+path = "core/gradle.lockfile"
+content = "org.junit.jupiter:junit-jupiter:5.11.3=testCompileClasspath,testRuntimeClasspath\nempty=\n"
+
+[[scenarios]]
+name = "readme"
+description = "Edit the README: ignored."
+[[scenarios.replace]]
+path = "README.md"
+find = "A three-project Gradle build"
+replace = "A small three-project Gradle build"
