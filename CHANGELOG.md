@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-18
+
 ### Added
 
 - Dashboard: an "Agent spend" panel per repository, showing the estimated cost of intent
@@ -15,6 +17,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Replay reports carry the agent's token counts (`tokens`: input, output, cache read, cache
   write) from Claude Code's `modelUsage`, or `usage` on older versions. The field is optional,
   so older runners still report.
+
+### Upgrading
+
+- One database migration (token counts on replay runs and the daily budget per repository);
+  the server applies it on startup. Bump `@v0.1.0` and `sheltie-version` in your workflows to
+  `v0.2.0` so replay reports include token counts.
 
 ## [0.1.0] - 2026-10-17
 
@@ -176,5 +184,6 @@ The first public release.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
 
-[Unreleased]: https://github.com/softberries/sheltie/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/softberries/sheltie/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/softberries/sheltie/releases/tag/v0.1.0

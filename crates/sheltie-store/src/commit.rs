@@ -67,8 +67,9 @@ pub struct CommitterChange {
     pub footprint: Option<StoredFootprint>,
 }
 
-/// Holds a repository's commit lock until dropped. Only one server replica commits to a
-/// repository at a time.
+/// Holds a repository's commit lock until dropped; the lock is released once the dropped
+/// transaction's connection is rolled back, shortly after. Only one server replica commits to
+/// a repository at a time.
 pub struct RepoLock {
     _tx: sqlx::Transaction<'static, sqlx::Postgres>,
 }

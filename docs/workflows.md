@@ -5,7 +5,7 @@ on your runners and report to Sheltie, authenticated with GitHub's OIDC tokens (
 secret). Add them to the default branch of each repository Sheltie manages, replacing
 `https://sheltie.example.com` with your server's URL.
 
-Pin the workflows to a release, as below: `@v0.1.0` selects the workflow, and `sheltie-version`
+Pin the workflows to a release, as below: `@v0.2.0` selects the workflow, and `sheltie-version`
 downloads that release's checksum-verified binaries instead of building them from source, which
 takes a few minutes per run. `@main` with no `sheltie-version` follows the latest code.
 
@@ -23,9 +23,9 @@ permissions:
   id-token: write        # lets the job request the OIDC token
 jobs:
   footprint:
-    uses: softberries/sheltie/.github/workflows/footprint.yml@v0.1.0
+    uses: softberries/sheltie/.github/workflows/footprint.yml@v0.2.0
     with:
-      sheltie-version: v0.1.0
+      sheltie-version: v0.2.0
       sheltie-url: https://sheltie.example.com
 ```
 
@@ -61,9 +61,9 @@ permissions:
   pull-requests: read
 jobs:
   merge:
-    uses: softberries/sheltie/.github/workflows/merge.yml@v0.1.0
+    uses: softberries/sheltie/.github/workflows/merge.yml@v0.2.0
     with:
-      sheltie-version: v0.1.0
+      sheltie-version: v0.2.0
       sheltie-url: https://sheltie.example.com
       pr: ${{ github.event.client_payload.pr }}
       head: ${{ github.event.client_payload.head }}

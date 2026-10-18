@@ -123,10 +123,17 @@ async fn commit_lock_is_exclusive(pool: PgPool) {
         "second holder"
     );
     drop(first);
-    assert!(
-        store.try_lock_repo(REPO).await.unwrap().is_some(),
-        "released on drop"
-    );
+    // The dropped transaction rolls back when its connection returns to the pool, which
+    // happens in the background; give it a moment.
+    let mut released = false;
+    for _ in 0..50 {
+        if store.try_lock_repo(REPO).await.unwrap().is_some() {
+            released = true;
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    }
+    assert!(released, "released after drop");
 }
 
 #[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
