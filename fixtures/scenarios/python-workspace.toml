@@ -2,7 +2,10 @@
 
 independent = [
     ["pricing-body", "cart-body", "auth-body", "app-body", "core-test"],
-    ["private-helper", "cart-body", "auth-body", "new-import"],
+    ["private-helper", "cart-body", "auth-body"],
+    # new-import adds a dependency on shop_core, so it reads shop_core and meets any change
+    # to it (private-helper) in a combined build; it still commutes with these.
+    ["new-import", "cart-body", "auth-body"],
 ]
 
 [[scenarios]]
@@ -15,7 +18,7 @@ replace = "total = Money(qty * net.cents, net.currency)"
 
 [[scenarios]]
 name = "price-signature"
-description = "New keyword parameter on the public price(): every unit importing shop_core reads it, shop_api's own interface is unchanged so shop_app is not."
+description = "New keyword parameter on the public price(): every unit importing shop_core reads it, and the units importing those (shop_app imports shop_api, whose interface folds in shop_core's)."
 [[scenarios.replace]]
 path = "packages/core/src/shop_core/pricing.py"
 find = "def price(net: Money, qty: int = 1) -> Money:"
@@ -75,7 +78,7 @@ replace = "qty = int(args[1]) if args[1:] else 1"
 
 [[scenarios]]
 name = "new-import"
-description = "shop_app starts importing shop_core directly: a new edge, but no interface change."
+description = "shop_app starts importing shop_core directly: the change reads shop_core (a new dependency), and shop_app's interface now folds in shop_core's, so units importing shop_app read it too."
 [[scenarios.replace]]
 path = "app/shop_app/cli.py"
 find = "import shop_api\n"

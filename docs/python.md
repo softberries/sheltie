@@ -57,7 +57,10 @@ comments removed and formatting ignored:
 
 So editing a function body, a private helper (`_round`, even its signature), a docstring or a
 comment stays inside the package; changing a public signature, a public constant, a class
-member or a re-export reaches every unit importing the package. When the adapter is unsure,
+member or a re-export reaches every unit importing the package, and the units importing
+those: a unit's interface also folds in the interfaces of the units it imports, because its
+signatures may use their types. A change that adds an import reads the imported unit. When
+the adapter is unsure,
 it counts a statement as interface: a wider footprint only costs parallelism, a missed
 interface change could hide a conflict.
 

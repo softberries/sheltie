@@ -3,15 +3,19 @@ source: crates/sheltie-python/tests/scenarios.rs
 expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
 ---
 {
-  "description": "shop_app starts importing shop_core directly: a new edge, but no interface change.",
+  "description": "shop_app starts importing shop_core directly: the change reads shop_core (a new dependency), and shop_app's interface now folds in shop_core's, so units importing shop_app read it too.",
   "footprint": {
     "writes": [
       "shop_app"
     ],
     "reads": [
-      "shop_app"
+      "manage",
+      "shop_app",
+      "shop_core",
+      "tests:app/tests"
     ],
     "tests": [
+      "manage",
       "shop_app",
       "tests:app/tests"
     ],

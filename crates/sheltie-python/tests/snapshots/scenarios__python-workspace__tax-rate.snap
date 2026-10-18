@@ -9,15 +9,22 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
       "shop_core"
     ],
     "reads": [
+      "manage",
       "shop_api",
+      "shop_app",
       "shop_core",
       "shop_core.cart",
+      "tests:app/tests",
+      "tests:packages/api/tests",
       "tests:packages/core/tests"
     ],
     "tests": [
+      "manage",
       "shop_api",
+      "shop_app",
       "shop_core",
       "shop_core.cart",
+      "tests:app/tests",
       "tests:packages/api/tests",
       "tests:packages/core/tests"
     ],
