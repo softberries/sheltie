@@ -10,12 +10,11 @@ Sample repositories and scripted scenarios used by integration and snapshot test
 - `go-workspace/`: the `example.com/shop` Go module: `pricing` read by `cart`, `invoice` and
   `cmd/shop`, an independent `search` with `testdata/`, a shared `internal/util`, and test
   files (including an external `_test` package).
-- `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
-  footprints are in `crates/sheltie-cargo/tests/snapshots/` and
-  `crates/sheltie-go/tests/snapshots/`.
 - `node-workspace/`: the four-package `shop` pnpm monorepo (`@shop/utils`, `@shop/ui`,
   `@shop/api-client` and the `apps/web` Nx project), for `sheltie-node`.
-  `crates/sheltie-node/tests/snapshots/`.
+- `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
+  footprints are in each adapter's `tests/snapshots/` (`crates/sheltie-cargo`,
+  `crates/sheltie-go`, `crates/sheltie-node`, …).
 
 Planned for M4–M5: `Cargo.lock` and registry-file conflicts between PRs, and a seeded bad commit.
 
