@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
 ### Added
 
 - Dashboard: a "Parallelism" panel per repository estimating how many agents can work at
@@ -30,6 +32,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - One database migration (pull request author, branch and labels; replay model; agent
   rules); the server applies it on startup. Pull requests opened before the upgrade show as
   "Not recorded" in the scorecards until their next event.
+- Bump `@v0.2.0` and `sheltie-version` in your workflows to `v0.3.0` so replay reports
+  include the model.
 
 ## [0.2.0] - 2026-10-18
 
@@ -209,6 +213,7 @@ The first public release.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
 
-[Unreleased]: https://github.com/softberries/sheltie/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/softberries/sheltie/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/softberries/sheltie/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/softberries/sheltie/releases/tag/v0.1.0
