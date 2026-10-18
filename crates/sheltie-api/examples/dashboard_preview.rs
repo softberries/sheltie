@@ -16,6 +16,43 @@ use sheltie_store::{
     ReturnedItem, Savings,
 };
 
+/// Capacity from 120 synthetic footprints: most changes touch one of twelve crates; a few
+/// touch the shared `shop-pricing` crate that others depend on.
+fn sample_capacity() -> Option<sheltie_store::Capacity> {
+    use sheltie_core::{Footprint, TargetId};
+    let crates = [
+        "shop-search",
+        "shop-auth",
+        "shop-catalog",
+        "shop-flags",
+        "shop-db",
+        "shop-invoice",
+        "shop-cart",
+        "shop-mail",
+        "shop-admin",
+        "shop-api",
+        "shop-web",
+        "shop-jobs",
+    ];
+    let footprints: Vec<Footprint> = (0..120usize)
+        .map(|i| {
+            let mut fp = Footprint::default();
+            if i % 9 == 0 {
+                fp.writes.insert(TargetId::new("shop-pricing"));
+                for c in ["shop-pricing", "shop-cart", "shop-invoice"] {
+                    fp.reads.insert(TargetId::new(c));
+                }
+            } else {
+                let c = crates[(i * 7 + i / 5) % crates.len()];
+                fp.writes.insert(TargetId::new(format!("{c}-{}", i % 4)));
+                fp.reads.insert(TargetId::new(format!("{c}-{}", i % 4)));
+            }
+            fp
+        })
+        .collect();
+    sheltie_store::capacity(&footprints, sheltie_store::DEFAULT_CLEAN_SHARE)
+}
+
 /// A plausible, repeatable landings-per-day series (weekends quieter).
 fn daily(days: usize, scale: u32, seed: u32) -> Vec<u32> {
     (0..days)
@@ -177,6 +214,7 @@ fn main() -> std::io::Result<()> {
         savings: payments,
         predicted_wait_minutes: None,
         spend: spend(4.08),
+        capacity: sample_capacity(),
         queue: vec![
             q(318, "Retry webhooks with exponential backoff", ChangeState::Verifying, Some((2, 5)), Some("would reverify 1 target touched by changes landed since its base"), 3),
             q(321, "Add refund reasons to the ledger", ChangeState::Merging, Some((3, 7)), Some("writes the same targets as #317; would go to the merge engine"), 6),

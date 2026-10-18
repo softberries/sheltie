@@ -5,6 +5,8 @@ have access on GitHub:
 
 - **Time saved** over the last 30 days (below).
 - **Activity**: landings per day, and what is ready, in flight, landed and returned now.
+- **Parallelism**: how many agents the repository can take at once before their changes
+  start colliding (below).
 - **Agent spend**: what intent replays cost, in estimated dollars and tokens (below).
 - **Queue**: open pull requests, their state, footprint and what Sheltie will do next.
 - **Recently landed**: each landing's commit, how it was proven safe, and which tier resolved a
@@ -49,6 +51,34 @@ What it does not claim:
   estimate.
 - In shadow mode nothing lands through Sheltie, so the panel shows the *predicted* saving: the
   time merges waited after Sheltie would have landed them.
+
+## Parallelism
+
+How many agents can work on the repository at the same time while most of their changes
+still land on their own, without a combined build or the merge engine.
+
+Sheltie estimates it from the footprints of the pull requests merged into the default branch
+in the last 90 days (at most the 2,000 most recent). It treats them as the kind of work an
+agent picks up next. With `N` agents each holding one open pull request, a change lands on
+its own when it is independent of the other `N - 1`. A change that conflicts with a share
+`c` of the history stays independent with probability `(1 - c)^(N - 1)`. The panel shows the
+average over the history for 1, 2, 4, … 64 agents, and the headline is the largest number of
+agents for which at least 80% of changes land on their own.
+
+Two changes conflict when one writes a target the other writes or affects, the same rule the
+scheduler uses. A conflict is not a failure: Sheltie builds the changes together or resolves
+them in [tiers](introduction.md). It costs a CI run or a merge, though, and conflicts are
+where waiting time comes back.
+
+The panel also names the targets involved in the most conflicting pairs. Those are the places
+where splitting a crate or a central file would raise the number.
+
+What it does not claim:
+
+- It assumes agents pick work independently of each other. Work that clusters (a refactoring
+  and its follow-ups) collides more than the estimate says.
+- Pull requests whose footprint was never uploaded are left out. With fewer than 20
+  footprints, there is no estimate.
 
 ## Agent spend
 

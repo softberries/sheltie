@@ -12,6 +12,7 @@ use std::fmt::Debug;
 use serde::Serialize;
 use sheltie_core::{Footprint, Relation, TargetId};
 
+pub mod capacity;
 pub mod report;
 pub mod savings;
 

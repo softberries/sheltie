@@ -27,8 +27,8 @@ pub use checks::{CheckRunJob, FootprintSummary, Landing, MAX_LISTED, ReadinessFl
 pub use commit::{CommitterChange, RepoAccess, RepoLock, RepoMode, VerifyRun};
 pub use coordination::{Claim, IssueNotice, IssueRow, Lease, PendingNotice, Waiter};
 pub use dashboard::{
-    CARD_DAYS, DETAIL_DAYS, DashboardSession, LandingItem, LeaseItem, QueueItem, RepoCard,
-    RepoDetail, RepoOverview, ReturnedItem,
+    CAPACITY_DAYS, CARD_DAYS, DETAIL_DAYS, DashboardSession, LandingItem, LeaseItem, QueueItem,
+    RepoCard, RepoDetail, RepoOverview, ReturnedItem,
 };
 pub use epochs::{EpochCandidate, PredictionRow};
 pub use footprints::StoredFootprint;
@@ -37,6 +37,9 @@ pub use merges::{MergeOutcome, MergeReportOutcome, MergeRun};
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
 pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
+pub use sheltie_scheduler::capacity::{
+    Capacity, CapacityPoint, DEFAULT_CLEAN_SHARE, HotTarget, MIN_FOOTPRINTS, capacity,
+};
 pub use sheltie_scheduler::savings::{MIN_LANDINGS, Savings};
 pub use speculation::{SpecBuild, SpecGroup};
 pub use spend::AgentSpend;
