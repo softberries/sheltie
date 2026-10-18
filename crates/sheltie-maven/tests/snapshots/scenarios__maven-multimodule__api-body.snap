@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-maven/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Method-body change in api.",
+  "footprint": {
+    "writes": [
+      "com.acme.shop:api"
+    ],
+    "reads": [
+      "com.acme.shop:api"
+    ],
+    "tests": [
+      "com.acme.shop:api"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -2600,6 +2600,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-maven"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "insta",
+ "serde",
+ "sheltie-adapter",
+ "sheltie-core",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-merge"
 version = "0.3.0"
 dependencies = [

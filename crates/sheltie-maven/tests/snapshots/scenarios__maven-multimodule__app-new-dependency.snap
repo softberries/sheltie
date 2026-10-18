@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-maven/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "app starts depending on core directly: a new edge, and app's POM is part of its interface.",
+  "footprint": {
+    "writes": [
+      "com.acme.shop:app"
+    ],
+    "reads": [
+      "com.acme.shop:app"
+    ],
+    "tests": [
+      "com.acme.shop:app"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

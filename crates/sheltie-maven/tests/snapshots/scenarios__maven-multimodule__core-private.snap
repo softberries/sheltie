@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-maven/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a private member of core: invisible to other modules.",
+  "footprint": {
+    "writes": [
+      "com.acme.shop:core"
+    ],
+    "reads": [
+      "com.acme.shop:core"
+    ],
+    "tests": [
+      "com.acme.shop:core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

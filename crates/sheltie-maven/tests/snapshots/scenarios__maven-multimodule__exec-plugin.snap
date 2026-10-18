@@ -1,0 +1,24 @@
+---
+source: crates/sheltie-maven/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "api starts running exec-maven-plugin: its build is no longer hermetic.",
+  "footprint": {
+    "writes": [
+      "com.acme.shop:api"
+    ],
+    "reads": [
+      "com.acme.shop:api",
+      "com.acme.shop:app"
+    ],
+    "tests": [
+      "com.acme.shop:api",
+      "com.acme.shop:app"
+    ],
+    "leaky": true
+  },
+  "leak_reasons": [
+    "com.acme.shop:api: build plugin runs code (exec-maven-plugin)"
+  ]
+}

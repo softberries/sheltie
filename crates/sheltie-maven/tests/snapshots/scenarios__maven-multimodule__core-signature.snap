@@ -1,0 +1,22 @@
+---
+source: crates/sheltie-maven/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a public signature in core: api, which depends on core, reads the change; app does not (api's interface is unchanged).",
+  "footprint": {
+    "writes": [
+      "com.acme.shop:core"
+    ],
+    "reads": [
+      "com.acme.shop:api",
+      "com.acme.shop:core"
+    ],
+    "tests": [
+      "com.acme.shop:api",
+      "com.acme.shop:core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
