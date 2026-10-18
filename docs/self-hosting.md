@@ -99,8 +99,8 @@ that has the merge workflow: `sheltie-server repo set-merge-engine --repo your-o
 
 Open `https://sheltie.example.com/dashboard` and sign in with GitHub. You see the
 repositories where the App is installed and you have access: the queue, what landed and how
-it was proven, pull requests returned to their authors, agents' claimed issues, and how much
-time Sheltie saved (see [Dashboard](dashboard.md)).
+it was proven, pull requests returned to their authors, agents' claimed issues, how much
+time Sheltie saved and what intent replays cost (see [Dashboard](dashboard.md)).
 
 ![The dashboard for a repository (example data)](images/dashboard.png)
 
