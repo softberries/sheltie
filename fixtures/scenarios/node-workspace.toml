@@ -1,0 +1,146 @@
+# Scenarios for fixtures/node-workspace (the shop pnpm monorepo, four packages).
+# Golden footprints: crates/sheltie-node/tests/snapshots/.
+
+independent = [
+    ["utils-body", "ui-test", "web-body", "api-client-data", "readme", "prettier"],
+    ["utils-helper-body", "ui-test", "web-body", "api-client-data", "readme"],
+]
+
+[[scenarios]]
+name = "utils-body"
+description = "Body-only change in an exported function of @shop/utils: no dependent is affected."
+[[scenarios.replace]]
+path = "packages/utils/src/price.ts"
+find = "  return `${major.toFixed(2)} ${currency}`;"
+replace = "  return `${major.toFixed(2)} ${currency}`;"
+
+[[scenarios]]
+name = "utils-helper-body"
+description = "Body change in a non-exported helper of @shop/utils."
+[[scenarios.replace]]
+path = "packages/utils/src/price.ts"
+find = "  return Math.sign(value) * Math.round(Math.abs(value));"
+replace = "  return value < 0 ? -Math.round(-value) : Math.round(value);"
+
+[[scenarios]]
+name = "utils-signature"
+description = "Exported signature change in @shop/utils: its direct dependents ui and api-client read it."
+[[scenarios.replace]]
+path = "packages/utils/src/price.ts"
+find = "export function formatPrice(cents: number, currency: Currency): string {"
+replace = "export function formatPrice(cents: number, currency: Currency, locale = \"en\"): string {"
+
+[[scenarios]]
+name = "utils-type"
+description = "Add a member to an exported type in @shop/utils."
+[[scenarios.replace]]
+path = "packages/utils/src/money.ts"
+find = "export type Currency = \"EUR\" | \"USD\" | \"PLN\";"
+replace = "export type Currency = \"EUR\" | \"USD\" | \"PLN\" | \"GBP\";"
+
+[[scenarios]]
+name = "api-client-interface"
+description = "Add a field to an exported interface of @shop/api-client: the web app reads it."
+[[scenarios.replace]]
+path = "packages/api-client/src/client.ts"
+find = "  total: Money;\n}"
+replace = "  total: Money;\n  placedAt: string;\n}"
+
+[[scenarios]]
+name = "web-private-type"
+description = "Change a non-exported type in the web app: counted as interface, but nothing depends on the app."
+[[scenarios.replace]]
+path = "apps/web/src/cart.ts"
+find = "type Money = PriceTagProps[\"price\"];"
+replace = "type Money = PriceTagProps[\"price\"] & { label?: string };"
+
+[[scenarios]]
+name = "ui-reexport"
+description = "Change a re-export in @shop/ui's entry point."
+[[scenarios.replace]]
+path = "packages/ui/src/index.ts"
+find = "export type { PriceTagProps } from \"./PriceTag\";"
+replace = "export type { PriceTagProps } from \"./PriceTag\";\nexport * from \"@shop/utils\";"
+
+[[scenarios]]
+name = "ui-new-dependency"
+description = "@shop/ui starts depending on @shop/api-client: a new edge, and an interface change (dependencies are published) that reaches the web app."
+[[scenarios.replace]]
+path = "packages/ui/package.json"
+find = "    \"@shop/utils\": \"workspace:*\","
+replace = "    \"@shop/api-client\": \"workspace:*\",\n    \"@shop/utils\": \"workspace:*\","
+
+[[scenarios]]
+name = "ui-test"
+description = "Edit a test of @shop/ui: only its own tests run."
+[[scenarios.replace]]
+path = "packages/ui/src/PriceTag.test.tsx"
+find = "cents: 100,"
+replace = "cents: 250,"
+
+[[scenarios]]
+name = "web-body"
+description = "Body-only change in the web app (an Nx project with a package.json)."
+[[scenarios.replace]]
+path = "apps/web/src/cart.ts"
+find = "  const cents = items.reduce((sum, m) => sum + m.cents, 0);"
+replace = "  let cents = 0;\n  for (const m of items) cents += m.cents;"
+
+[[scenarios]]
+name = "tsconfig-base"
+description = "Change the root tsconfig: every package reads $workspace."
+[[scenarios.replace]]
+path = "tsconfig.base.json"
+find = "\"strict\": true,"
+replace = "\"strict\": true,\n    \"noUncheckedIndexedAccess\": true,"
+
+[[scenarios]]
+name = "lockfile"
+description = "Change the pnpm lockfile: every package reads $lockfile."
+[[scenarios.replace]]
+path = "pnpm-lock.yaml"
+find = "        version: 18.3.1"
+replace = "        version: 18.3.2"
+
+[[scenarios]]
+name = "postinstall"
+description = "Add a postinstall script to @shop/api-client: its build is no longer a function of its files."
+[[scenarios.replace]]
+path = "packages/api-client/package.json"
+find = "  \"main\": \"src/index.ts\","
+replace = "  \"main\": \"src/index.ts\",\n  \"scripts\": { \"postinstall\": \"node scripts/fetch-schema.js\" },"
+
+[[scenarios]]
+name = "api-client-data"
+description = "Edit a JSON data file inside @shop/api-client: owned by the package, not its interface."
+[[scenarios.replace]]
+path = "packages/api-client/src/fixtures/orders.json"
+find = "\"cents\": 500"
+replace = "\"cents\": 750"
+
+[[scenarios]]
+name = "readme"
+description = "Edit the root README and a package README: ignored."
+[[scenarios.replace]]
+path = "README.md"
+find = "It is read from git only"
+replace = "It is only ever read from git"
+[[scenarios.replace]]
+path = "packages/utils/README.md"
+find = "Price formatting"
+replace = "Price and currency formatting"
+
+[[scenarios]]
+name = "prettier"
+description = "Edit the Prettier configuration: tracked, but outside the build."
+[[scenarios.replace]]
+path = ".prettierrc"
+find = "\"semi\": true"
+replace = "\"semi\": true, \"printWidth\": 100"
+
+[[scenarios]]
+name = "new-root-script"
+description = "Add a script outside every package: assumed to affect the whole build."
+[[scenarios.write]]
+path = "scripts/release.mjs"
+content = "console.log(\"release\");\n"

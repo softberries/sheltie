@@ -13,6 +13,9 @@ Sample repositories and scripted scenarios used by integration and snapshot test
 - `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
   footprints are in `crates/sheltie-cargo/tests/snapshots/` and
   `crates/sheltie-go/tests/snapshots/`.
+- `node-workspace/`: the four-package `shop` pnpm monorepo (`@shop/utils`, `@shop/ui`,
+  `@shop/api-client` and the `apps/web` Nx project), for `sheltie-node`.
+  `crates/sheltie-node/tests/snapshots/`.
 
 Planned for M4–M5: `Cargo.lock` and registry-file conflicts between PRs, and a seeded bad commit.
 

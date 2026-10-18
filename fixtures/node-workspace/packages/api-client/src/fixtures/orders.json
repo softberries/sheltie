@@ -1,0 +1,4 @@
+[
+  { "id": "o-1", "total": { "cents": 1999, "currency": "EUR" } },
+  { "id": "o-2", "total": { "cents": 500, "currency": "USD" } }
+]

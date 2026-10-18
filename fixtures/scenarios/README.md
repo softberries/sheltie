@@ -5,6 +5,10 @@ of the fixture's adapter (`crates/sheltie-cargo/tests/scenarios.rs` for `cargo-*
 `crates/sheltie-go/tests/scenarios.rs` for `go-*`) commits the fixture as the base, applies
 one scenario as the head commit, computes the footprint and compares it with the snapshot in
 that crate's `tests/snapshots/`.
+(`crates/sheltie-cargo/tests/scenarios.rs`, or `crates/sheltie-node/tests/scenarios.rs` for
+`node-workspace`) commits the fixture as the base, applies one
+scenario as the head commit, computes the footprint and compares it with the snapshot in that
+crate's `tests/snapshots/`.
 
 A scenario has a `name`, a `description` and any number of edits:
 
