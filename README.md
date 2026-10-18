@@ -5,7 +5,10 @@
 <h1 align="center">Sheltie</h1>
 
 <p align="center"><b>A parallel merge engine for agent-generated pull requests.</b><br>
-<a href="https://sheltie.dev">sheltie.dev</a> · <a href="https://sheltie.dev/docs/">Docs</a> · <a href="https://sheltie.dev/docs/self-hosting.html">Self-hosting</a></p>
+<a href="https://sheltie.dev">sheltie.dev</a> · <a href="https://sheltie.dev/#video">Video</a> · <a href="https://sheltie.dev/docs/">Docs</a> · <a href="https://sheltie.dev/docs/self-hosting.html">Self-hosting</a></p>
+
+<p align="center"><a href="https://sheltie.dev/#video"><img src="site/assets/video/sheltie-explainer.jpg" width="640" alt="Sheltie explainer video"></a><br>
+<a href="https://sheltie.dev/#video">▶ Watch the explainer (3:29)</a>: footprints, parallel landing, conflict tiers, a real conflict re-derived from its intent, the dashboard and the ROI report.</p>
 
 Coding agents open more pull requests than a one-at-a-time merge queue can land. Sheltie runs as
 a GitHub App next to your existing CI. It computes a *footprint* for every pull request (which
