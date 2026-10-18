@@ -180,7 +180,7 @@ jobs:
           sheltie-merge replay --mode "$MODE" --pr "$PR" --onto "$ONTO" --head "$HEAD" \
             --pr-body-file "$RUNNER_TEMP/body" \
             --message-file "$RUNNER_TEMP/message" --out "$RUNNER_TEMP/report.json"
-          jq '{tier, result, checks, cost_usd, turns, error}' "$RUNNER_TEMP/report.json"
+          jq '{tier, result, checks, cost_usd, turns, tokens, error}' "$RUNNER_TEMP/report.json"
           mkdir -p "$RUNNER_TEMP/out"
           cp "$RUNNER_TEMP/report.json" "$RUNNER_TEMP/out/"
           result=$(jq -r '.result // empty' "$RUNNER_TEMP/report.json")

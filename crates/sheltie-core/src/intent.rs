@@ -116,6 +116,38 @@ pub struct ReplayChecks {
     pub similarity: Score,
 }
 
+/// Tokens an agent run used, as the agent reported them.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TokenUsage {
+    /// Input tokens not read from or written to the prompt cache.
+    pub input: u64,
+    /// Output tokens.
+    pub output: u64,
+    /// Input tokens read from the prompt cache.
+    pub cache_read: u64,
+    /// Input tokens written to the prompt cache.
+    pub cache_write: u64,
+}
+
+impl TokenUsage {
+    /// Upper bound for each count in an upload; far above any real run.
+    pub const MAX: u64 = 10_000_000_000;
+
+    /// All tokens, input and output.
+    pub fn total(&self) -> u64 {
+        self.input
+            .saturating_add(self.output)
+            .saturating_add(self.cache_read)
+            .saturating_add(self.cache_write)
+    }
+
+    fn in_range(&self) -> bool {
+        [self.input, self.output, self.cache_read, self.cache_write]
+            .iter()
+            .all(|&n| n <= Self::MAX)
+    }
+}
+
 /// What the replay client reports after running the agent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReplayReport {
@@ -135,6 +167,9 @@ pub struct ReplayReport {
     pub cost_usd: f64,
     /// Agent turns used.
     pub turns: u32,
+    /// Tokens the agent used, when it reported them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokens: Option<TokenUsage>,
     /// Why the agent run failed, if it did.
     pub error: Option<String>,
 }
@@ -148,6 +183,9 @@ impl ReplayReport {
         }
         if !(self.cost_usd.is_finite() && self.cost_usd >= 0.0 && self.cost_usd < 10_000.0) {
             return fail("cost out of range");
+        }
+        if self.tokens.is_some_and(|t| !t.in_range()) {
+            return fail("token count out of range");
         }
         if self.error.as_ref().is_some_and(|e| e.len() > 2_000) {
             return fail("error too long");
@@ -221,5 +259,39 @@ mod tests {
         );
         let long = format!(r#"{{"task":"{}"}}"#, "x".repeat(limits::MAX_TASK + 1));
         assert!(Intent::from_description(&body(&long)).is_err());
+    }
+
+    fn report(extra: &str) -> ReplayReport {
+        serde_json::from_str(&format!(
+            r#"{{"pr":7,"head":"{h}","onto":"{o}","tier":"replay_full","result":null,
+                "checks":null,"cost_usd":0.5,"turns":3,"error":"failed"{extra}}}"#,
+            h = "a".repeat(40),
+            o = "b".repeat(40),
+        ))
+        .unwrap()
+    }
+
+    #[test]
+    fn reports_without_tokens_still_parse() {
+        let r = report("");
+        assert_eq!(r.tokens, None);
+        r.validate().unwrap();
+        assert!(!serde_json::to_string(&r).unwrap().contains("tokens"));
+    }
+
+    #[test]
+    fn token_counts_are_bounded() {
+        let r = report(r#","tokens":{"input":10,"output":20,"cache_read":300,"cache_write":40}"#);
+        let tokens = r.tokens.unwrap();
+        assert_eq!(tokens.total(), 370);
+        r.validate().unwrap();
+        let too_many = ReplayReport {
+            tokens: Some(TokenUsage {
+                output: TokenUsage::MAX + 1,
+                ..tokens
+            }),
+            ..r
+        };
+        assert!(too_many.validate().is_err());
     }
 }

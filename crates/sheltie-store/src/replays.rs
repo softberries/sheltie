@@ -45,6 +45,15 @@ pub enum ReplayReportOutcome {
     UnknownChange,
 }
 
+/// A [`sheltie_core::TokenUsage`] as stored.
+#[derive(Clone, Copy)]
+struct TokenRow {
+    input: i64,
+    output: i64,
+    cache_read: i64,
+    cache_write: i64,
+}
+
 impl Store {
     /// The change's intent, if its description has a valid one.
     pub async fn change_intent(&self, change_db_id: i64) -> Result<Option<Intent>, StoreError> {
@@ -141,9 +150,19 @@ impl Store {
             return Ok(ReplayReportOutcome::UnknownChange);
         };
         let error: Option<String> = report.error.as_ref().map(|e| e.chars().take(500).collect());
+        // Bounded by `TokenUsage::MAX`, so every count fits a BIGINT.
+        let db = |n: u64| i64::try_from(n).unwrap_or(i64::MAX);
+        let tokens = report.tokens.map(|t| TokenRow {
+            input: db(t.input),
+            output: db(t.output),
+            cache_read: db(t.cache_read),
+            cache_write: db(t.cache_write),
+        });
         sqlx::query(
             "UPDATE replay_runs SET reported_at = now(), result_sha = $2, checks_passed = $3,
-                 similarity = $4, cost_usd = $5, turns = $6, error = $7
+                 similarity = $4, cost_usd = $5, turns = $6, error = $7,
+                 input_tokens = $8, output_tokens = $9, cache_read_tokens = $10,
+                 cache_write_tokens = $11
              WHERE id = $1",
         )
         .bind(run)
@@ -153,6 +172,10 @@ impl Store {
         .bind(report.cost_usd)
         .bind(i32::try_from(report.turns).unwrap_or(i32::MAX))
         .bind(error)
+        .bind(tokens.map(|t| t.input))
+        .bind(tokens.map(|t| t.output))
+        .bind(tokens.map(|t| t.cache_read))
+        .bind(tokens.map(|t| t.cache_write))
         .execute(&self.pool)
         .await?;
         Ok(ReplayReportOutcome::Stored)
