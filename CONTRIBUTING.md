@@ -1,7 +1,7 @@
 # Contributing to Sheltie
 
-Thanks for your interest. Sheltie is early (0.x); the best place to start is
-[`docs/design.md`](docs/design.md) and the open issues for the current milestone.
+Thanks for your interest. Sheltie is early (0.x); the best place to start is the
+[documentation](https://sheltie.dev/docs/) and the open issues.
 
 ## Before you start
 
@@ -17,6 +17,19 @@ cp .env.example .env                                 # DATABASE_URL is also used
 docker compose -f deploy/docker-compose.yml up -d
 cargo build --workspace
 ```
+
+## Running the GitHub App locally
+
+1. Start Postgres and copy the env file as above.
+2. Register a development App: `scripts/register-github-app.py` (add `--org <org>` to register it
+   under an organization, `--name` if "Sheltie (dev)" is taken) and confirm it in the browser. The
+   script writes `sheltie-github-app.pem` (git-ignored), adds the `SHELTIE_GITHUB_*` settings to
+   `.env` and creates a smee.io channel for webhooks, unless you pass `--webhook-url`.
+3. In two terminals, forward webhooks and run the server:
+   `npx smee-client --url <channel> --target http://127.0.0.1:8080/webhooks/github` and
+   `cargo run -p sheltie-server`.
+4. Install the App on a test repository from the App's settings page and open a pull request. It
+   shows a **Sheltie** check, queued with the title "Waiting to be ready".
 
 ## Before opening a PR
 
@@ -39,12 +52,12 @@ All four must pass; CI runs the same checks plus an MSRV build. If you touch `de
 - **Dependencies:** add them to `[workspace.dependencies]` and explain why in the PR description.
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:` …).
 - **Changelog:** add user-visible changes to `CHANGELOG.md` under `Unreleased`.
-- **Design changes:** update `docs/design.md` in the same PR.
+- **Design changes:** describe the change and its reasoning in the issue or PR description.
 
 ## AI-assisted contributions
 
 Contributions written with coding agents are welcome; this project exists because of them. You are
-responsible for what you submit: review it, make sure it is tested, and follow [`CLAUDE.md`](CLAUDE.md).
+responsible for what you submit: review it, make sure it is tested, and follow the guidelines above.
 
 ## License of contributions
 

@@ -34,11 +34,9 @@ plane only does set arithmetic and talks to GitHub.
 Sheltie is early software (0.x). Start in *shadow mode*, where Sheltie only predicts what it
 would do and reports how often it would have been wrong, before letting it merge.
 
-Supported build tools: Cargo. sbt, Mill, Gradle, Bazel and Maven are on the
-[roadmap](roadmap.md).
+Supported build tools: Cargo. sbt, Mill, Gradle, Bazel and Maven are planned.
 
 ## Next
 
 - [Self-hosting](self-hosting.md): run your own Sheltie.
 - [Workflows](workflows.md): what to add to your repositories.
-- [Design](design.md): how and why it works.

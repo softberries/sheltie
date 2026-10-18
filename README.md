@@ -58,7 +58,7 @@ The documentation is at [sheltie.dev/docs](https://sheltie.dev/docs/):
 - [Merge rules](https://sheltie.dev/docs/merge-rules.html) and [intent replay](https://sheltie.dev/docs/intent-replay.html)
 - [Coordinating agents](https://sheltie.dev/docs/agents.html) (MCP server, issue leases)
 - [Dashboard](https://sheltie.dev/docs/dashboard.html), including the time-saved estimate
-- [Design](https://sheltie.dev/docs/design.html), [roadmap](https://sheltie.dev/docs/roadmap.html), [changelog](CHANGELOG.md)
+- [Changelog](CHANGELOG.md)
 
 Its source is in [`docs/`](docs/); build it locally with `mdbook build docs` (output in `target/book`).
 
@@ -83,8 +83,7 @@ cargo run -p sheltie-server                         # then: curl localhost:8080/
 ```
 
 To develop against a real GitHub App, follow "Running the GitHub App locally" in
-[docs/playground.md](docs/playground.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the
-workflow and [CLAUDE.md](CLAUDE.md) for the conventions used with Claude Code.
+[CONTRIBUTING.md](CONTRIBUTING.md), which also describes the workflow and conventions.
 
 ## License
 

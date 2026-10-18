@@ -19,7 +19,7 @@ pub struct Footprint {
     pub leaky: bool,
 }
 
-/// How two changes relate, per the conflict relation in `docs/design.md`.
+/// How two changes relate under the conflict relation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Relation {
     /// Both changes write the same target; git may not apply both.

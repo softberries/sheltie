@@ -5,8 +5,6 @@
 //! ([`check`]), and fast-forwards the branch from H to a merge commit of H and the change.
 //! A lost race (the branch moved) costs another [`check`], not a build. This crate holds the
 //! pure parts; the GitHub calls live in `sheltie-github`.
-//!
-//! See "Verification and commit protocol" in `docs/design.md`.
 
 use std::collections::BTreeSet;
 

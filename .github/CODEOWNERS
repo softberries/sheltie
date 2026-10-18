@@ -1,4 +1,4 @@
-# Security-sensitive paths require maintainer review (see CLAUDE.md).
+# Security-sensitive paths require maintainer review.
 *                                   @softberries
 /crates/sheltie-github/             @softberries
 /crates/sheltie-commit/             @softberries

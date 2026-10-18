@@ -1,6 +1,6 @@
 //! Merge mode (M4): act on the scheduler's decisions by landing changes on GitHub.
 //!
-//! Landing is the commit protocol from `docs/design.md`: read the head H, check the change
+//! Landing follows the commit protocol: read the head H, check the change
 //! against what landed since its base, merge it onto H on a work branch, and fast-forward the
 //! default branch from H to that merge commit. The fast-forward never forces, so if anything
 //! else moved the branch the attempt loses and is retried from the check.
