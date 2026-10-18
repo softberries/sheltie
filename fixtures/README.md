@@ -12,9 +12,11 @@ Sample repositories and scripted scenarios used by integration and snapshot test
   files (including an external `_test` package).
 - `node-workspace/`: the four-package `shop` pnpm monorepo (`@shop/utils`, `@shop/ui`,
   `@shop/api-client` and the `apps/web` Nx project), for `sheltie-node`.
+- `python-workspace/`: a uv workspace (`shop_core` with a `shop_core.cart` subpackage,
+  `shop_api`, the `shop_app` command line) with tests per project, for `sheltie-python`.
 - `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
   footprints are in each adapter's `tests/snapshots/` (`crates/sheltie-cargo`,
-  `crates/sheltie-go`, `crates/sheltie-node`, …).
+  `crates/sheltie-go`, `crates/sheltie-node`, `crates/sheltie-python`, …).
 
 Planned for M4–M5: `Cargo.lock` and registry-file conflicts between PRs, and a seeded bad commit.
 

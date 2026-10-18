@@ -1,0 +1,34 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a public method to Money: an interface change of shop_core.",
+  "footprint": {
+    "writes": [
+      "shop_core"
+    ],
+    "reads": [
+      "manage",
+      "shop_api",
+      "shop_app",
+      "shop_core",
+      "shop_core.cart",
+      "tests:app/tests",
+      "tests:packages/api/tests",
+      "tests:packages/core/tests"
+    ],
+    "tests": [
+      "manage",
+      "shop_api",
+      "shop_app",
+      "shop_core",
+      "shop_core.cart",
+      "tests:app/tests",
+      "tests:packages/api/tests",
+      "tests:packages/core/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

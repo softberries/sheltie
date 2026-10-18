@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in the shop_core.cart subpackage: independent of shop_core itself.",
+  "footprint": {
+    "writes": [
+      "shop_core.cart"
+    ],
+    "reads": [
+      "shop_core.cart"
+    ],
+    "tests": [
+      "shop_core.cart"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

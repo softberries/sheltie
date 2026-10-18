@@ -2630,6 +2630,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-python"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "globset",
+ "insta",
+ "serde",
+ "sheltie-adapter",
+ "sheltie-core",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-scheduler"
 version = "0.3.0"
 dependencies = [

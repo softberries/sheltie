@@ -1,0 +1,21 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change the private _round helper, signature included: not part of the interface.",
+  "footprint": {
+    "writes": [
+      "shop_core"
+    ],
+    "reads": [
+      "shop_core"
+    ],
+    "tests": [
+      "shop_core",
+      "tests:packages/core/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

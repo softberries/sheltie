@@ -1,0 +1,21 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in shop_app.cli.",
+  "footprint": {
+    "writes": [
+      "shop_app"
+    ],
+    "reads": [
+      "shop_app"
+    ],
+    "tests": [
+      "shop_app",
+      "tests:app/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

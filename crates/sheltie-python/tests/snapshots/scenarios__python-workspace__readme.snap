@@ -1,0 +1,14 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Documentation only: an empty footprint.",
+  "footprint": {
+    "writes": [],
+    "reads": [],
+    "tests": [],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -1,0 +1,143 @@
+# Scenarios for fixtures/python-workspace (the shop uv workspace: shop_core, shop_api, shop_app).
+
+independent = [
+    ["pricing-body", "cart-body", "auth-body", "app-body", "core-test"],
+    ["private-helper", "cart-body", "auth-body"],
+    # new-import adds a dependency on shop_core, so it reads shop_core and meets any change
+    # to it (private-helper) in a combined build; it still commutes with these.
+    ["new-import", "cart-body", "auth-body"],
+]
+
+[[scenarios]]
+name = "pricing-body"
+description = "Body-only change in shop_core.pricing: no other unit is affected."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "total = Money(net.cents * qty, net.currency)"
+replace = "total = Money(qty * net.cents, net.currency)"
+
+[[scenarios]]
+name = "price-signature"
+description = "New keyword parameter on the public price(): every unit importing shop_core reads it, and the units importing those (shop_app imports shop_api, whose interface folds in shop_core's)."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "def price(net: Money, qty: int = 1) -> Money:"
+replace = "def price(net: Money, qty: int = 1, *, rate: int = TAX_RATE) -> Money:"
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "return total + total.scaled(TAX_RATE)"
+replace = "return total + total.scaled(rate)"
+
+[[scenarios]]
+name = "private-helper"
+description = "Change the private _round helper, signature included: not part of the interface."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "def _round(value: float) -> int:\n    return int(value + 0.5)"
+replace = "def _round(value: float, digits: int = 0) -> int:\n    return int(round(value, digits))"
+
+[[scenarios]]
+name = "tax-rate"
+description = "Change a public module constant: an interface change."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "TAX_RATE = 20"
+replace = "TAX_RATE = 21"
+
+[[scenarios]]
+name = "money-method"
+description = "Add a public method to Money: an interface change of shop_core."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/pricing.py"
+find = "    def scaled(self, pct: int) -> Money:"
+replace = "    def is_zero(self) -> bool:\n        return self.cents == 0\n\n    def scaled(self, pct: int) -> Money:"
+
+[[scenarios]]
+name = "cart-body"
+description = "Body-only change in the shop_core.cart subpackage: independent of shop_core itself."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/cart/__init__.py"
+find = "result = result + price(net, qty)"
+replace = "result += price(net, qty)"
+
+[[scenarios]]
+name = "auth-body"
+description = "Body-only change in shop_api.auth."
+[[scenarios.replace]]
+path = "packages/api/src/shop_api/auth.py"
+find = "raise PermissionError(f\"token lacks scope {scope!r}\")"
+replace = "raise PermissionError(f\"token lacks the {scope!r} scope\")"
+
+[[scenarios]]
+name = "app-body"
+description = "Body-only change in shop_app.cli."
+[[scenarios.replace]]
+path = "app/shop_app/cli.py"
+find = "qty = int(args[1]) if len(args) > 1 else 1"
+replace = "qty = int(args[1]) if args[1:] else 1"
+
+[[scenarios]]
+name = "new-import"
+description = "shop_app starts importing shop_core directly: the change reads shop_core (a new dependency), and shop_app's interface now folds in shop_core's, so units importing shop_app read it too."
+[[scenarios.replace]]
+path = "app/shop_app/cli.py"
+find = "import shop_api\n"
+replace = "import shop_api\nfrom shop_core import Money\n"
+[[scenarios.replace]]
+path = "app/shop_app/cli.py"
+find = "net = int(args[0])"
+replace = "net = Money(int(args[0])).cents"
+
+[[scenarios]]
+name = "core-test"
+description = "Add a test in packages/core/tests: only that test unit."
+[[scenarios.replace]]
+path = "packages/core/tests/test_pricing.py"
+find = "def test_quantity():"
+replace = "def test_zero():\n    assert price(Money(0)) == Money(0)\n\n\ndef test_quantity():"
+
+[[scenarios]]
+name = "init-reexport"
+description = "shop_core/__init__.py re-exports one more name: an interface change of shop_core."
+[[scenarios.replace]]
+path = "packages/core/src/shop_core/__init__.py"
+find = "from .pricing import Money, price"
+replace = "from .pricing import TAX_RATE, Money, price"
+
+[[scenarios]]
+name = "root-pyproject"
+description = "Change the root pyproject.toml: every unit reads $workspace."
+[[scenarios.replace]]
+path = "pyproject.toml"
+find = "testpaths = [\"packages\", \"app\"]"
+replace = "testpaths = [\"packages\", \"app\"]\naddopts = \"-q\""
+
+[[scenarios]]
+name = "uv-lock"
+description = "Change uv.lock: every unit reads $lockfile."
+[[scenarios.replace]]
+path = "uv.lock"
+find = "requires-python = \">=3.11\""
+replace = "requires-python = \">=3.12\""
+
+[[scenarios]]
+name = "data-file"
+description = "Add a data file inside the shop_core.cart package: owned by nobody, so leaky within the package and its readers."
+[[scenarios.write]]
+path = "packages/core/src/shop_core/cart/discounts.json"
+content = "{\"WINTER\": 10}\n"
+
+[[scenarios]]
+name = "readme"
+description = "Documentation only: an empty footprint."
+[[scenarios.replace]]
+path = "README.md"
+find = "`uv run --with pytest pytest` must pass."
+replace = "`uv run --with pytest pytest` must pass on `main`."
+
+[[scenarios]]
+name = "ruff-config"
+description = "Add ruff.toml, a plain file: tracked, not leaky."
+[[scenarios.write]]
+path = "ruff.toml"
+content = "line-length = 100\n"
