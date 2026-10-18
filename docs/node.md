@@ -61,6 +61,11 @@ change inside a function body does not reach dependents. When it cannot (for exa
 `export const f = memo((props) => { … })`), the whole statement counts. Objects of functions
 (`export const api = { get() { … } }`) also count whole.
 
+A package's interface also folds in the interfaces of the workspace packages it depends on,
+because its exports may use their types: an interface change in `@acme/utils` reaches
+`@acme/ui`, which depends on it, and the apps that depend on `@acme/ui`. A change that adds a
+dependency reads the new dependency.
+
 The rule throughout is to include more when unsure. An extra line in the interface only
 makes a footprint wider; a missing one would hide a real conflict.
 
@@ -95,9 +100,6 @@ A footprint is leaky when the build may depend on more than the files Sheltie se
 - It does not run TypeScript. The interface is read line by line; an unusual construct is
   counted whole rather than missed, and a file whose brackets do not balance (for example
   because of a regular expression containing `{`) counts whole.
-- Types re-exported from a dependency are not followed further: if `@acme/ui` exposes a
-  type from `@acme/utils` and that type changes, packages that depend on `@acme/ui` but not on
-  `@acme/utils` are not affected by the change.
 - Data files inside a package (`src/fixtures/orders.json`) belong to the package but are not
   part of its interface, even when a module re-exports them.
 - A package's own `tsconfig.json`, bundler and test configuration belong to the package but

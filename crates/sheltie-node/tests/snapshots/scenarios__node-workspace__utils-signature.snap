@@ -3,7 +3,7 @@ source: crates/sheltie-node/tests/scenarios.rs
 expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
 ---
 {
-  "description": "Exported signature change in @shop/utils: its direct dependents ui and api-client read it.",
+  "description": "Exported signature change in @shop/utils: its dependents ui and api-client read it, and so does web, which depends on them.",
   "footprint": {
     "writes": [
       "@shop/utils"
@@ -11,12 +11,14 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
     "reads": [
       "@shop/api-client",
       "@shop/ui",
-      "@shop/utils"
+      "@shop/utils",
+      "@shop/web"
     ],
     "tests": [
       "@shop/api-client",
       "@shop/ui",
-      "@shop/utils"
+      "@shop/utils",
+      "@shop/web"
     ],
     "leaky": false
   },

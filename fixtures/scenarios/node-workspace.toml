@@ -24,7 +24,7 @@ replace = "  return value < 0 ? -Math.round(-value) : Math.round(value);"
 
 [[scenarios]]
 name = "utils-signature"
-description = "Exported signature change in @shop/utils: its direct dependents ui and api-client read it."
+description = "Exported signature change in @shop/utils: its dependents ui and api-client read it, and so does web, which depends on them."
 [[scenarios.replace]]
 path = "packages/utils/src/price.ts"
 find = "export function formatPrice(cents: number, currency: Currency): string {"
@@ -32,7 +32,7 @@ replace = "export function formatPrice(cents: number, currency: Currency, locale
 
 [[scenarios]]
 name = "utils-type"
-description = "Add a member to an exported type in @shop/utils."
+description = "Add a member to an exported type in @shop/utils: an interface change reaching every package that depends on it, directly or not."
 [[scenarios.replace]]
 path = "packages/utils/src/money.ts"
 find = "export type Currency = \"EUR\" | \"USD\" | \"PLN\";"
@@ -64,7 +64,7 @@ replace = "export type { PriceTagProps } from \"./PriceTag\";\nexport * from \"@
 
 [[scenarios]]
 name = "ui-new-dependency"
-description = "@shop/ui starts depending on @shop/api-client: a new edge, and an interface change (dependencies are published) that reaches the web app."
+description = "@shop/ui starts depending on @shop/api-client: the change reads api-client (a new dependency), and changes ui's interface (dependencies are published), which reaches the web app."
 [[scenarios.replace]]
 path = "packages/ui/package.json"
 find = "    \"@shop/utils\": \"workspace:*\","
