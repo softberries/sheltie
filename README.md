@@ -5,7 +5,7 @@
 <h1 align="center">Sheltie</h1>
 
 <p align="center"><b>A parallel merge engine for agent-generated pull requests.</b><br>
-<a href="https://sheltie.dev">sheltie.dev</a> · <a href="docs/introduction.md">Docs</a> · <a href="docs/self-hosting.md">Self-hosting</a></p>
+<a href="https://sheltie.dev">sheltie.dev</a> · <a href="https://sheltie.dev/docs/">Docs</a> · <a href="https://sheltie.dev/docs/self-hosting.html">Self-hosting</a></p>
 
 Coding agents open more pull requests than a one-at-a-time merge queue can land. Sheltie runs as
 a GitHub App next to your existing CI. It computes a *footprint* for every pull request (which
@@ -47,17 +47,20 @@ curl -s localhost:8080/healthz                                       # {"status"
 
 Then put a TLS reverse proxy in front of port 8080, install the App on your repositories, and
 add the footprint workflow. The full guide, including Kubernetes (Helm), is
-[docs/self-hosting.md](docs/self-hosting.md).
+[Self-hosting](https://sheltie.dev/docs/self-hosting.html).
 
 ## Documentation
 
-- [Self-hosting](docs/self-hosting.md) and [configuration](docs/configuration.md)
-- [Workflows](docs/workflows.md) to add to your repositories
-- [Merge rules](docs/merge-rules.md) and [intent replay](docs/intent-replay.md)
-- [Coordinating agents](docs/agents.md) (MCP server, issue leases)
-- [Design](docs/design.md), [roadmap](docs/roadmap.md), [changelog](CHANGELOG.md)
+The documentation is at [sheltie.dev/docs](https://sheltie.dev/docs/):
 
-Build the docs as a site with `mdbook build docs` (output in `target/book`).
+- [Self-hosting](https://sheltie.dev/docs/self-hosting.html) and [configuration](https://sheltie.dev/docs/configuration.html)
+- [Workflows](https://sheltie.dev/docs/workflows.html) to add to your repositories
+- [Merge rules](https://sheltie.dev/docs/merge-rules.html) and [intent replay](https://sheltie.dev/docs/intent-replay.html)
+- [Coordinating agents](https://sheltie.dev/docs/agents.html) (MCP server, issue leases)
+- [Dashboard](https://sheltie.dev/docs/dashboard.html), including the time-saved estimate
+- [Design](https://sheltie.dev/docs/design.html), [roadmap](https://sheltie.dev/docs/roadmap.html), [changelog](CHANGELOG.md)
+
+Its source is in [`docs/`](docs/); build it locally with `mdbook build docs` (output in `target/book`).
 
 ## Supported build tools
 
