@@ -6,11 +6,6 @@ of the fixture's adapter (`crates/sheltie-<tool>/tests/scenarios.rs`: `sheltie-c
 `python-*`, `sheltie-maven` for `maven-*`, `sheltie-gradle` for `gradle-*`) commits the
 fixture as the base, applies one scenario as the head commit, computes the footprint and
 compares it with the snapshot in that crate's `tests/snapshots/`.
-Each `<fixture>.toml` lists scripted changes to a fixture in `fixtures/`. The adapter's test
-harness (`crates/sheltie-cargo/tests/scenarios.rs` for `cargo-*`,
-`crates/sheltie-python/tests/scenarios.rs` for `python-*`) commits the fixture as the base,
-applies one scenario as the head commit, computes the footprint and compares it with the
-snapshot in that crate's `tests/snapshots/`.
 
 A scenario has a `name`, a `description` and any number of edits:
 
