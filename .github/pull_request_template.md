@@ -17,4 +17,3 @@
 - [ ] `CHANGELOG.md` updated under `Unreleased` (if user-visible)
 - [ ] New dependencies justified below and pass `cargo deny check`
 - [ ] No secrets, tokens or private repository content added
-- [ ] `docs/design.md` updated if the design changed

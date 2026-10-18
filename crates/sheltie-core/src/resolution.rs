@@ -8,8 +8,7 @@ use crate::score::Score;
 text_enum! {
     /// The merge-engine tier that resolved a conflict, cheapest first.
     ///
-    /// See "Merge engine" in `docs/design.md`. Variants are ordered by cost, so comparisons
-    /// read as "cheaper than".
+    /// Variants are ordered by cost, so comparisons read as "cheaper than".
     #[derive(PartialOrd, Ord)]
     pub enum ResolutionTier {
         /// Tier 0: independent footprints; nothing to resolve.

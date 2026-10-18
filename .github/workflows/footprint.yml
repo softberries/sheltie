@@ -18,7 +18,7 @@
 #       with:
 #         sheltie-url: https://sheltie.example.com
 #
-# The control plane never runs build tools; this job runs on your runner (see docs/design.md).
+# The control plane never runs build tools; this job runs on your runner.
 name: Sheltie footprint
 
 on:

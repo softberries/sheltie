@@ -6,8 +6,6 @@ use crate::ids::{ChangeId, CommitSha};
 
 text_enum! {
     /// How strongly a commit on the target branch is known to be green.
-    ///
-    /// See "Guarantee tiers on `main`" in `docs/design.md`.
     pub enum GuaranteeTier {
         /// Landed under the commutativity rule: verified on a base whose later changes
         /// don't touch its read set.

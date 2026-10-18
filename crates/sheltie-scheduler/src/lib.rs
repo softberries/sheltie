@@ -5,8 +5,6 @@
 //! each change: land now, reverify some targets, go to the merge engine, or be built together
 //! with its conflicting neighbours. The function is pure; the server runs it on a timer and,
 //! in shadow mode (M3), only records and displays the decisions.
-//!
-//! See "Scheduler" and "Verification and commit protocol" in `docs/design.md`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Debug;

@@ -4,8 +4,6 @@
 //! its targets, which files each target owns, which targets read which, interface hashes,
 //! covering tests and hermeticity. [`footprint`] compares the snapshots of a change's base and
 //! head trees and returns its write and read sets. This crate is pure and deterministic.
-//!
-//! See "Footprint analysis" in `docs/design.md`.
 
 use std::collections::{BTreeMap, BTreeSet};
 

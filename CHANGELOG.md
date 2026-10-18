@@ -118,7 +118,6 @@ The first public release.
   migrations always go through the merge engine and are renumbered instead of both landing.
 - `demo/cargo-shop`: the demo project and its pull request generator.
 - `deploy/Dockerfile` takes a `BUILD_JOBS` build argument to cap compile jobs on shared hosts.
-- `deploy/demo/`: deployment files and runbook for the public demo instance.
 - Dashboard: a "Time saved" panel per repository and totals on the overview. Waiting time is
   measured against a one-at-a-time merge queue simulated from real ready times and the median
   measured CI time on the default branch; author time counts resolved conflicts at assumed

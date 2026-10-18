@@ -6,8 +6,6 @@
 //! A test must fail twice to count: a lone red tip is confirmed by running its CI again
 //! (probe), and a red followed by green is treated as flaky and not reverted. This crate is
 //! pure; the server does the GitHub calls.
-//!
-//! See "Sweeps" and "Culprit finding" in `docs/design.md`.
 
 /// What CI says about one commit, reduced to what culprit finding needs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

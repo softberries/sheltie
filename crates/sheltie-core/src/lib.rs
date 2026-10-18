@@ -1,8 +1,7 @@
 //! Domain types for Sheltie: changes, footprints, verifications, resolutions and head events.
 //!
 //! This crate is pure: no I/O, no async, no external services. Everything here must be
-//! deterministic so it can be unit- and property-tested. See `docs/design.md`, "Core model"
-//! and "Data model and APIs".
+//! deterministic so it can be unit- and property-tested.
 
 /// Defines a fieldless enum with a stable `snake_case` text form, used for serde and storage.
 ///
