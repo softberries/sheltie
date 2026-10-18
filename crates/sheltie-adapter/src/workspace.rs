@@ -3,7 +3,11 @@
 //! Tools whose build graph can be read from their manifests and sources describe each tree
 //! as a [`Workspace`]; [`assemble`] turns it into a [`GraphSnapshot`]:
 //!
-//! - one target per [`Unit`], reading the units it depends on through their public interface;
+//! - one target per [`Unit`], reading the units it depends on through their public interface.
+//!   A unit's interface hash folds in the interfaces of the units it reads: line-based
+//!   adapters cannot tell which dependency types a unit's own API exposes, so an interface
+//!   change reaches dependents of dependents too (pessimistic; body-only changes still stay
+//!   local);
 //! - `$workspace`, owning workspace-wide configuration, read by every unit;
 //! - `$lockfile`, owning dependency lockfiles, read by every unit through its public
 //!   interface (so a lockfile change affects everything: coarse, but never missed);
@@ -98,7 +102,12 @@ pub fn assemble(
             .map(|p| format!("{p}={}", files.oid(p.as_str()).map_or("-", String::as_str)))
             .collect()
     };
+    let effective = effective_ifaces(ws);
     for unit in &ws.units {
+        let iface = effective
+            .get(&unit.id)
+            .cloned()
+            .unwrap_or_else(|| unit.public_iface.clone());
         let mut reads: BTreeMap<TargetId, EdgeKind> = unit
             .reads
             .iter()
@@ -113,8 +122,8 @@ pub fn assemble(
             unit.id.clone(),
             Target {
                 zone: Zone::Group(unit.id.as_str().to_owned()),
-                iface: IfaceHash(unit.public_iface.clone()),
-                public_iface: IfaceHash(unit.public_iface.clone()),
+                iface: IfaceHash(iface.clone()),
+                public_iface: IfaceHash(iface),
                 reads,
                 tests: unit.tests.clone(),
                 hermetic: unit.leaks.is_empty(),
@@ -189,6 +198,47 @@ pub fn assemble(
         snapshot.owners.entry(path.clone()).or_default().insert(id);
     }
     snapshot
+}
+
+/// Each unit's interface hash with the (effective) interfaces of the units it reads folded
+/// in. In a dependency cycle, the edge that closes it contributes the unit's own hash.
+fn effective_ifaces(ws: &Workspace) -> BTreeMap<TargetId, String> {
+    let units: BTreeMap<&TargetId, &Unit> = ws.units.iter().map(|u| (&u.id, u)).collect();
+    let mut done: BTreeMap<TargetId, String> = BTreeMap::new();
+    fn visit(
+        id: &TargetId,
+        units: &BTreeMap<&TargetId, &Unit>,
+        done: &mut BTreeMap<TargetId, String>,
+        visiting: &mut BTreeSet<TargetId>,
+    ) -> Option<String> {
+        if let Some(h) = done.get(id) {
+            return Some(h.clone());
+        }
+        let unit = units.get(id)?;
+        if !visiting.insert(id.clone()) {
+            return Some(unit.public_iface.clone());
+        }
+        let mut parts = vec![unit.public_iface.clone()];
+        for dep in &unit.reads {
+            if dep != id
+                && let Some(h) = visit(dep, units, done, visiting)
+            {
+                parts.push(format!("{dep}={h}"));
+            }
+        }
+        visiting.remove(id);
+        let h = if parts.len() == 1 {
+            unit.public_iface.clone()
+        } else {
+            hash_parts(&parts)
+        };
+        done.insert(id.clone(), h.clone());
+        Some(h)
+    }
+    for id in units.keys() {
+        visit(id, &units, &mut done, &mut BTreeSet::new());
+    }
+    done
 }
 
 /// Why a leaky footprint is leaky: the leaks of the units it reads, and changed paths
@@ -300,10 +350,22 @@ mod tests {
     fn interface_changes_reach_dependents_transitively() {
         let f = footprint(&ws("core-1"), &ws("core-2"), &["core/a.go"]);
         assert_eq!(ids(&f.writes), ["core"]);
-        // api reads core and its interface changed; web reads api, whose interface did not.
-        assert_eq!(ids(&f.reads), ["api", "core"]);
+        // api reads core; web reads api, which may expose core's types in its own API.
+        assert_eq!(ids(&f.reads), ["api", "core", "web"]);
         assert!(!f.leaky);
-        assert_eq!(f.tests.len(), 2);
+        assert_eq!(f.tests.len(), 3);
+    }
+
+    #[test]
+    fn dependency_cycles_terminate() {
+        let mut w = ws("core-1");
+        w.units[0].reads.insert(TargetId::new("web"));
+        let mut h = w.clone();
+        h.units[0].public_iface = "core-2".into();
+        let f = footprint(&w, &h, &["core/a.go"]);
+        assert_eq!(ids(&f.reads), ["api", "core", "web"]);
+        let f = footprint(&w, &w, &["core/a.go"]);
+        assert_eq!(ids(&f.reads), ["core"]);
     }
 
     #[test]
