@@ -8,7 +8,8 @@
 //! - `$lockfile`, owning dependency lockfiles, read by every unit through its public
 //!   interface (so a lockfile change affects everything: coarse, but never missed);
 //! - for changed files nobody owns: `<unit>/files` (inside a unit's directory, not hermetic)
-//!   or `file:<path>` (elsewhere; hermetic only for plain files), as for Cargo.
+//!   or `file:<path>` (plain files anywhere, and other files outside every unit; hermetic only
+//!   for plain files), as for Cargo.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -160,7 +161,14 @@ pub fn assemble(
         {
             continue;
         }
-        let (id, target) = match ws.unit_of(path.as_str()) {
+        // Plain files stay plain even inside a unit's directory (a root package owns every
+        // path, `.github/**` included).
+        let unit = if policy.is_plain(path) {
+            None
+        } else {
+            ws.unit_of(path.as_str())
+        };
+        let (id, target) = match unit {
             Some(unit) => (
                 TargetId::new(format!("{}/files", unit.id)),
                 special(
@@ -343,6 +351,22 @@ mod tests {
                 "scripts/x.sh is outside the module graph"
             ]
         );
+    }
+
+    #[test]
+    fn plain_files_stay_plain_under_a_root_unit() {
+        let w = Workspace {
+            units: vec![unit("app", "", &["main.go"], &[], "a")],
+            ..Workspace::default()
+        };
+        let files = tree(&["main.go", ".github/ci.yml", "data.json"]);
+        let changed: BTreeSet<RepoPath> =
+            [RepoPath::new(".github/ci.yml"), RepoPath::new("data.json")].into();
+        let s = assemble(&files, &w, &policy(), &changed);
+        let owner = |p: &str| ids(&s.owners[&RepoPath::new(p)]).join(",");
+        assert_eq!(owner(".github/ci.yml"), "file:.github/ci.yml");
+        assert!(s.targets[&TargetId::new("file:.github/ci.yml")].hermetic);
+        assert_eq!(owner("data.json"), "app/files");
     }
 
     #[test]
