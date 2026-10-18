@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change cart's external test package only: cart's tests run, nothing else.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/cart"
+    ],
+    "reads": [
+      "example.com/shop/cart"
+    ],
+    "tests": [
+      "example.com/shop/cart"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -2579,6 +2579,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-go"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "insta",
+ "serde",
+ "sheltie-adapter",
+ "sheltie-core",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-graph"
 version = "0.3.0"
 dependencies = [

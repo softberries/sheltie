@@ -1,0 +1,17 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: owners
+---
+[
+  "cart/cart.go -> example.com/shop/cart",
+  "cart/cart_test.go -> example.com/shop/cart",
+  "cmd/shop/main.go -> example.com/shop/cmd/shop",
+  "go.mod -> $workspace",
+  "go.sum -> $lockfile",
+  "internal/util/util.go -> example.com/shop/internal/util",
+  "invoice/invoice.go -> example.com/shop/invoice",
+  "pricing/pricing.go -> example.com/shop/pricing",
+  "pricing/pricing_test.go -> example.com/shop/pricing",
+  "search/search.go -> example.com/shop/search",
+  "search/search_test.go -> example.com/shop/search"
+]

@@ -1,9 +1,10 @@
 # Footprint scenarios
 
 Each `<fixture>.toml` lists scripted changes to a fixture in `fixtures/`. The test harness
-(`crates/sheltie-cargo/tests/scenarios.rs`) commits the fixture as the base, applies one
-scenario as the head commit, computes the footprint and compares it with the snapshot in
-`crates/sheltie-cargo/tests/snapshots/`.
+of the fixture's adapter (`crates/sheltie-cargo/tests/scenarios.rs` for `cargo-*`,
+`crates/sheltie-go/tests/scenarios.rs` for `go-*`) commits the fixture as the base, applies
+one scenario as the head commit, computes the footprint and compares it with the snapshot in
+that crate's `tests/snapshots/`.
 
 A scenario has a `name`, a `description` and any number of edits:
 

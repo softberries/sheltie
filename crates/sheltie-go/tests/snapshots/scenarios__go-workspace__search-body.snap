@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in search.Find.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/search"
+    ],
+    "reads": [
+      "example.com/shop/search"
+    ],
+    "tests": [
+      "example.com/shop/search"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

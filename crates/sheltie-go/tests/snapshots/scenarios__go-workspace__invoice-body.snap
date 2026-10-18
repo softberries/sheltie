@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-go/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in invoice.Render.",
+  "footprint": {
+    "writes": [
+      "example.com/shop/invoice"
+    ],
+    "reads": [
+      "example.com/shop/invoice"
+    ],
+    "tests": [
+      "example.com/shop/invoice"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
