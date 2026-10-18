@@ -65,7 +65,9 @@ pub struct GraphSnapshot {
 ///
 /// - W: the owners of every changed path, in either tree.
 /// - R: W, plus readers reached through changed interfaces: a reader of a target whose
-///   interface changed is visited, and its own interface is checked in turn. `extra_reads`
+///   interface changed is visited, and its own interface is checked in turn. Targets that a
+///   written target reads in head but not in base (dependencies the change adds) are in R
+///   too, without their tests. `extra_reads`
 ///   are added as visited (e.g. crates affected by a lockfile change).
 /// - Tests: the covering tests of every target in R.
 /// - Leaky: some visited target is not hermetic; R then also covers that target's zone and
@@ -88,7 +90,25 @@ pub fn footprint(
         unowned |= owners.is_empty();
         writes.extend(owners.into_iter().cloned());
     }
-    expand(base, head, writes, unowned, extra_reads)
+    let mut fp = expand(base, head, writes, unowned, extra_reads);
+    // A dependency the change adds is something it now reads: a concurrent change to that
+    // target's interface conflicts with it, although in the other change's trees nothing
+    // reads it yet. (Existing edges are covered from the other side: the other change's
+    // read set reaches this one's written targets.)
+    let added: BTreeSet<TargetId> = fp
+        .writes
+        .iter()
+        .filter_map(|w| head.targets.get(w).map(|t| (w, t)))
+        .flat_map(|(w, t)| {
+            let before = base.targets.get(w).map(|b| &b.reads);
+            t.reads
+                .keys()
+                .filter(move |r| before.is_none_or(|b| !b.contains_key(*r)))
+                .cloned()
+        })
+        .collect();
+    fp.reads.extend(added);
+    fp
 }
 
 /// R, tests and leakiness for a write set (see [`footprint`]).

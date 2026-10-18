@@ -75,6 +75,27 @@ fn implementation_change_stays_in_its_target() {
 }
 
 #[test]
+fn an_added_dependency_is_read() {
+    let base = base().target("c", "c1", &[]).build();
+    // b starts depending on c; c's tests need not run for it.
+    let mut head = base.clone();
+    head.targets
+        .get_mut(&id("b"))
+        .unwrap()
+        .reads
+        .insert(id("c"), EdgeKind::Public);
+    let fp = footprint(&base, &head, &changed(&["b.rs"]), &BTreeSet::new());
+    assert_eq!(fp.reads, ids(&["b", "c"]));
+    assert_eq!(fp.tests, BTreeSet::from([TestId::new("b#tests")]));
+    // A new target's dependencies are all added.
+    let head = Builder(base.clone())
+        .target("d", "d1", &[("a", EdgeKind::Public)])
+        .build();
+    let fp = footprint(&base, &head, &changed(&["d.rs"]), &BTreeSet::new());
+    assert_eq!(fp.reads, ids(&["a", "d"]));
+}
+
+#[test]
 fn interface_change_reaches_direct_readers_only() {
     let base = base().build();
     // tax's interface changes; invoice reads it but its own interface is unchanged.

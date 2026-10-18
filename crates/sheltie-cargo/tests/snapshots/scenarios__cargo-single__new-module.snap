@@ -10,9 +10,11 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
       "shop::discounts"
     ],
     "reads": [
+      "$workspace",
       "shop",
       "shop/test/checkout",
-      "shop::discounts"
+      "shop::discounts",
+      "shop::macros"
     ],
     "tests": [
       "shop/test/checkout"
