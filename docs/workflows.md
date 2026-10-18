@@ -29,11 +29,22 @@ jobs:
       sheltie-url: https://sheltie.example.com
 ```
 
-On pull requests it computes the footprint with `sheltie-cargo` and uploads it. On pushes to
-the default branch it uploads the build graph, which predicts footprints of issues (see
-[Coordinating agents](agents.md)).
+On pull requests it computes the footprint with the adapter for your [build
+tool](build-tools.md) and uploads it. On pushes to the default branch it uploads the build
+graph, which predicts footprints of issues (see [Coordinating agents](agents.md)).
 
-Files outside every crate are assumed to affect the whole build, so a change to one conflicts
+The adapter is picked from the files at the repository root: `Cargo.toml` (Cargo), `go.mod`
+or `go.work` (Go), `pom.xml` (Maven), `settings.gradle(.kts)` or `build.gradle(.kts)`
+(Gradle), `package.json` (JavaScript/TypeScript), `pyproject.toml`, `setup.py` or
+`setup.cfg` (Python), in that order. For a repository with several, set it:
+
+```yaml
+    with:
+      sheltie-url: https://sheltie.example.com
+      tool: node   # cargo, go, node, python, maven or gradle
+```
+
+Files outside every unit (crate, package, module) are assumed to affect the whole build, so a change to one conflicts
 with everything. Declare data files that do not, one glob per line:
 
 ```yaml

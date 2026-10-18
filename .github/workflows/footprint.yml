@@ -1,5 +1,6 @@
-# Reusable workflow: computes a pull request's footprint with sheltie-cargo and uploads it
-# to Sheltie, authenticated by a GitHub Actions OIDC token (no shared secret). On pushes to the
+# Reusable workflow: computes a pull request's footprint with the adapter for the repository's
+# build tool (sheltie-cargo, sheltie-go, sheltie-node, sheltie-python, sheltie-maven or
+# sheltie-gradle; detected unless `tool` is set) and uploads it to Sheltie, authenticated by a GitHub Actions OIDC token (no shared secret). On pushes to the
 # default branch it uploads the build graph instead, which Sheltie uses to predict the
 # footprints of issues before anyone works on them.
 #
@@ -34,7 +35,7 @@ on:
         type: string
         default: sheltie
       sheltie-ref:
-        description: Git ref of softberries/sheltie to build sheltie-cargo from.
+        description: Git ref of softberries/sheltie to build the adapter from.
         required: false
         type: string
         default: main
@@ -45,6 +46,14 @@ on:
         required: false
         type: string
         default: ""
+      tool:
+        description: >-
+          Build tool: cargo, go, node, python, maven or gradle. `auto` picks the first of those
+          whose files are at the repository root (Cargo.toml, go.mod/go.work, pom.xml,
+          settings.gradle(.kts)/build.gradle(.kts), package.json, pyproject.toml/setup.py).
+        required: false
+        type: string
+        default: auto
       sheltie-version:
         description: Release of Sheltie to download (e.g. v0.1.0); empty builds from sheltie-ref.
         required: false
@@ -72,7 +81,30 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check out sheltie-cargo
+      - name: Pick the adapter
+        id: tool
+        env:
+          TOOL: ${{ inputs.tool }}
+        run: |
+          tool="${TOOL:-auto}"
+          if [ "$tool" = auto ]; then
+            if [ -f Cargo.toml ]; then tool=cargo
+            elif [ -f go.mod ] || [ -f go.work ]; then tool=go
+            elif [ -f pom.xml ]; then tool=maven
+            elif ls settings.gradle settings.gradle.kts build.gradle build.gradle.kts >/dev/null 2>&1; then tool=gradle
+            elif [ -f package.json ]; then tool=node
+            elif [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then tool=python
+            else echo "::error::No supported build tool found at the repository root; set the 'tool' input."; exit 1
+            fi
+          fi
+          case "$tool" in
+            cargo|go|node|python|maven|gradle) ;;
+            *) echo "::error::Unsupported tool '$tool' (cargo, go, node, python, maven, gradle)"; exit 1 ;;
+          esac
+          echo "Using sheltie-$tool"
+          echo "bin=sheltie-$tool" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Sheltie
         if: inputs.sheltie-version == ''
         uses: actions/checkout@v7
         with:
@@ -88,10 +120,11 @@ jobs:
         if: inputs.sheltie-version == ''
         with:
           workspaces: .sheltie-src
-          key: sheltie-cargo
+          key: ${{ steps.tool.outputs.bin }}
 
-      - name: Install sheltie-cargo
+      - name: Install the adapter
         env:
+          BIN: ${{ steps.tool.outputs.bin }}
           SHELTIE_VERSION: ${{ inputs.sheltie-version }}
           GH_TOKEN: ${{ secrets.sheltie-repo-token || github.token }}
         run: |
@@ -109,13 +142,14 @@ jobs:
             gh release download "$SHELTIE_VERSION" -R softberries/sheltie -D "$dl" --clobber -p "$name.tar.gz" -p SHA256SUMS
             (cd "$dl" && grep " $name.tar.gz\$" SHA256SUMS | sha256sum --check -)
             tar -xzf "$dl/$name.tar.gz" -C "$dl"
-            install "$dl/$name/sheltie-cargo" "$RUNNER_TEMP/sheltie/bin/"
+            install "$dl/$name/$BIN" "$RUNNER_TEMP/sheltie/bin/"
           else
-            cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+            cargo install --locked --path ".sheltie-src/crates/$BIN" --root "$RUNNER_TEMP/sheltie"
           fi
 
       - name: Compute the footprint
         env:
+          BIN: ${{ steps.tool.outputs.bin }}
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
           PLAIN: ${{ inputs.plain }}
@@ -124,7 +158,7 @@ jobs:
           while IFS= read -r glob; do
             [ -n "$glob" ] && args+=(--plain "$glob")
           done <<< "$PLAIN"
-          "$RUNNER_TEMP/sheltie/bin/sheltie-cargo" footprint "${args[@]}" \
+          "$RUNNER_TEMP/sheltie/bin/$BIN" footprint "${args[@]}" \
             --base "$BASE" --head "$HEAD" --out "$RUNNER_TEMP/footprint.json"
           jq '{writes: .footprint.writes | length, reads: .footprint.reads | length, leaky: .footprint.leaky}' "$RUNNER_TEMP/footprint.json"
 
@@ -157,7 +191,30 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check out sheltie-cargo
+      - name: Pick the adapter
+        id: tool
+        env:
+          TOOL: ${{ inputs.tool }}
+        run: |
+          tool="${TOOL:-auto}"
+          if [ "$tool" = auto ]; then
+            if [ -f Cargo.toml ]; then tool=cargo
+            elif [ -f go.mod ] || [ -f go.work ]; then tool=go
+            elif [ -f pom.xml ]; then tool=maven
+            elif ls settings.gradle settings.gradle.kts build.gradle build.gradle.kts >/dev/null 2>&1; then tool=gradle
+            elif [ -f package.json ]; then tool=node
+            elif [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then tool=python
+            else echo "::error::No supported build tool found at the repository root; set the 'tool' input."; exit 1
+            fi
+          fi
+          case "$tool" in
+            cargo|go|node|python|maven|gradle) ;;
+            *) echo "::error::Unsupported tool '$tool' (cargo, go, node, python, maven, gradle)"; exit 1 ;;
+          esac
+          echo "Using sheltie-$tool"
+          echo "bin=sheltie-$tool" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Sheltie
         if: inputs.sheltie-version == ''
         uses: actions/checkout@v7
         with:
@@ -173,10 +230,11 @@ jobs:
         if: inputs.sheltie-version == ''
         with:
           workspaces: .sheltie-src
-          key: sheltie-cargo
+          key: ${{ steps.tool.outputs.bin }}
 
-      - name: Install sheltie-cargo
+      - name: Install the adapter
         env:
+          BIN: ${{ steps.tool.outputs.bin }}
           SHELTIE_VERSION: ${{ inputs.sheltie-version }}
           GH_TOKEN: ${{ secrets.sheltie-repo-token || github.token }}
         run: |
@@ -194,15 +252,17 @@ jobs:
             gh release download "$SHELTIE_VERSION" -R softberries/sheltie -D "$dl" --clobber -p "$name.tar.gz" -p SHA256SUMS
             (cd "$dl" && grep " $name.tar.gz\$" SHA256SUMS | sha256sum --check -)
             tar -xzf "$dl/$name.tar.gz" -C "$dl"
-            install "$dl/$name/sheltie-cargo" "$RUNNER_TEMP/sheltie/bin/"
+            install "$dl/$name/$BIN" "$RUNNER_TEMP/sheltie/bin/"
           else
-            cargo install --locked --path .sheltie-src/crates/sheltie-cargo --root "$RUNNER_TEMP/sheltie"
+            cargo install --locked --path ".sheltie-src/crates/$BIN" --root "$RUNNER_TEMP/sheltie"
           fi
 
       - name: Describe the build graph
+        env:
+          BIN: ${{ steps.tool.outputs.bin }}
         run: |
           rm -rf .sheltie-src
-          "$RUNNER_TEMP/sheltie/bin/sheltie-cargo" graph --rev "$GITHUB_SHA" > "$RUNNER_TEMP/snapshot.json"
+          "$RUNNER_TEMP/sheltie/bin/$BIN" graph --rev "$GITHUB_SHA" > "$RUNNER_TEMP/snapshot.json"
           jq -n --arg commit "$GITHUB_SHA" --slurpfile snapshot "$RUNNER_TEMP/snapshot.json" \
             '{commit: $commit, snapshot: $snapshot[0]}' > "$RUNNER_TEMP/graph.json"
           jq '{targets: .snapshot.targets | length, files: .snapshot.owners | length}' "$RUNNER_TEMP/graph.json"

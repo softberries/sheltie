@@ -21,13 +21,15 @@ resolves conflicts in escalating tiers:
 
 Before work starts, it also keeps agents off overlapping issues.
 
-> **Status: early (0.x).** Cargo is the supported build tool. Start in shadow mode, where Sheltie
-> only reports what it would do, before letting it merge.
+> **Status: early (0.x).** Supports Cargo, Go, JavaScript/TypeScript, Python, Maven and
+> Gradle. Start in shadow mode, where Sheltie only reports what it would do, before letting it
+> merge.
 
 ## How it works
 
 1. An agent opens a pull request; GitHub notifies Sheltie.
-2. An adapter (`sheltie-cargo`) runs on your CI runner and uploads the footprint.
+2. An adapter for your build tool (`sheltie-cargo`, `sheltie-go`, …) runs on your CI runner
+   and uploads the footprint.
 3. The scheduler lands independent pull requests in parallel. Conflicting ones are built
    speculatively together or sent to the merge engine.
 4. The committer checks that nothing that landed meanwhile touches the change, then
@@ -90,11 +92,19 @@ Its source is in [`docs/`](docs/); build it locally with `mdbook build docs` (ou
 
 ## Supported build tools
 
-| Build tool | Status |
-| --- | --- |
-| Cargo | Supported |
-| sbt, Mill, Gradle, Bazel (via BSP) | Planned |
-| Maven | Planned |
+| Build tool | Adapter | Unit | Interface |
+| --- | --- | --- | --- |
+| Cargo | `sheltie-cargo` | module | parsed with `syn` |
+| Go | `sheltie-go` | package | exported declarations |
+| JavaScript / TypeScript (npm, yarn, pnpm, Nx) | `sheltie-node` | workspace package | exports and types |
+| Python (uv, Poetry, setuptools) | `sheltie-python` | package | public signatures |
+| Maven | `sheltie-maven` | module | public Java/Kotlin API |
+| Gradle | `sheltie-gradle` | project | public Java/Kotlin API |
+| Bazel, sbt, Mill | | | planned |
+
+Except for Cargo, interfaces are read from declarations line by line, without a compiler:
+pessimistic, so they can see an interface change where there is none, never the reverse. See
+[Build tools](https://sheltie.dev/docs/build-tools.html).
 
 ## Development
 
