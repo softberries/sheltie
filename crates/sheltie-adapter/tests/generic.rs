@@ -140,13 +140,14 @@ fn ids(set: &BTreeSet<TargetId>) -> Vec<&str> {
 }
 
 #[test]
-fn interface_change_reaches_direct_dependents() {
+fn interface_change_reaches_dependents_transitively() {
     let r = change(
         &repo("toy-iface"),
         &[("core/api.txt", "fn total(currency)\n")],
     );
     assert_eq!(ids(&r.footprint.writes), ["core"]);
-    assert_eq!(ids(&r.footprint.reads), ["api", "core"]);
+    // web reads api, which may expose core's types.
+    assert_eq!(ids(&r.footprint.reads), ["api", "core", "web"]);
     assert_eq!(r.adapter, "sheltie-toy/0");
     assert!(r.diff_hash.as_str().starts_with("sha256:"));
 }
