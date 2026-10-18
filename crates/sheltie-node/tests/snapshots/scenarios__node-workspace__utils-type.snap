@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a member to an exported type in @shop/utils: an interface change reaching every package that depends on it, directly or not.",
+  "footprint": {
+    "writes": [
+      "@shop/utils"
+    ],
+    "reads": [
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

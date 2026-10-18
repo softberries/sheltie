@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a non-exported type in the web app: counted as interface, but nothing depends on the app.",
+  "footprint": {
+    "writes": [
+      "@shop/web"
+    ],
+    "reads": [
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

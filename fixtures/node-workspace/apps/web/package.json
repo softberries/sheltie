@@ -1,0 +1,10 @@
+{
+  "name": "@shop/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@shop/api-client": "workspace:*",
+    "@shop/ui": "workspace:*"
+  }
+}

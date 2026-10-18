@@ -1,0 +1,14 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit the root README and a package README: ignored.",
+  "footprint": {
+    "writes": [],
+    "reads": [],
+    "tests": [],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

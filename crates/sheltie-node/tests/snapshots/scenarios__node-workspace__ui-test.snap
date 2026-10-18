@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Edit a test of @shop/ui: only its own tests run.",
+  "footprint": {
+    "writes": [
+      "@shop/ui"
+    ],
+    "reads": [
+      "@shop/ui"
+    ],
+    "tests": [
+      "@shop/ui"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

@@ -1,0 +1,22 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Change a re-export in @shop/ui's entry point.",
+  "footprint": {
+    "writes": [
+      "@shop/ui"
+    ],
+    "reads": [
+      "@shop/ui",
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/ui",
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

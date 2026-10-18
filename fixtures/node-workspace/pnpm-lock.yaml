@@ -1,0 +1,42 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.6.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.4
+
+  apps/web:
+    dependencies:
+      '@shop/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@shop/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+
+  packages/api-client:
+    dependencies:
+      '@shop/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/ui:
+    dependencies:
+      '@shop/utils':
+        specifier: workspace:*
+        version: link:../utils
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+
+  packages/utils: {}

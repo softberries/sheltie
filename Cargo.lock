@@ -2616,6 +2616,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-node"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "globset",
+ "insta",
+ "serde",
+ "serde_json",
+ "sheltie-adapter",
+ "sheltie-core",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-scheduler"
 version = "0.3.0"
 dependencies = [

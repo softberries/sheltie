@@ -1,0 +1,31 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a script outside every package: assumed to affect the whole build.",
+  "footprint": {
+    "writes": [
+      "file:scripts/release.mjs"
+    ],
+    "reads": [
+      "$lockfile",
+      "$workspace",
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web",
+      "file:scripts/release.mjs"
+    ],
+    "tests": [
+      "@shop/api-client",
+      "@shop/ui",
+      "@shop/utils",
+      "@shop/web"
+    ],
+    "leaky": true
+  },
+  "leak_reasons": [
+    "scripts/release.mjs is outside the module graph"
+  ]
+}

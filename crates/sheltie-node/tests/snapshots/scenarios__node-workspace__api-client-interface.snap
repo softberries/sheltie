@@ -1,0 +1,22 @@
+---
+source: crates/sheltie-node/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a field to an exported interface of @shop/api-client: the web app reads it.",
+  "footprint": {
+    "writes": [
+      "@shop/api-client"
+    ],
+    "reads": [
+      "@shop/api-client",
+      "@shop/web"
+    ],
+    "tests": [
+      "@shop/api-client",
+      "@shop/web"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
