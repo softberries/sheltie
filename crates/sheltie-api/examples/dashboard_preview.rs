@@ -53,6 +53,57 @@ fn sample_capacity() -> Option<sheltie_store::Capacity> {
     sheltie_store::capacity(&footprints, sheltie_store::DEFAULT_CLEAN_SHARE)
 }
 
+/// Scorecards for three agents and the team.
+fn sample_scorecards() -> Vec<sheltie_store::Scorecard> {
+    use sheltie_store::{AgentKey, Scorecard};
+    #[allow(clippy::too_many_arguments)]
+    let card = |agent: &str,
+                model: Option<&str>,
+                prs,
+                merged,
+                closed,
+                returned,
+                reverted,
+                replayed,
+                rounds,
+                hours,
+                cost| Scorecard {
+        key: AgentKey {
+            agent: agent.into(),
+            model: model.map(Into::into),
+        },
+        prs,
+        merged,
+        closed,
+        returned,
+        reverted,
+        replayed,
+        merge_rate: Scorecard::rate(merged, merged + closed),
+        review_rounds: Some(rounds),
+        heads_per_pr: 1.6,
+        median_hours_to_merge: Some(hours),
+        replay_cost_usd: cost,
+    };
+    vec![
+        card("claude", Some("opus"), 96, 81, 9, 7, 1, 3, 0.4, 2.3, 2.94),
+        card(
+            "codex",
+            Some("gpt-5-codex"),
+            64,
+            49,
+            11,
+            9,
+            2,
+            1,
+            0.7,
+            3.8,
+            1.14,
+        ),
+        card("copilot-swe-agent", None, 31, 22, 6, 4, 0, 0, 1.1, 6.5, 0.0),
+        card("people", None, 23, 21, 1, 1, 0, 0, 0.3, 19.0, 0.0),
+    ]
+}
+
 /// A plausible, repeatable landings-per-day series (weekends quieter).
 fn daily(days: usize, scale: u32, seed: u32) -> Vec<u32> {
     (0..days)
@@ -177,6 +228,7 @@ fn main() -> std::io::Result<()> {
                 cache_write: 214_000,
             }),
             runs_with_tokens: 4,
+            model: Some("claude-sonnet-5-5".into()),
         }
     };
     let cards = vec![
@@ -215,6 +267,7 @@ fn main() -> std::io::Result<()> {
         predicted_wait_minutes: None,
         spend: spend(4.08),
         capacity: sample_capacity(),
+        scorecards: sample_scorecards(),
         queue: vec![
             q(318, "Retry webhooks with exponential backoff", ChangeState::Verifying, Some((2, 5)), Some("would reverify 1 target touched by changes landed since its base"), 3),
             q(321, "Add refund reasons to the ledger", ChangeState::Merging, Some((3, 7)), Some("writes the same targets as #317; would go to the merge engine"), 6),

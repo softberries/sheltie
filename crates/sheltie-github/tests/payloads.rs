@@ -154,3 +154,35 @@ fn push_to_default_branch() {
     let commits: Vec<String> = e.commits.iter().map(ToString::to_string).collect();
     assert_eq!(commits, ["4".repeat(40), "3".repeat(40)]);
 }
+
+#[test]
+fn origin_records_author_branch_and_labels() {
+    let e = pr("pull_request", "pull_request.opened.json");
+    let o = e.origin.unwrap();
+    assert_eq!(o.author.as_str(), "agent-bot[bot]");
+    assert!(o.bot);
+    assert_eq!(o.head_ref, "agent/billing-retry");
+    assert!(o.labels.is_empty());
+
+    let mut body: serde_json::Value =
+        serde_json::from_slice(&fixture("pull_request.opened.json")).unwrap();
+    body["pull_request"]["user"] = serde_json::json!({"login": "kris", "type": "User"});
+    body["pull_request"]["labels"] = serde_json::json!([
+        {"name": "agent: codex"}, {"name": ""}, {"name": "x".repeat(101)}, {"name": "bug"}
+    ]);
+    let Some(Intake::Pr(e)) = parse("pull_request", &serde_json::to_vec(&body).unwrap()).unwrap()
+    else {
+        panic!("expected a pull request event");
+    };
+    let o = e.origin.unwrap();
+    assert!(!o.bot);
+    assert_eq!(o.labels, vec!["agent: codex", "bug"]);
+
+    // An unusable author drops the origin, not the event.
+    body["pull_request"]["user"] = serde_json::json!({"login": "bad login", "type": "User"});
+    let Some(Intake::Pr(e)) = parse("pull_request", &serde_json::to_vec(&body).unwrap()).unwrap()
+    else {
+        panic!("expected a pull request event");
+    };
+    assert_eq!(e.origin, None);
+}

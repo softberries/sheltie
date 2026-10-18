@@ -14,7 +14,7 @@ use sheltie_scheduler::capacity::{Capacity, DEFAULT_CLEAN_SHARE, MAX_FOOTPRINTS,
 use sheltie_scheduler::report::build_report;
 use sheltie_scheduler::savings::{Savings, estimate};
 
-use crate::{AgentSpend, RepoMode, Store, StoreError, from_db_id, to_db_id};
+use crate::{AgentSpend, RepoMode, Scorecard, Store, StoreError, from_db_id, to_db_id};
 
 /// A signed-in dashboard user.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,6 +151,8 @@ pub struct RepoDetail {
     /// How many agents the repository can take at once, from the footprints of changes
     /// merged in the last [`CAPACITY_DAYS`] days; `None` with too few footprints.
     pub capacity: Option<Capacity>,
+    /// Scorecards of the agents behind the pull requests of the last [`DETAIL_DAYS`] days.
+    pub scorecards: Vec<Scorecard>,
     /// Open changes, newest activity first.
     pub queue: Vec<QueueItem>,
     /// Recent landings, newest first.
@@ -382,6 +384,7 @@ impl Store {
             tokio::task::spawn_blocking(move || capacity(&footprints, DEFAULT_CLEAN_SHARE))
                 .await
                 .map_err(|e| StoreError::InvalidRow(format!("capacity estimate: {e}")))?;
+        let scorecards = self.agent_scorecards(repo, DETAIL_DAYS).await?;
         let id = to_db_id(repo.0, "repository id")?;
         let state = |r: &PgRow| -> Result<ChangeState, StoreError> {
             r.try_get::<String, _>("state")?.parse().map_err(parse_err)
@@ -491,6 +494,7 @@ impl Store {
             predicted_wait_minutes,
             spend,
             capacity,
+            scorecards,
             queue,
             landed,
             returned,

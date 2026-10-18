@@ -25,6 +25,8 @@ pub struct AgentSpend {
     pub tokens: Option<TokenUsage>,
     /// How many runs reported tokens.
     pub runs_with_tokens: u32,
+    /// The model most replays used, when runs reported it.
+    pub model: Option<String>,
 }
 
 fn count(n: i64) -> u32 {
@@ -69,7 +71,8 @@ impl Store {
                     sum(cache_write_tokens)::bigint AS cache_write,
                     (SELECT coalesce(sum(cost_usd), 0) FROM replay_runs
                      WHERE repo_id = $1 AND requested_at > now() - interval '1 day') AS last_day,
-                    (SELECT replay_daily_budget_usd FROM repositories WHERE id = $1) AS budget
+                    (SELECT replay_daily_budget_usd FROM repositories WHERE id = $1) AS budget,
+                    mode() WITHIN GROUP (ORDER BY model) AS model
              FROM replay_runs
              WHERE repo_id = $1 AND requested_at >= current_date - ($2::int - 1)",
         )
@@ -107,6 +110,7 @@ impl Store {
                 })
                 .transpose()?,
             runs_with_tokens,
+            model: row.try_get("model")?,
         })
     }
 }

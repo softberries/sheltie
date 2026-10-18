@@ -16,6 +16,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and reports the waiting time and CI runs saved against a one-at-a-time merge queue, what
   Sheltie would have done with each change, and the parallelism estimate. Footprints are
   predicted from changed files, or computed per landing with `--exact`. See `docs/roi.md`.
+- Agent scorecards: a dashboard panel and `sheltie-server scorecard` with, per agent, pull
+  requests opened, merge rate, returns, reverts, replays, review rounds, time to merge and
+  replay cost per merged pull request. Agents are named by `[[agents]]` rules in
+  `.sheltie/merge.toml` (author, branch prefix or label); bots count as themselves and people
+  are grouped. Sheltie now records each pull request's author, branch and labels from its
+  webhooks. See `docs/dashboard.md#agents`.
+- Replay reports carry the model the agent used most (`model`), shown on the agent spend
+  panel.
+
+### Upgrading
+
+- One database migration (pull request author, branch and labels; replay model; agent
+  rules); the server applies it on startup. Pull requests opened before the upgrade show as
+  "Not recorded" in the scorecards until their next event.
 
 ## [0.2.0] - 2026-10-18
 

@@ -247,6 +247,7 @@ async fn finished_leases_are_released(pool: PgPool) {
                 intent: sheltie_core::intake::IntentField::Missing,
                 closes: Some(BTreeSet::from([IssueNumber(2)])),
                 title: None,
+                origin: None,
             }),
         )
         .await

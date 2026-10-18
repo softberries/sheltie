@@ -862,7 +862,8 @@ impl Env {
                 "pr": 1, "head": head, "onto": onto, "tier": "replay_full", "result": result,
                 "checks": { "outside_scope": [], "acceptance_passed": true, "similarity": similarity },
                 "cost_usd": 0.4, "turns": 7, "error": null,
-                "tokens": { "input": 1200, "output": 800, "cache_read": 50000, "cache_write": 3000 }
+                "tokens": { "input": 1200, "output": 800, "cache_read": 50000, "cache_write": 3000 },
+                "model": "claude-sonnet-5-5"
             }))
             .await;
         assert_eq!(status, reqwest::StatusCode::ACCEPTED);
@@ -930,6 +931,7 @@ async fn a_semantic_conflict_is_replayed_and_lands(_: PgPoolOptions, db: PgConne
     );
     assert_eq!(spend.daily_budget_usd, Some(20.0));
     assert_eq!(spend.tokens.map(|t| t.total()), Some(55_000));
+    assert_eq!(spend.model.as_deref(), Some("claude-sonnet-5-5"));
     env.stop().await;
 }
 

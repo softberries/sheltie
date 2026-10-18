@@ -48,6 +48,7 @@ fn pr_event(kind: PrEventKind, head: char, secs: i64) -> Intake {
         intent: sheltie_core::intake::IntentField::Unknown,
         closes: None,
         title: None,
+        origin: None,
     })
 }
 

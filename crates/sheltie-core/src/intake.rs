@@ -106,6 +106,9 @@ pub struct PrEvent {
     /// The pull request's title, at most 300 characters, when the event carries it.
     #[serde(default)]
     pub title: Option<String>,
+    /// Who opened the pull request, its branch and labels, when the event carries them.
+    #[serde(default)]
+    pub origin: Option<Box<crate::agents::PrOrigin>>,
 }
 
 /// The intent block of a pull request description.

@@ -61,6 +61,7 @@ async fn setup(pool: &PgPool) -> (Store, i64) {
                 intent: sheltie_core::intake::IntentField::Unknown,
                 closes: None,
                 title: None,
+                origin: None,
             }),
         )
         .await

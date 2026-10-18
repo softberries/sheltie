@@ -54,6 +54,7 @@ macro_rules! text_enum {
     };
 }
 
+pub mod agents;
 mod change;
 pub mod coordination;
 mod footprint;

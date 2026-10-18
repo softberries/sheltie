@@ -170,6 +170,9 @@ pub struct ReplayReport {
     /// Tokens the agent used, when it reported them.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tokens: Option<TokenUsage>,
+    /// The model the agent used most, e.g. `claude-sonnet-4-5`, when it reported it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
     /// Why the agent run failed, if it did.
     pub error: Option<String>,
 }
@@ -186,6 +189,15 @@ impl ReplayReport {
         }
         if self.tokens.is_some_and(|t| !t.in_range()) {
             return fail("token count out of range");
+        }
+        if self.model.as_ref().is_some_and(|m| {
+            !(1..=100).contains(&m.len())
+                || !m.chars().all(|c| {
+                    c.is_ascii_alphanumeric()
+                        || matches!(c, '.' | '-' | '_' | ':' | '/' | '[' | ']')
+                })
+        }) {
+            return fail("invalid model name");
         }
         if self.error.as_ref().is_some_and(|e| e.len() > 2_000) {
             return fail("error too long");
@@ -277,6 +289,20 @@ mod tests {
         assert_eq!(r.tokens, None);
         r.validate().unwrap();
         assert!(!serde_json::to_string(&r).unwrap().contains("tokens"));
+    }
+
+    #[test]
+    fn model_names_are_checked() {
+        assert_eq!(report("").model, None);
+        let r = report(r#","model":"claude-sonnet-5-5[1m]""#);
+        assert_eq!(r.model.as_deref(), Some("claude-sonnet-5-5[1m]"));
+        r.validate().unwrap();
+        for bad in [r#""""#, r#""a b""#, r#""<script>""#] {
+            let r = report(&format!(r#","model":{bad}"#));
+            assert!(r.validate().is_err(), "{bad}");
+        }
+        let long = format!(r#","model":"{}""#, "m".repeat(101));
+        assert!(report(&long).validate().is_err());
     }
 
     #[test]
