@@ -1,0 +1,28 @@
+[package]
+name = "sheltie-gradle"
+description = "Gradle build-graph adapter (library and sheltie-gradle CLI)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "sheltie-gradle"
+path = "src/main.rs"
+
+[dependencies]
+sheltie-adapter = { workspace = true }
+sheltie-core = { workspace = true }
+anyhow = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }
+
+[lints]
+workspace = true

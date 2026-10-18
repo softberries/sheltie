@@ -1,0 +1,25 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Bump a version in the version catalog: workspace configuration, read by every project.",
+  "footprint": {
+    "writes": [
+      "$workspace"
+    ],
+    "reads": [
+      "$workspace",
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "tests": [
+      ":api",
+      ":app",
+      ":core"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

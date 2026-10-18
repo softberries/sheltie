@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-gradle/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Method-body change in :api (Java).",
+  "footprint": {
+    "writes": [
+      ":api"
+    ],
+    "reads": [
+      ":api"
+    ],
+    "tests": [
+      ":api"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}
