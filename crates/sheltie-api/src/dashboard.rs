@@ -18,7 +18,9 @@ use sha2::{Digest, Sha256};
 use sheltie_core::{ChangeState, RepoFullName};
 use sheltie_github::check_run::{DOCS_URL, tier_words};
 use sheltie_github::oauth::OAuthApp;
-use sheltie_store::{AgentSpend, DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store};
+use sheltie_store::{
+    AgentSpend, Capacity, DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store,
+};
 
 const SESSION_COOKIE: &str = "sheltie_session";
 const STATE_COOKIE: &str = "sheltie_oauth_state";
@@ -485,6 +487,73 @@ fn spend_panel(sp: &AgentSpend, sv: &Savings, now: DateTime<Utc>) -> String {
     s
 }
 
+fn capacity_panel(cap: Option<&Capacity>) -> String {
+    let days = sheltie_store::CAPACITY_DAYS;
+    let mut s = String::from(
+        r#"<section class="panel capacity"><div class="panel-head"><h2>Parallelism</h2><span class="fine">How many agents this repository can take at once</span></div>"#,
+    );
+    let Some(c) = cap else {
+        let _ = write!(
+            s,
+            "{}</section>",
+            empty(&format!(
+                "<b>Not enough history yet</b>The estimate needs the footprints of at least {} pull requests merged in the last {days} days.",
+                sheltie_store::MIN_FOOTPRINTS
+            ))
+        );
+        return s;
+    };
+    let pct = |x: f64| format!("{:.0}%", (x * 100.0).clamp(0.0, 100.0));
+    let agents = if c.at_least {
+        format!("{}+", c.agents)
+    } else {
+        c.agents.to_string()
+    };
+    let _ = write!(
+        s,
+        r#"<div class="spend-body"><div class="spend-main"><div class="amount amount-a">{agents} agent{}</div><p class="caption">working at once, with {} of their changes landing without a combined build or the merge engine</p></div><div class="cap-curve">"#,
+        if c.agents == 1 && !c.at_least {
+            ""
+        } else {
+            "s"
+        },
+        pct(c.threshold),
+    );
+    for p in &c.curve {
+        let _ = write!(
+            s,
+            r#"<div class="crow"><span class="clabel">{n}</span><progress class="pbar {}" max="100" value="{:.1}" aria-label="Changes landing clean with {n}"></progress><span class="cval">{}</span></div>"#,
+            if p.clean_share >= c.threshold {
+                "pbar-a"
+            } else {
+                "pbar-b"
+            },
+            p.clean_share * 100.0,
+            pct(p.clean_share),
+            n = format!("{} agent{}", p.agents, if p.agents == 1 { "" } else { "s" }),
+        );
+    }
+    s.push_str("</div></div>");
+    let pairs = |n: u64| format!("{n} pair{}", if n == 1 { "" } else { "s" });
+    let hot = if c.hot_targets.is_empty() {
+        "None of these changes conflicted with each other.".to_owned()
+    } else {
+        let list: Vec<String> = c
+            .hot_targets
+            .iter()
+            .map(|h| format!("<code>{}</code> {}", esc(h.target.as_str()), pairs(h.pairs)))
+            .collect();
+        format!("Collisions concentrate in {}.", list.join(" · "))
+    };
+    let _ = write!(
+        s,
+        r#"<p class="fine spend-note">{hot} From {} merged pull requests in the last {days} days, {} of pairs conflicting. Assumes agents pick work like your recent changes. <a href="{DOCS_URL}/dashboard.html#parallelism">More</a></p></section>"#,
+        c.footprints,
+        pct(c.conflicting_pairs),
+    );
+    s
+}
+
 fn empty(text: &str) -> String {
     format!(r#"<div class="empty">{text}</div>"#)
 }
@@ -615,6 +684,7 @@ pub fn render_repo(d: &RepoDetail, web: &str, now: DateTime<Utc>) -> String {
         o.landed_today,
         o.returned_today
     );
+    s.push_str(&capacity_panel(d.capacity.as_ref()));
     s.push_str(&spend_panel(&d.spend, &d.savings, now));
 
     let _ = write!(
@@ -996,6 +1066,42 @@ mod tests {
         }
     }
 
+    fn capacity() -> Capacity {
+        use sheltie_core::TargetId;
+        use sheltie_store::{CapacityPoint, HotTarget};
+        let point = |agents, clean_share, textual_share| CapacityPoint {
+            agents,
+            clean_share,
+            textual_share,
+        };
+        Capacity {
+            footprints: 120,
+            conflicting_pairs: 0.031,
+            threshold: 0.8,
+            agents: 7,
+            at_least: false,
+            curve: vec![
+                point(1, 1.0, 0.0),
+                point(2, 0.97, 0.01),
+                point(4, 0.91, 0.04),
+                point(8, 0.79, 0.09),
+                point(16, 0.6, 0.18),
+                point(32, 0.38, 0.31),
+                point(64, 0.17, 0.48),
+            ],
+            hot_targets: vec![
+                HotTarget {
+                    target: TargetId::new("shop-pricing"),
+                    pairs: 41,
+                },
+                HotTarget {
+                    target: TargetId::new("<b>x</b>"),
+                    pairs: 1,
+                },
+            ],
+        }
+    }
+
     fn detail(mode: RepoMode, sv: Savings) -> RepoDetail {
         use sheltie_core::{CommitSha, GuaranteeTier, PrNumber, ResolutionTier};
         use sheltie_store::{LandingItem, QueueItem};
@@ -1005,6 +1111,7 @@ mod tests {
             savings: sv,
             predicted_wait_minutes: (mode == RepoMode::Shadow).then_some(95),
             spend: spend(),
+            capacity: Some(capacity()),
             queue: vec![QueueItem {
                 pr: PrNumber(7),
                 title: Some("<img src=x onerror=alert(1)>".into()),
@@ -1096,6 +1203,49 @@ mod tests {
         assert_eq!(tokens(48_700), "48k");
         assert_eq!(tokens(2_480_000), "2.4M");
         assert_eq!(tokens(1_000_000_000), "1.0B");
+    }
+
+    #[test]
+    fn parallelism_states() {
+        let full = capacity_panel(Some(&capacity()));
+        assert!(
+            full.contains(r#"<div class="amount amount-a">7 agents</div>"#),
+            "{full}"
+        );
+        assert!(full.contains("with 80% of their changes landing"));
+        // 8 agents fall below the threshold; 4 stay above it.
+        assert!(
+            full.contains(r#"<span class="clabel">4 agents</span><progress class="pbar pbar-a""#)
+        );
+        assert!(
+            full.contains(r#"<span class="clabel">8 agents</span><progress class="pbar pbar-b""#)
+        );
+        assert!(full.contains(
+            "<code>shop-pricing</code> 41 pairs · <code>&lt;b&gt;x&lt;/b&gt;</code> 1 pair."
+        ));
+        assert!(full.contains(
+            "From 120 merged pull requests in the last 90 days, 3% of pairs conflicting."
+        ));
+
+        let unlimited = Capacity {
+            agents: 256,
+            at_least: true,
+            hot_targets: vec![],
+            ..capacity()
+        };
+        let page = capacity_panel(Some(&unlimited));
+        assert!(
+            page.contains(">256+ agents<") && page.contains("None of these changes conflicted")
+        );
+
+        let one = Capacity {
+            agents: 1,
+            ..capacity()
+        };
+        assert!(capacity_panel(Some(&one)).contains(">1 agent<"));
+        assert!(
+            capacity_panel(None).contains("at least 20 pull requests merged in the last 90 days")
+        );
     }
 
     #[test]

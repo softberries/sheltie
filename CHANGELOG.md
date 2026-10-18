@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Dashboard: a "Parallelism" panel per repository estimating how many agents can work at
+  once while at least 80% of their changes land without a combined build or the merge engine,
+  from the footprints of the last 90 days of merged pull requests. It shows the clean share
+  for 1 to 64 agents and the targets behind most conflicts. See `docs/dashboard.md`.
+
 ## [0.2.0] - 2026-10-18
 
 ### Added

@@ -185,6 +185,10 @@ rect:nth-child(5n+5) { animation-delay: .16s; } rect:nth-child(5n+6) { animation
 .spend-stats b { font: 650 22px/1.1 var(--font); letter-spacing: -.03em; color: var(--heading); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .spend-stats { grid-template-columns: 1fr; } .spend-stats div + div { border-left: 0; border-top: 1px solid var(--border); } }
 .spend-note { padding: 12px 22px 16px; border-top: 1px solid var(--border); }
+.amount-a { background: linear-gradient(100deg, var(--flag), var(--aurora)); -webkit-background-clip: text; background-clip: text; }
+.cap-curve { display: flex; flex-direction: column; gap: 9px; }
+.capacity .spend-body { padding-bottom: 20px; }
+.capacity .spend-note code { font-size: 12px; }
 
 /* Tables and lists */
 .scroll { overflow-x: auto; }

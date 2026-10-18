@@ -4,11 +4,13 @@ use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use sheltie_core::{
-    ChangeState, CommitSha, GuaranteeTier, PrNumber, RepoFullName, RepoId, ResolutionTier,
+    ChangeState, CommitSha, Footprint, GuaranteeTier, PrNumber, RepoFullName, RepoId,
+    ResolutionTier, TargetId,
 };
 use sqlx::Row;
 use sqlx::postgres::PgRow;
 
+use sheltie_scheduler::capacity::{Capacity, DEFAULT_CLEAN_SHARE, MAX_FOOTPRINTS, capacity};
 use sheltie_scheduler::report::build_report;
 use sheltie_scheduler::savings::{Savings, estimate};
 
@@ -114,6 +116,8 @@ pub struct LeaseItem {
 pub const CARD_DAYS: u32 = 14;
 /// Days of history on the repository page, and the time-saved period.
 pub const DETAIL_DAYS: u32 = 30;
+/// Days of merged changes the parallelism capacity is estimated from.
+pub const CAPACITY_DAYS: u32 = 90;
 
 /// One repository on the overview, with its recent activity and time saved.
 #[derive(Debug, Clone, PartialEq)]
@@ -144,6 +148,9 @@ pub struct RepoDetail {
     pub predicted_wait_minutes: Option<i64>,
     /// Agent spend on intent replays over the last [`DETAIL_DAYS`] days.
     pub spend: AgentSpend,
+    /// How many agents the repository can take at once, from the footprints of changes
+    /// merged in the last [`CAPACITY_DAYS`] days; `None` with too few footprints.
+    pub capacity: Option<Capacity>,
     /// Open changes, newest activity first.
     pub queue: Vec<QueueItem>,
     /// Recent landings, newest first.
@@ -304,6 +311,46 @@ impl Store {
         Ok((savings, predicted))
     }
 
+    /// Footprints of changes merged into the default branch in the last `days` days, oldest
+    /// first: the latest uploaded footprint of each merged head. At most
+    /// [`MAX_FOOTPRINTS`], the most recent.
+    pub async fn merged_footprints(
+        &self,
+        repo: RepoId,
+        days: u32,
+    ) -> Result<Vec<Footprint>, StoreError> {
+        let rows = sqlx::query(
+            "SELECT f.writes, f.reads, f.leaky FROM changes c
+             JOIN repositories r ON r.id = c.repo_id
+             JOIN LATERAL (
+                 SELECT writes, reads, leaky FROM footprint_reports fr
+                 WHERE fr.repo_id = c.repo_id AND fr.head_sha = c.head_sha
+                 ORDER BY fr.uploaded_at DESC LIMIT 1) f ON true
+             WHERE c.repo_id = $1 AND c.base_ref = r.default_branch
+               AND c.merged_at >= now() - make_interval(days => $2)
+             ORDER BY c.merged_at DESC LIMIT $3",
+        )
+        .bind(to_db_id(repo.0, "repository id")?)
+        .bind(i32::try_from(days.clamp(1, 366)).unwrap_or(90))
+        .bind(i64::try_from(MAX_FOOTPRINTS).unwrap_or(i64::MAX))
+        .fetch_all(&self.pool)
+        .await?;
+        let set = |v: Vec<String>| v.into_iter().map(TargetId::new).collect();
+        let mut footprints = rows
+            .into_iter()
+            .map(|r| -> Result<Footprint, StoreError> {
+                Ok(Footprint {
+                    writes: set(r.try_get("writes")?),
+                    reads: set(r.try_get("reads")?),
+                    tests: Default::default(),
+                    leaky: r.try_get("leaky")?,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        footprints.reverse();
+        Ok(footprints)
+    }
+
     /// The overview cards for `repos` (those that are installed).
     pub async fn repo_cards(&self, repos: &[RepoId]) -> Result<Vec<RepoCard>, StoreError> {
         let mut cards = Vec::new();
@@ -330,6 +377,11 @@ impl Store {
         let landed_daily = self.landed_daily(repo, DETAIL_DAYS).await?;
         let (savings, predicted_wait_minutes) = self.savings_of(&overview).await?;
         let spend = self.agent_spend(repo, DETAIL_DAYS).await?;
+        let footprints = self.merged_footprints(repo, CAPACITY_DAYS).await?;
+        let capacity =
+            tokio::task::spawn_blocking(move || capacity(&footprints, DEFAULT_CLEAN_SHARE))
+                .await
+                .map_err(|e| StoreError::InvalidRow(format!("capacity estimate: {e}")))?;
         let id = to_db_id(repo.0, "repository id")?;
         let state = |r: &PgRow| -> Result<ChangeState, StoreError> {
             r.try_get::<String, _>("state")?.parse().map_err(parse_err)
@@ -438,6 +490,7 @@ impl Store {
             savings,
             predicted_wait_minutes,
             spend,
+            capacity,
             queue,
             landed,
             returned,

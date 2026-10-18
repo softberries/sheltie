@@ -230,3 +230,59 @@ async fn unknown_repository_has_no_report(pool: PgPool) {
             .is_none()
     );
 }
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn merged_footprints_are_the_capacity_input(pool: PgPool) {
+    let store = Store::from_pool(pool.clone());
+    let mut n = 0;
+    send(
+        &store,
+        &mut n,
+        Intake::Installation(InstallationEvent::Created {
+            installation: InstallationId(77),
+            account: Login::new("acme"),
+            repos: vec![repo()],
+        }),
+    )
+    .await;
+    // #1 and #2 merge with footprints, #3 merges without one, #4 stays open.
+    for (pr_n, head, writes) in [
+        (1, 'a', Some("billing")),
+        (2, 'b', Some("auth")),
+        (3, 'c', None),
+        (4, 'd', Some("cart")),
+    ] {
+        send(
+            &store,
+            &mut n,
+            pr(pr_n, head, PrEventKind::Opened, None, pr_n as i64),
+        )
+        .await;
+        if let Some(w) = writes {
+            footprint(&store, head, &[w]).await;
+        }
+    }
+    for (pr_n, head, merge) in [(2, 'b', '6'), (1, 'a', '5'), (3, 'c', '7')] {
+        send(
+            &store,
+            &mut n,
+            pr(
+                pr_n,
+                head,
+                PrEventKind::Merged,
+                Some(merge),
+                10 + pr_n as i64,
+            ),
+        )
+        .await;
+    }
+
+    let fps = store.merged_footprints(REPO, 90).await.unwrap();
+    let writes: Vec<Vec<&str>> = fps
+        .iter()
+        .map(|f| f.writes.iter().map(TargetId::as_str).collect())
+        .collect();
+    // Oldest merge first; the change without a footprint and the open one are left out.
+    assert_eq!(writes, vec![vec!["billing"], vec!["auth"]]);
+    assert!(fps.iter().all(|f| f.writes.is_subset(&f.reads)));
+}
