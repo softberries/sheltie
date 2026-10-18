@@ -10,13 +10,16 @@ cargo install --git https://github.com/softberries/sheltie sheltie-maven
 
 ## Units
 
-Every module reachable from the root `pom.xml` is a unit:
+Every module of every reactor in the repository is a unit: the root `pom.xml`, and any other
+`pom.xml` outside `src/` and `target/` (a second reactor such as guava's `android/`):
 
 - **Modules** are found through `<modules>` (including those in `<profiles>`), recursively. A
   `<module>` can name a directory or a POM file. A `<parent>` found by its `relativePath`
   (default `../pom.xml`) is a unit too, even if no `<modules>` lists it.
 - **Identity**: `groupId:artifactId`, for example `com.acme.shop:core`. A missing `groupId`
-  is inherited from `<parent>`.
+  is inherited from `<parent>`. When two reactors have a module with the same coordinates,
+  both ids get the directory (`com.google.guava:guava@android/guava`), and a dependency
+  resolves to the module of its own reactor.
 - **Files**: the module's POM and everything under its `src/` (main and test sources,
   resources). Nested modules own their own files.
 - **Dependencies**: a module reads the modules named by its `<dependencies>`, its build
@@ -69,6 +72,10 @@ a missed one would hide a conflict.
 | `.mvn/**`, `mvnw` | every module |
 | `README.md`, `docs/**` | nothing |
 
+A module's interface also folds in the interfaces of the modules it depends on, because its
+public signatures may use their types: an interface change in one module reaches its
+dependents and theirs. A change that adds a dependency reads the new dependency.
+
 ## Leaks
 
 A module is not hermetic when its build runs code Sheltie cannot see: `exec-maven-plugin`,
@@ -92,9 +99,9 @@ example `com.acme.shop:api: build plugin runs code (exec-maven-plugin)`.
 - **Resolution**: dependency versions, BOMs, `<scope>` and `<optional>` are not resolved.
   Every POM change counts as an interface change, and changes to external dependencies are
   not seen beyond the POM text.
-- **Other layouts**: only `src/main/{java,kotlin}` (and Kotlin Multiplatform `src/<x>Main`)
-  feed the interface. Custom `<sourceDirectory>` settings, generated sources and Groovy or
-  Scala sources are not read.
+- **Other layouts**: `src/main/{java,kotlin}`, Kotlin Multiplatform `src/<x>Main` and a
+  `<sourceDirectory>` / `<testSourceDirectory>` set in the module or a parent feed the
+  interface. Generated sources and Groovy or Scala sources are not read.
 - **Other plugins**: only the three plugins above are flagged as leaky. Any plugin can read
   files outside the module; if yours do, declare the files or treat them as workspace
   configuration.

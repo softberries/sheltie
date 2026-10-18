@@ -10,10 +10,12 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
     ],
     "reads": [
       "com.acme.shop:api",
+      "com.acme.shop:app",
       "com.acme.shop:core"
     ],
     "tests": [
       "com.acme.shop:api",
+      "com.acme.shop:app",
       "com.acme.shop:core"
     ],
     "leaky": false

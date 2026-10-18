@@ -10,10 +10,12 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
     ],
     "reads": [
       ":api",
+      ":app",
       ":core"
     ],
     "tests": [
       ":api",
+      ":app",
       ":core"
     ],
     "leaky": false

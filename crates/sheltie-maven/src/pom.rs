@@ -45,6 +45,10 @@ pub(crate) struct Pom {
     pub(crate) deps: Vec<Dep>,
     /// Artifact ids of `<build><plugins>`, including those of profiles.
     pub(crate) plugins: Vec<String>,
+    /// `<build><sourceDirectory>`, as written (inherited by child modules).
+    pub(crate) source_dir: Option<String>,
+    /// `<build><testSourceDirectory>`, as written (inherited by child modules).
+    pub(crate) test_source_dir: Option<String>,
 }
 
 impl Pom {
@@ -67,6 +71,14 @@ impl Pom {
                     relative_path: p.child("relativePath").map(|r| r.text.trim().to_owned()),
                 })
             }),
+            source_dir: project
+                .at(&["build", "sourceDirectory"])
+                .map(|e| e.text.trim().to_owned())
+                .filter(|t| !t.is_empty()),
+            test_source_dir: project
+                .at(&["build", "testSourceDirectory"])
+                .map(|e| e.text.trim().to_owned())
+                .filter(|t| !t.is_empty()),
             ..Self::default()
         };
         if let Some(props) = project.child("properties") {

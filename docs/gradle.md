@@ -76,6 +76,10 @@ a missed one would hide a conflict.
 | `gradle.lockfile` | every project |
 | `README.md`, `docs/**` | nothing |
 
+A project's interface also folds in the interfaces of the projects it depends on, because its
+public signatures may use their types: an interface change in one project reaches its
+dependents and theirs. A change that adds a dependency reads the new dependency.
+
 ## Leaks
 
 Projects are hermetic by default. Files a build script reads from outside its project
@@ -85,10 +89,14 @@ configuration.
 
 ## What it does not claim
 
-- **Script evaluation**: projects included by computed names (`include(":gen:$name")`, loops
-  over directories), dependencies added by convention plugins or `subprojects { }` blocks,
-  and custom `buildFileName`s are not seen. Convention plugins and the root build script are
-  workspace configuration, so changing them still affects every project.
+- **Script evaluation**: settings are not run. Projects included in ways the parser cannot
+  follow (helper functions, loops) are still found when their directory has a `src/` and a
+  build script, and named by Gradle's convention (`a/b` is `:a:b`); a project whose directory
+  differs from its name that way is not. A build script may be `build.gradle(.kts)`, named
+  after its directory (`core/core.gradle.kts`), or the only script in the directory.
+  Dependencies added by convention plugins or `subprojects { }` blocks are not seen;
+  convention plugins and the root build script are workspace configuration, so changing them
+  still affects every project.
 - **Reflection, dependency injection, service loading by name**: code that finds classes or
   members at run time can depend on a private or internal declaration. Such changes look
   local.

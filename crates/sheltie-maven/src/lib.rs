@@ -86,10 +86,37 @@ pub fn workspace(git: &Git, files: &TreeFiles) -> Result<Workspace, Error> {
             (path.as_str(), (group, artifact))
         })
         .collect();
-    let id_of = |path: &str| coords.get(path).map(|(g, a)| format!("{g}:{a}"));
-    let by_coords: BTreeMap<(&str, &str), &str> = coords
+    // Coordinates shared by modules of different reactors get the directory in their id.
+    let mut by_coords_all: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    for (path, (g, a)) in &coords {
+        by_coords_all
+            .entry((g.as_str(), a.as_str()))
+            .or_default()
+            .push(*path);
+    }
+    let id_of = |path: &str| {
+        coords.get(path).map(|(g, a)| {
+            if by_coords_all
+                .get(&(g.as_str(), a.as_str()))
+                .is_some_and(|v| v.len() > 1)
+            {
+                let dir = parent_dir(path);
+                format!("{g}:{a}@{}", if dir.is_empty() { "." } else { dir })
+            } else {
+                format!("{g}:{a}")
+            }
+        })
+    };
+    // A dependency on shared coordinates resolves to the module nearest the dependent.
+    let nearest = |from: &str, candidates: &[&'_ str]| -> Option<String> {
+        candidates
+            .iter()
+            .max_by_key(|c| common_prefix(parent_dir(from), parent_dir(c)))
+            .map(|c| (*c).to_owned())
+    };
+    let by_coords: BTreeMap<(&str, &str), &str> = by_coords_all
         .iter()
-        .map(|(path, (g, a))| ((g.as_str(), a.as_str()), *path))
+        .filter_map(|(k, v)| v.first().map(|p| (*k, *p)))
         .collect();
 
     let parent_of: BTreeMap<&str, &str> = modules
@@ -126,9 +153,12 @@ pub fn workspace(git: &Git, files: &TreeFiles) -> Result<Workspace, Error> {
         for d in &m.pom.deps {
             let group = pom::interpolate(&d.group, p);
             let artifact = pom::interpolate(&d.artifact, p);
-            let target = by_coords
+            let resolved = by_coords_all
                 .get(&(group.as_str(), artifact.as_str()))
-                .copied()
+                .and_then(|c| nearest(path, c));
+            let target = resolved
+                .as_deref()
+                .and_then(|r| coords.get_key_value(r).map(|(k, _)| *k))
                 .or_else(|| {
                     // An unresolved group: match the artifact id if exactly one module has it.
                     if !group.contains("${") {
@@ -154,10 +184,25 @@ pub fn workspace(git: &Git, files: &TreeFiles) -> Result<Workspace, Error> {
 
     for (path, m) in &modules {
         let Some(id) = id_of(path) else { continue };
-        let mut parts =
-            jvm::interface_parts(git, files, &m.dir, test_jars.contains(path.as_str()))?;
+        let with_tests = test_jars.contains(path.as_str());
+        let mut parts = jvm::interface_parts(git, files, &m.dir, with_tests)?;
         parts.push(format!("{}\n{}", m.pom_path, pom::normalized(&m.text)));
         let mut unit_files = jvm::unit_files(files, &m.dir);
+        // Custom source directories (`<build><sourceDirectory>`, inherited from parents).
+        let (main_dir, test_dir) = source_dirs(path, &modules, &parent_of);
+        for (dir, visible) in [(main_dir, true), (test_dir, with_tests)] {
+            let Some(dir) = dir else { continue };
+            let dir = jvm::join(&m.dir, &dir);
+            for (p, oid) in files.under(&dir) {
+                unit_files.insert(p.clone());
+                if visible && let Some(lang) = jvm::Lang::of(p.as_str()) {
+                    let surface = jvm::surface(lang, &git.text(oid)?);
+                    if surface.lines().any(|l| !l.starts_with("package ")) {
+                        parts.push(format!("{p}\n{surface}"));
+                    }
+                }
+            }
+        }
         unit_files.insert(RepoPath::new(m.pom_path.as_str()));
         ws.units.push(Unit {
             id: TargetId::new(id.as_str()),
@@ -182,10 +227,24 @@ pub fn workspace(git: &Git, files: &TreeFiles) -> Result<Workspace, Error> {
     Ok(ws)
 }
 
-/// The modules reachable from the root POM, by POM path.
+/// The modules of every reactor in the tree, by POM path.
 fn discover(git: &Git, files: &TreeFiles) -> Result<BTreeMap<String, Module>, Error> {
     let mut modules = BTreeMap::new();
+    // The root POM first, then every other POM outside sources and build output: a
+    // repository can hold several reactors (guava's `android/` flavour), each a set of modules.
     let mut queue: VecDeque<String> = VecDeque::from(["pom.xml".to_owned()]);
+    queue.extend(
+        files
+            .paths()
+            .map(|p| p.as_str())
+            .filter(|p| {
+                (p.ends_with("/pom.xml"))
+                    && !p.split('/').any(|seg| {
+                        matches!(seg, "src" | "target" | "node_modules") || seg.starts_with('.')
+                    })
+            })
+            .map(str::to_owned),
+    );
     while let Some(pom_path) = queue.pop_front() {
         if modules.contains_key(&pom_path) {
             continue;
@@ -218,6 +277,51 @@ fn discover(git: &Git, files: &TreeFiles) -> Result<BTreeMap<String, Module>, Er
         modules.insert(pom_path, module);
     }
     Ok(modules)
+}
+
+/// A module's `<sourceDirectory>` and `<testSourceDirectory>` relative to its directory, its
+/// own or inherited from its parents; `None` for the standard `src/main/java` layout.
+fn source_dirs(
+    path: &str,
+    modules: &BTreeMap<String, Module>,
+    parent_of: &BTreeMap<&str, &str>,
+) -> (Option<String>, Option<String>) {
+    let clean = |d: &str| -> Option<String> {
+        let d = d
+            .trim_start_matches("${project.basedir}")
+            .trim_start_matches("${basedir}")
+            .trim_start_matches('/')
+            .trim_end_matches('/');
+        // Absolute or still-interpolated paths cannot be placed in the repository.
+        (!d.is_empty() && !d.contains("${") && !d.split('/').any(|s| s == ".."))
+            .then(|| d.to_owned())
+            .filter(|d| !d.starts_with("src/main/") && !d.starts_with("src/test/"))
+    };
+    let (mut main, mut test) = (None, None);
+    let mut at = Some(path);
+    let mut depth = 0;
+    while let Some(p) = at {
+        let Some(m) = modules.get(p) else { break };
+        main = main.or_else(|| m.pom.source_dir.clone());
+        test = test.or_else(|| m.pom.test_source_dir.clone());
+        at = parent_of.get(p).copied();
+        depth += 1;
+        if depth > 32 {
+            break;
+        }
+    }
+    (
+        main.as_deref().and_then(clean),
+        test.as_deref().and_then(clean),
+    )
+}
+
+/// Length of the common directory prefix of two paths, in segments.
+fn common_prefix(a: &str, b: &str) -> usize {
+    a.split('/')
+        .zip(b.split('/'))
+        .take_while(|(x, y)| x == y && !x.is_empty())
+        .count()
 }
 
 /// The POM a `<parent>` points to by `relativePath`, if lookup by path is on.

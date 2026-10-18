@@ -40,7 +40,7 @@ replace = "private fun tax(net: Money, rate: Int): Money = net.percent(rate) + M
 
 [[scenarios]]
 name = "core-signature"
-description = "Change a public Kotlin signature in :core: :api reads the change through projects.core; :app does not."
+description = "Change a public Kotlin signature in :core: :api reads the change through projects.core, and :app, which depends on :api, reads it too."
 [[scenarios.replace]]
 path = "core/src/main/kotlin/com/acme/shop/core/Money.kt"
 find = "    fun percent(pct: Int): Money {"
@@ -72,7 +72,7 @@ replace = "reduced=7"
 
 [[scenarios]]
 name = "app-new-dependency"
-description = ":app starts depending on :core: a new edge, and :app's build script is part of its interface."
+description = ":app starts depending on :core: the change reads :core (a new dependency), and :app's build script is part of its interface."
 [[scenarios.replace]]
 path = "app/build.gradle.kts"
 find = "    implementation(project(\":api\"))\n"

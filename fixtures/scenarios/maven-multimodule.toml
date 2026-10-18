@@ -39,7 +39,7 @@ replace = "    private Money tax(final Money net) {"
 
 [[scenarios]]
 name = "core-signature"
-description = "Change a public signature in core: api, which depends on core, reads the change; app does not (api's interface is unchanged)."
+description = "Change a public signature in core: api, which depends on core, reads the change, and so does app, which depends on api (api's interface folds in core's)."
 [[scenarios.replace]]
 path = "core/src/main/java/com/acme/shop/core/Money.java"
 find = "    public Money percent(int pct) {"
@@ -79,7 +79,7 @@ replace = "shop.currency=PLN"
 
 [[scenarios]]
 name = "app-new-dependency"
-description = "app starts depending on core directly: a new edge, and app's POM is part of its interface."
+description = "app starts depending on core directly: the change reads core (a new dependency), and app's POM is part of its interface."
 [[scenarios.replace]]
 path = "app/pom.xml"
 find = "  <dependencies>\n"

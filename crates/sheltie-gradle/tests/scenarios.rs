@@ -235,3 +235,65 @@ fn graph_has_projects_edges_and_workspace() {
         assert_eq!(owners(config), ["$workspace"], "{config}");
     }
 }
+
+/// JUnit's layout: projects included through a helper function the settings parser cannot
+/// follow, each with a build script named after its directory.
+#[test]
+fn projects_found_by_their_build_scripts() {
+    let work = Path::new(env!("CARGO_TARGET_TMPDIR")).join("gradle-helper-includes");
+    if work.exists() {
+        std::fs::remove_dir_all(&work).unwrap();
+    }
+    let write = |path: &str, text: &str| {
+        let p = work.join(path);
+        std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+        std::fs::write(p, text).unwrap();
+    };
+    write(
+        "settings.gradle.kts",
+        "fun includeProject(name: String) {\n    include(name)\n    project(\":$name\").buildFileName = \"$name.gradle.kts\"\n}\nincludeProject(\"core-api\")\nincludeProject(\"engine\")\n",
+    );
+    write(
+        "core-api/core-api.gradle.kts",
+        "plugins { `java-library` }\n",
+    );
+    write(
+        "core-api/src/main/java/c/Api.java",
+        "package c;\npublic interface Api { int v(); }\n",
+    );
+    write(
+        "engine/engine.gradle.kts",
+        "dependencies { api(projects.coreApi) }\n",
+    );
+    write(
+        "engine/src/main/java/e/Engine.java",
+        "package e;\npublic class Engine {}\n",
+    );
+    std::fs::create_dir_all(&work).unwrap();
+    git(&work, &["init", "-q", "-b", "main"]);
+    git(&work, &["add", "-A"]);
+    git(&work, &["commit", "-q", "-m", "base"]);
+    let repo = Git::open(&work).unwrap();
+    let snap = Generic::<Gradle>::new()
+        .graph(
+            &repo,
+            "HEAD",
+            &policy(),
+            Path::new(env!("CARGO_TARGET_TMPDIR")),
+        )
+        .unwrap();
+    let targets: Vec<&str> = snap.targets.keys().map(TargetId::as_str).collect();
+    assert_eq!(targets, ["$workspace", ":core-api", ":engine"]);
+    assert!(
+        snap.targets[&TargetId::new(":engine")]
+            .reads
+            .contains_key(&TargetId::new(":core-api"))
+    );
+    assert_eq!(
+        snap.owners[&sheltie_core::RepoPath::new("engine/engine.gradle.kts")]
+            .iter()
+            .map(TargetId::as_str)
+            .collect::<Vec<_>>(),
+        [":engine"]
+    );
+}

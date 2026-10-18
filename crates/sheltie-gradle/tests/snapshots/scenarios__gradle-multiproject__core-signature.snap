@@ -3,17 +3,19 @@ source: crates/sheltie-gradle/tests/scenarios.rs
 expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
 ---
 {
-  "description": "Change a public Kotlin signature in :core: :api reads the change through projects.core; :app does not.",
+  "description": "Change a public Kotlin signature in :core: :api reads the change through projects.core, and :app, which depends on :api, reads it too.",
   "footprint": {
     "writes": [
       ":core"
     ],
     "reads": [
       ":api",
+      ":app",
       ":core"
     ],
     "tests": [
       ":api",
+      ":app",
       ":core"
     ],
     "leaky": false

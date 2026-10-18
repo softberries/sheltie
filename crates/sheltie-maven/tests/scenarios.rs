@@ -333,3 +333,94 @@ fn unlisted_parent_test_jar_and_inherited_leak() {
         ]
     );
 }
+
+/// Guava's layout: a parent setting `<sourceDirectory>src</sourceDirectory>`, and a second
+/// reactor (`android/`) that no `<modules>` lists, with the same coordinates.
+#[test]
+fn custom_source_directory_and_second_reactor() {
+    let work = Path::new(env!("CARGO_TARGET_TMPDIR")).join("maven-guava-like");
+    if work.exists() {
+        std::fs::remove_dir_all(&work).unwrap();
+    }
+    std::fs::create_dir_all(&work).unwrap();
+    git(&work, &["init", "-q", "-b", "main"]);
+    for root in ["", "android/"] {
+        write(
+            &work,
+            &format!("{root}pom.xml"),
+            "<project><groupId>g</groupId><artifactId>parent</artifactId>\
+             <modules><module>lib</module><module>app</module></modules>\
+             <build><sourceDirectory>src</sourceDirectory></build></project>",
+        );
+        write(
+            &work,
+            &format!("{root}lib/pom.xml"),
+            "<project><parent><groupId>g</groupId><artifactId>parent</artifactId></parent>\
+             <artifactId>lib</artifactId></project>",
+        );
+        write(
+            &work,
+            &format!("{root}lib/src/g/Lib.java"),
+            "package g;\npublic class Lib {\n    public static int rate() { return 20; }\n}\n",
+        );
+        write(
+            &work,
+            &format!("{root}app/pom.xml"),
+            "<project><parent><groupId>g</groupId><artifactId>parent</artifactId></parent>\
+             <artifactId>app</artifactId><dependencies><dependency><groupId>g</groupId>\
+             <artifactId>lib</artifactId></dependency></dependencies></project>",
+        );
+    }
+    git(&work, &["add", "-A"]);
+    git(&work, &["commit", "-q", "-m", "base"]);
+    write(
+        &work,
+        "lib/src/g/Lib.java",
+        "package g;\npublic class Lib {\n    public static long rate() { return 20; }\n}\n",
+    );
+    git(&work, &["commit", "-q", "-am", "change"]);
+
+    let repo = Git::open(&work).unwrap();
+    let scratch = Path::new(env!("CARGO_TARGET_TMPDIR"));
+    let snap = Generic::<Maven>::new()
+        .graph(&repo, "HEAD", &policy(), scratch)
+        .unwrap();
+    let targets: Vec<&str> = snap.targets.keys().map(TargetId::as_str).collect();
+    assert_eq!(
+        targets,
+        [
+            "$workspace",
+            "g:app@android/app",
+            "g:app@app",
+            "g:lib@android/lib",
+            "g:lib@lib",
+            "g:parent@.",
+            "g:parent@android"
+        ]
+    );
+    // Each app depends on the lib of its own reactor.
+    let reads = |t: &str| -> Vec<&str> {
+        snap.targets[&TargetId::new(t)]
+            .reads
+            .keys()
+            .map(TargetId::as_str)
+            .filter(|r| !r.starts_with('$'))
+            .collect()
+    };
+    assert_eq!(reads("g:app@app"), ["g:lib@lib", "g:parent@."]);
+    assert_eq!(
+        reads("g:app@android/app"),
+        ["g:lib@android/lib", "g:parent@android"]
+    );
+
+    // A signature change under the custom source directory reaches the dependent.
+    let report = Generic::<Maven>::new()
+        .compute(&repo, "main~1", "main", &policy(), scratch)
+        .unwrap();
+    let ids = |s: &std::collections::BTreeSet<TargetId>| -> Vec<String> {
+        s.iter().map(|t| t.as_str().to_owned()).collect()
+    };
+    assert_eq!(ids(&report.footprint.writes), ["g:lib@lib"]);
+    assert_eq!(ids(&report.footprint.reads), ["g:app@app", "g:lib@lib"]);
+    assert!(!report.footprint.leaky);
+}
