@@ -6,8 +6,8 @@ so we take security reports seriously.
 ## Reporting a vulnerability
 
 Report privately through GitHub's
-[security advisory form](https://github.com/softberries/sheltie/security/advisories/new),
-or email **security@softberries.dev**. Please do not open public issues for security problems.
+[security advisory form](https://github.com/softberries/sheltie/security/advisories/new).
+Please do not open public issues for security problems.
 
 Include what you found, how to reproduce it, and the impact you expect. We aim to acknowledge reports
 within 3 working days and to agree on a disclosure timeline with you.
