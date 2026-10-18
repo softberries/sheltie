@@ -41,6 +41,11 @@ A package's interface is what importers can see. Sheltie hashes, from its non-te
 Comments and formatting do not count (`gofmt`, rewrapping a parameter list, rewording a doc
 comment). Moving a declaration between files of the package does not count either.
 
+A package's interface also folds in the interfaces of the packages it imports, because an
+exported signature may use their types: an interface change in `pricing` reaches `cart`,
+which imports it, and `cmd/shop`, which imports `cart`. A change that adds an import reads the
+imported package.
+
 The rule throughout: when unsure, include more. An extra interface change only widens a
 footprint and costs some parallelism; a missed one would hide a real conflict.
 
@@ -52,9 +57,9 @@ footprint and costs some parallelism; a missed one would hide a real conflict.
 | `go.sum`, `go.work.sum`, `vendor/**` | `$lockfile` | Every package is affected |
 | `.golangci.yml`, `.golangci.yaml` | the file itself | Tracked, not leaky (see below) |
 
-When the repository root is itself a package (a `main.go` next to `go.mod`), every file in the
-repository that no package owns counts as that package's data, so changes to these files and
-to `.github/**` make footprints leaky.
+When the repository root is itself a package (a `main.go` next to `go.mod`), files outside
+every other package that are neither ignored nor plain (`.github/**`, lint configuration)
+count as that package's data, and make footprints leaky.
 
 ## Leaks
 

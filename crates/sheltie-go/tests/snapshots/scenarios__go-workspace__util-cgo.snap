@@ -9,11 +9,13 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
       "example.com/shop/internal/util"
     ],
     "reads": [
+      "example.com/shop/cmd/shop",
       "example.com/shop/internal/util",
       "example.com/shop/invoice",
       "example.com/shop/search"
     ],
     "tests": [
+      "example.com/shop/cmd/shop",
       "example.com/shop/internal/util",
       "example.com/shop/invoice",
       "example.com/shop/search"

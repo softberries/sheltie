@@ -9,10 +9,13 @@ expression: "Golden\n{\n    description: &scenario.description, footprint: &repo
       "example.com/shop/cart"
     ],
     "reads": [
-      "example.com/shop/cart"
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop",
+      "example.com/shop/internal/util"
     ],
     "tests": [
-      "example.com/shop/cart"
+      "example.com/shop/cart",
+      "example.com/shop/cmd/shop"
     ],
     "leaky": false
   },
