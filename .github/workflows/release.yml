@@ -1,4 +1,5 @@
-# Release: binaries (sheltie-cargo, sheltie-merge, sheltie-server) for Linux x86_64/arm64 and
+# Release: binaries (the build-tool adapters sheltie-cargo, -go, -node, -python, -maven and -gradle,
+# plus sheltie-merge and sheltie-server) for Linux x86_64/arm64 and
 # macOS arm64 with SHA256SUMS, and a multi-arch image on GHCR. Runs on `v*` tags; run it by
 # hand (workflow_dispatch) to build everything without publishing.
 name: Release
@@ -34,7 +35,9 @@ jobs:
         with:
           key: release-${{ matrix.target }}
       - name: Build
-        run: cargo build --release --locked -p sheltie-cargo -p sheltie-merge -p sheltie-server
+        run: >-
+          cargo build --release --locked -p sheltie-cargo -p sheltie-go -p sheltie-node
+          -p sheltie-python -p sheltie-maven -p sheltie-gradle -p sheltie-merge -p sheltie-server
       - name: Package
         env:
           TARGET: ${{ matrix.target }}
@@ -42,8 +45,11 @@ jobs:
         run: |
           name="sheltie-${VERSION}-${TARGET}"
           mkdir -p "dist/$name"
-          cp target/release/sheltie-cargo target/release/sheltie-merge target/release/sheltie-server \
-            LICENSE README.md "dist/$name/"
+          for bin in sheltie-cargo sheltie-go sheltie-node sheltie-python sheltie-maven sheltie-gradle \
+            sheltie-merge sheltie-server; do
+            cp "target/release/$bin" "dist/$name/"
+          done
+          cp LICENSE README.md "dist/$name/"
           tar -C dist -czf "dist/$name.tar.gz" "$name"
           rm -rf "dist/$name"
       - uses: actions/upload-artifact@v7

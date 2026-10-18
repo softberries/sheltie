@@ -6,6 +6,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Adapters for more build tools, each a binary shipped with every release and picked by the
+  footprint workflow (new `tool` input, `auto` by default):
+  - `sheltie-go`: Go modules; packages, imports, exported declarations.
+  - `sheltie-node`: JavaScript and TypeScript in npm, yarn and pnpm workspaces and Nx;
+    workspace packages, dependencies and imports, exports and types.
+  - `sheltie-python`: Python (uv workspaces, setuptools, plain packages); import packages,
+    imports, public signatures and re-exports.
+  - `sheltie-maven` and `sheltie-gradle`: Maven reactors and Gradle builds; modules and
+    projects, their dependencies, the public Java and Kotlin API.
+  They read build files and sources from git, without the build tool or a compiler. See
+  `docs/build-tools.md`.
+- `sheltie-adapter`, the shared core every adapter (including `sheltie-cargo`) builds on.
+
+### Changed
+
+- A dependency a change adds now counts as read by it, so it meets a concurrent change to
+  that dependency's interface.
+- Files such as `CHANGES.rst`, `*.adoc`, `AUTHORS` and `NOTICE` are ignored by default, like
+  Markdown.
+
 ### Fixed
 
 - The footprint workflow no longer fails on pull requests from forks, which get no OIDC

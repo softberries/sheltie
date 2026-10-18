@@ -18,7 +18,8 @@ Before work starts, Sheltie can also keep agents off overlapping issues.
 ## How a pull request lands
 
 1. An agent opens a pull request; GitHub notifies Sheltie.
-2. An adapter (`sheltie-cargo` for Rust) runs on your CI runner and uploads the footprint.
+2. An adapter for your build tool ([Cargo, Go, JavaScript/TypeScript, Python, Maven or
+   Gradle](build-tools.md)) runs on your CI runner and uploads the footprint.
 3. Once the pull request is approved and its checks are green, the scheduler decides each
    epoch: land now, verify on the current head, build speculatively with others, or merge
    with the merge engine.

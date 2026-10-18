@@ -8,6 +8,13 @@ use crate::Error;
 /// Files that never affect a build: dropped from footprints when no target owns them.
 pub const DEFAULT_IGNORE: &[&str] = &[
     "**/*.md",
+    "**/*.rst",
+    "**/*.adoc",
+    "CHANGES*",
+    "CHANGELOG*",
+    "AUTHORS*",
+    "CONTRIBUTORS*",
+    "NOTICE*",
     "docs/**",
     "LICENSE*",
     "**/LICENSE*",
@@ -74,6 +81,9 @@ mod tests {
         assert!(p.is_ignored(&RepoPath::new("README.md")));
         assert!(p.is_ignored(&RepoPath::new("crates/x/README.md")));
         assert!(p.is_ignored(&RepoPath::new("docs/design.md")));
+        assert!(p.is_ignored(&RepoPath::new("CHANGES.rst")));
+        assert!(p.is_ignored(&RepoPath::new("docs/guide/index.adoc")));
+        assert!(!p.is_ignored(&RepoPath::new("src/changes.py")));
         assert!(!p.is_ignored(&RepoPath::new("config/flags.txt")));
         assert!(p.is_plain(&RepoPath::new(".github/workflows/ci.yml")));
         assert!(!p.is_plain(&RepoPath::new("scripts/deploy.sh")));

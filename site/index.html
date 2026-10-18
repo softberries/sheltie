@@ -75,7 +75,7 @@
     <h2>It knows what every pull request touches</h2>
     <p class="section-lede">For every pull request an adapter computes a <b>footprint</b>: the build targets it writes, and the targets it affects through their interfaces. Two pull requests conflict only when one writes what the other writes or affects. Everything else can land together, safely.</p>
     <div class="grid g4">
-      <div class="card"><div class="icon">🧭</div><span class="step-n">01</span><h3>Footprint</h3><p>An adapter runs on your CI runner (Cargo today) and uploads what the change writes and affects.</p></div>
+      <div class="card"><div class="icon">🧭</div><span class="step-n">01</span><h3>Footprint</h3><p>An adapter runs on your CI runner (Cargo, Go, JS/TS, Python, Maven, Gradle) and uploads what the change writes and affects.</p></div>
       <div class="card"><div class="icon">🚦</div><span class="step-n">02</span><h3>Schedule</h3><p>Each epoch, independent pull requests are grouped to land at once; overlapping ones are built speculatively or merged.</p></div>
       <div class="card"><div class="icon">🔍</div><span class="step-n">03</span><h3>Commit</h3><p>Sheltie checks nothing that landed meanwhile touches the change, then fast-forwards <code>main</code>. It never force-pushes.</p></div>
       <div class="card"><div class="icon">🧹</div><span class="step-n">04</span><h3>Sweep</h3><p>Full builds of <code>main</code> keep watch; a red commit is bisected and reverted automatically.</p></div>
