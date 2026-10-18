@@ -1,0 +1,14 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "edges.join(\"\\n\")"
+---
+$lockfile -> 
+$workspace -> 
+manage -> $lockfile, $workspace, shop_app
+shop_api -> $lockfile, $workspace, shop_core
+shop_app -> $lockfile, $workspace, shop_api
+shop_core -> $lockfile, $workspace, shop_core.cart
+shop_core.cart -> $lockfile, $workspace, shop_core
+tests:app/tests -> $lockfile, $workspace, shop_app
+tests:packages/api/tests -> $lockfile, $workspace, shop_api
+tests:packages/core/tests -> $lockfile, $workspace, shop_core

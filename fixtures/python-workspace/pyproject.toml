@@ -1,0 +1,16 @@
+[project]
+name = "shop"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["shop-app"]
+
+[tool.uv.workspace]
+members = ["packages/*", "app"]
+
+[tool.uv.sources]
+shop-core = { workspace = true }
+shop-api = { workspace = true }
+shop-app = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "app"]

@@ -1,0 +1,20 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a test in packages/core/tests: only that test unit.",
+  "footprint": {
+    "writes": [
+      "tests:packages/core/tests"
+    ],
+    "reads": [
+      "tests:packages/core/tests"
+    ],
+    "tests": [
+      "tests:packages/core/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

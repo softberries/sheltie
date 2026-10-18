@@ -1,0 +1,21 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Body-only change in shop_core.pricing: no other unit is affected.",
+  "footprint": {
+    "writes": [
+      "shop_core"
+    ],
+    "reads": [
+      "shop_core"
+    ],
+    "tests": [
+      "shop_core",
+      "tests:packages/core/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

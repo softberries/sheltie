@@ -1,0 +1,27 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "New keyword parameter on the public price(): every unit importing shop_core reads it, shop_api's own interface is unchanged so shop_app is not.",
+  "footprint": {
+    "writes": [
+      "shop_core"
+    ],
+    "reads": [
+      "shop_api",
+      "shop_core",
+      "shop_core.cart",
+      "tests:packages/core/tests"
+    ],
+    "tests": [
+      "shop_api",
+      "shop_core",
+      "shop_core.cart",
+      "tests:packages/api/tests",
+      "tests:packages/core/tests"
+    ],
+    "leaky": false
+  },
+  "leak_reasons": []
+}

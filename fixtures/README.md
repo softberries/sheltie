@@ -15,6 +15,10 @@ Sample repositories and scripted scenarios used by integration and snapshot test
 - `scenarios/`: scripted changes per fixture, with the groups that must commute. The golden
   footprints are in each adapter's `tests/snapshots/` (`crates/sheltie-cargo`,
   `crates/sheltie-go`, `crates/sheltie-node`, …).
+- `python-workspace/`: a uv workspace (`shop_core` with a `shop_core.cart` subpackage,
+  `shop_api`, the `shop_app` command line) with tests per project, for `sheltie-python`.
+  footprints are in `crates/sheltie-cargo/tests/snapshots/` and
+  `crates/sheltie-python/tests/snapshots/`.
 
 Planned for M4–M5: `Cargo.lock` and registry-file conflicts between PRs, and a seeded bad commit.
 

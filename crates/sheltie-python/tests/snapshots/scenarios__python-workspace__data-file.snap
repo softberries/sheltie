@@ -1,0 +1,26 @@
+---
+source: crates/sheltie-python/tests/scenarios.rs
+expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
+---
+{
+  "description": "Add a data file inside the shop_core.cart package: owned by nobody, so leaky within the package and its readers.",
+  "footprint": {
+    "writes": [
+      "shop_core.cart/files"
+    ],
+    "reads": [
+      "shop_core",
+      "shop_core.cart",
+      "shop_core.cart/files"
+    ],
+    "tests": [
+      "shop_core",
+      "shop_core.cart",
+      "tests:packages/core/tests"
+    ],
+    "leaky": true
+  },
+  "leak_reasons": [
+    "packages/core/src/shop_core/cart/discounts.json is outside the module graph"
+  ]
+}
