@@ -22,10 +22,17 @@ Bazel, sbt and Mill are planned.
 
 The Cargo adapter parses Rust and compares module interfaces exactly. The others read the
 build files and the sources without running the build tool or a compiler, and extract the
-public surface from declarations line by line. They are deliberately pessimistic: when a
-declaration is ambiguous, more of it counts as interface. The cost is that some changes look
-like interface changes when they are not, so a few more pull requests are built together than
-strictly needed. A real interface change is not missed through ambiguity.
+public surface from declarations line by line. They are deliberately pessimistic:
+
+- When a declaration is ambiguous, more of it counts as interface.
+- A unit's interface folds in the interfaces of the units it depends on, because its own API
+  may expose their types. An interface change therefore reaches dependents of dependents.
+- A change that adds a dependency reads the new dependency, so it meets a concurrent change
+  to that dependency.
+
+The cost is that some changes look like interface changes when they are not, so a few more
+pull requests are built together than strictly needed. Body-only changes still stay inside
+their unit.
 
 What no adapter sees: code loaded at run time by name (reflection, dynamic imports, plugin
 systems), and files read by tests or the build that are not part of a unit's sources. Files
