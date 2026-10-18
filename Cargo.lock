@@ -2460,7 +2460,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-api"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "chrono",
@@ -2487,7 +2487,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-cargo"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -2510,7 +2510,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-commit"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proptest",
  "sheltie-core",
@@ -2518,7 +2518,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "proptest",
@@ -2529,7 +2529,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-github"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-lc-rs",
  "axum",
@@ -2558,7 +2558,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-graph"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proptest",
  "serde",
@@ -2567,7 +2567,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-merge"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -2583,7 +2583,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-scheduler"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "insta",
@@ -2594,7 +2594,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2624,7 +2624,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-store"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "serde",
@@ -2638,7 +2638,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-sweeper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proptest",
 ]
