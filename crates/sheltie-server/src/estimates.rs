@@ -1,6 +1,6 @@
-//! Copies each repository's `[estimates]` from `.sheltie/merge.toml` on its default branch into
-//! the database, for the dashboard's time-saved estimate. A missing or invalid file means the
-//! defaults.
+//! Copies each repository's `[estimates]` and replay budget from `.sheltie/merge.toml` on its
+//! default branch into the database, for the dashboard's time-saved and agent-spend panels. A
+//! missing or invalid file means the defaults (and replay off).
 
 use std::future::Future;
 use std::sync::Arc;
@@ -51,10 +51,12 @@ impl EstimatesSync {
                     continue;
                 }
             };
-            let estimates = text
-                .and_then(|t| Rules::parse(&t).ok())
-                .map(|r| r.estimates)
-                .unwrap_or_default();
+            let rules = text.and_then(|t| Rules::parse(&t).ok());
+            let estimates = rules.as_ref().map(|r| r.estimates).unwrap_or_default();
+            let budget = rules
+                .as_ref()
+                .filter(|r| r.replay.enabled)
+                .map(|r| r.replay.daily_budget_usd);
             self.store
                 .set_estimates(
                     repo,
@@ -62,6 +64,7 @@ impl EstimatesSync {
                     estimates.minutes_per_replay,
                 )
                 .await?;
+            self.store.set_replay_budget(repo, budget).await?;
         }
         Ok(())
     }

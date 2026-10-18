@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Dashboard: an "Agent spend" panel per repository, showing the estimated cost of intent
+  replays over the last 30 days, per day and against `daily_budget_usd` for the last 24 hours,
+  with token counts, cost per replay and spend per hour of author time saved. The overview
+  shows the spend per repository and in total. See `docs/dashboard.md`.
+- Replay reports carry the agent's token counts (`tokens`: input, output, cache read, cache
+  write) from Claude Code's `modelUsage`, or `usage` on older versions. The field is optional,
+  so older runners still report.
+
 ## [0.1.0] - 2026-10-17
 
 The first public release.

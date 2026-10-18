@@ -18,7 +18,7 @@ use sha2::{Digest, Sha256};
 use sheltie_core::{ChangeState, RepoFullName};
 use sheltie_github::check_run::{DOCS_URL, tier_words};
 use sheltie_github::oauth::OAuthApp;
-use sheltie_store::{DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store};
+use sheltie_store::{AgentSpend, DashboardSession, RepoCard, RepoDetail, RepoMode, Savings, Store};
 
 const SESSION_COOKIE: &str = "sheltie_session";
 const STATE_COOKIE: &str = "sheltie_oauth_state";
@@ -248,38 +248,53 @@ fn state_badge(state: ChangeState) -> String {
     format!(r#"<span class="badge {tone}">{label}</span>"#)
 }
 
-/// Bars of `values` (one per day, oldest first, the last one today), as an inline SVG with a
+/// Bars of landings per day (oldest first, the last one today), as an inline SVG with a
 /// tooltip per bar. `class` sizes it.
 fn day_bars(values: &[u32], now: DateTime<Utc>, class: &str, id: &str) -> String {
+    let values: Vec<f64> = values.iter().map(|&v| f64::from(v)).collect();
+    bars_svg(&values, now, class, id, "Landings per day", |v| {
+        format!("{v} landing{}", if v == 1.0 { "" } else { "s" })
+    })
+}
+
+/// Bars of `values` (one per day, oldest first, the last one today); `tip` words a value.
+fn bars_svg(
+    values: &[f64],
+    now: DateTime<Utc>,
+    class: &str,
+    id: &str,
+    label: &str,
+    tip: impl Fn(f64) -> String,
+) -> String {
     let n = values.len().max(1);
-    let max = values.iter().copied().max().unwrap_or(0).max(1);
+    let max = values.iter().copied().fold(0.0, f64::max);
+    let max = if max > 0.0 { max } else { 1.0 };
     let (w, h, gap) = (n * 10, 48, 3);
     let mut s = format!(
-        r#"<svg class="{class}" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img" aria-label="Landings per day"><defs><linearGradient id="{id}" x1="0" y1="1" x2="0" y2="0"><stop class="stop-a" offset="0"/><stop class="stop-b" offset="1"/></linearGradient></defs>"#
+        r#"<svg class="{class}" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img" aria-label="{label}"><defs><linearGradient id="{id}" x1="0" y1="1" x2="0" y2="0"><stop class="stop-a" offset="0"/><stop class="stop-b" offset="1"/></linearGradient></defs>"#
     );
     for (i, &v) in values.iter().enumerate() {
-        let bar = if v == 0 {
+        let zero = v <= 0.0;
+        let bar = if zero {
             2
         } else {
-            (f64::from(v) / f64::from(max) * f64::from(h - 4))
-                .round()
-                .max(4.0) as u32
+            (v / max * f64::from(h - 4)).round().max(4.0) as u32
         };
         let back = i64::try_from(n - 1 - i).unwrap_or(0);
         let day = (now - chrono::Duration::days(back)).format("%b %-d");
-        let plural = if v == 1 { "" } else { "s" };
         let _ = write!(
             s,
-            r#"<rect class="{}" x="{}" y="{}" width="{}" height="{bar}" rx="1.5"{}><title>{day}: {v} landing{plural}</title></rect>"#,
-            if v == 0 { "bar-zero" } else { "bar" },
+            r#"<rect class="{}" x="{}" y="{}" width="{}" height="{bar}" rx="1.5"{}><title>{day}: {}</title></rect>"#,
+            if zero { "bar-zero" } else { "bar" },
             i * 10,
             h - bar,
             10 - gap,
-            if v == 0 {
+            if zero {
                 String::new()
             } else {
                 format!(r#" fill="url(#{id})""#)
             },
+            esc(&tip(v)),
         );
     }
     s.push_str("</svg>");
@@ -357,6 +372,119 @@ fn savings_panel(sv: &Savings, mode: RepoMode, predicted_wait_minutes: Option<i6
     )
 }
 
+/// US dollars, to the cent ("$0.40"); below a cent but above zero, "<$0.01".
+fn usd(v: f64) -> String {
+    if v > 0.0 && v < 0.005 {
+        "<$0.01".into()
+    } else if v >= 1_000.0 {
+        let whole = v.round() as u64;
+        let (k, rest) = (whole / 1_000, whole % 1_000);
+        format!("${k},{rest:03}")
+    } else {
+        format!("${v:.2}")
+    }
+}
+
+/// A token count, short: 512, 48k, 2.4M, 1.2B.
+fn tokens(n: u64) -> String {
+    let n = n as f64;
+    let short = |v: f64, unit: &str| {
+        if v < 10.0 {
+            format!("{:.1}{unit}", (v * 10.0).floor() / 10.0)
+        } else {
+            format!("{}{unit}", v.floor())
+        }
+    };
+    if n >= 1e9 {
+        short(n / 1e9, "B")
+    } else if n >= 1e6 {
+        short(n / 1e6, "M")
+    } else if n >= 1e3 {
+        short(n / 1e3, "k")
+    } else {
+        format!("{n}")
+    }
+}
+
+/// The "Agent spend" panel of a repository page: what intent replays cost.
+fn spend_panel(sp: &AgentSpend, sv: &Savings, now: DateTime<Utc>) -> String {
+    let days = sheltie_store::DETAIL_DAYS;
+    let head = format!(
+        r#"<section class="panel spend"><div class="panel-head"><h2>Agent spend</h2><span class="fine">Intent replays, last {days} days · estimated by the agent</span></div>"#
+    );
+    if sp.replays == 0 {
+        let text = match sp.daily_budget_usd {
+            Some(b) => format!(
+                "<b>No replays in the last {days} days</b>Intent replay is on, with a daily budget of {}. Only replays use a model; the other merge tiers cost nothing.",
+                usd(b)
+            ),
+            None => "<b>No agent spend</b>Intent replay is off. Only replays use a model; the other merge tiers cost nothing.".to_owned(),
+        };
+        return format!("{head}{}</section>", empty(&text));
+    }
+    let budget = sp.daily_budget_usd.map_or_else(String::new, |b| {
+        let pct = (sp.last_day_usd / b * 100.0).clamp(0.0, 100.0);
+        format!(
+            r#"<div class="crow budget"><span class="clabel">Last 24 h</span><progress class="pbar {}" max="100" value="{pct:.1}" aria-label="Daily budget used"></progress><span class="cval">{} of {}</span></div>"#,
+            if pct >= 80.0 { "pbar-warn" } else { "pbar-c" },
+            usd(sp.last_day_usd),
+            usd(b)
+        )
+    });
+    let replays = |n: u32| format!("{n} replay{}", if n == 1 { "" } else { "s" });
+    let mut s = format!(
+        r#"{head}<div class="spend-body"><div class="spend-main"><div class="amount">{}</div><p class="caption">{} · {} passed the checks</p>{budget}</div><div class="spend-chart">{}<div class="axis"><span>{}</span><span>Today</span></div></div></div><div class="spend-stats">"#,
+        usd(sp.cost_usd),
+        replays(sp.replays),
+        sp.passed,
+        bars_svg(
+            &sp.daily_usd,
+            now,
+            "chart chart-spend",
+            "gspend",
+            "Agent spend per day",
+            usd
+        ),
+        (now - chrono::Duration::days(i64::from(days) - 1)).format("%b %-d"),
+    );
+    let tokens_cell = match sp.tokens {
+        Some(t) => format!(
+            r#"<div><span class="mlabel">Tokens</span><b>{}</b><span class="mnote">{} in · {} out · {} cache read · {} cache write{}</span></div>"#,
+            tokens(t.total()),
+            tokens(t.input),
+            tokens(t.output),
+            tokens(t.cache_read),
+            tokens(t.cache_write),
+            if sp.runs_with_tokens < sp.replays {
+                format!(" · from {} of {}", sp.runs_with_tokens, replays(sp.replays))
+            } else {
+                String::new()
+            }
+        ),
+        None => r#"<div><span class="mlabel">Tokens</span><b>—</b><span class="mnote">not reported by the runner yet</span></div>"#.into(),
+    };
+    s.push_str(&tokens_cell);
+    let _ = write!(
+        s,
+        r#"<div><span class="mlabel">Per replay</span><b>{}</b><span class="mnote">average estimated cost</span></div>"#,
+        usd(sp.cost_usd / f64::from(sp.replays))
+    );
+    let hours = sv.author_minutes_saved as f64 / 60.0;
+    let per_hour = if hours > 0.0 {
+        format!(
+            r#"<b>{}</b><span class="mnote">spend per hour of author time saved</span>"#,
+            usd(sp.cost_usd / hours)
+        )
+    } else {
+        r#"<b>—</b><span class="mnote">no author time saved yet</span>"#.to_owned()
+    };
+    let _ = write!(
+        s,
+        r#"<div><span class="mlabel">Per hour saved</span>{per_hour}</div></div><p class="fine spend-note">Costs are Claude Code's own estimates, not your bill. Replays run on your CI runners with your API key. <a href="{DOCS_URL}/dashboard.html#agent-spend">More</a></p></section>"#
+    );
+    s
+}
+
 fn empty(text: &str) -> String {
     format!(r#"<div class="empty">{text}</div>"#)
 }
@@ -381,15 +509,17 @@ pub fn render_overview(cards: &[RepoCard], now: DateTime<Utc>) -> String {
         .iter()
         .map(|c| c.savings.conflicts_resolved + c.savings.replays)
         .sum();
+    let spent: f64 = cards.iter().map(|c| c.spend.cost_usd).sum();
     let _ = write!(
         s,
-        r#"<div class="totals"><div><span>Waiting saved</span><b>{}</b></div><div><span>Author time saved</span><b>{}</b></div><div><span>Landed</span><b>{landed}</b></div><div><span>Conflicts resolved</span><b>{conflicts}</b></div><p class="fine">Last {} days, all repositories.</p></div><div class="cards">"#,
+        r#"<div class="totals"><div><span>Waiting saved</span><b>{}</b></div><div><span>Author time saved</span><b>{}</b></div><div><span>Landed</span><b>{landed}</b></div><div><span>Conflicts resolved</span><b>{conflicts}</b></div><div><span>Agent spend</span><b>{}</b></div><p class="fine">Last {} days, all repositories. Agent spend is the agent's own estimate for intent replays.</p></div><div class="cards">"#,
         if waited > 0 {
             duration(waited)
         } else {
             "—".into()
         },
         duration(i64::try_from(author * 60).unwrap_or(i64::MAX)),
+        usd(spent),
         sheltie_store::DETAIL_DAYS,
     );
     for (i, c) in cards.iter().enumerate() {
@@ -422,7 +552,7 @@ pub fn render_overview(cards: &[RepoCard], now: DateTime<Utc>) -> String {
             s,
             r#"<a class="card" href="/dashboard/{name}"><div class="card-top"><div class="rname"><span>{}/</span>{}</div>{}</div>
 {}<div class="card-stats"><div><b>{}</b><span>Ready</span></div><div><b>{}</b><span>In flight</span></div><div><b>{}</b><span>Landed 24h</span></div><div><b>{}</b><span>Returned 24h</span></div></div>
-<div class="card-foot"><span class="saved">{}</span><span>{last}</span></div></a>"#,
+<div class="card-foot"><span class="saved">{}</span><span>{last}</span>{spend}</div></a>"#,
             esc(owner),
             esc(repo),
             mode_badge(o.mode),
@@ -433,6 +563,14 @@ pub fn render_overview(cards: &[RepoCard], now: DateTime<Utc>) -> String {
             o.returned_today,
             esc(&saved),
             name = esc(o.name.as_str()),
+            spend = if c.spend.cost_usd > 0.0 {
+                format!(
+                    r#"<span class="spent">{} agent spend</span>"#,
+                    usd(c.spend.cost_usd)
+                )
+            } else {
+                String::new()
+            },
         );
     }
     s.push_str("</div>");
@@ -477,6 +615,7 @@ pub fn render_repo(d: &RepoDetail, web: &str, now: DateTime<Utc>) -> String {
         o.landed_today,
         o.returned_today
     );
+    s.push_str(&spend_panel(&d.spend, &d.savings, now));
 
     let _ = write!(
         s,
@@ -836,6 +975,27 @@ mod tests {
         }
     }
 
+    fn spend() -> AgentSpend {
+        let mut daily_usd = vec![0.0; 7];
+        daily_usd[2] = 1.25;
+        daily_usd[6] = 3.1;
+        AgentSpend {
+            replays: 3,
+            passed: 2,
+            cost_usd: 4.35,
+            daily_usd,
+            last_day_usd: 3.1,
+            daily_budget_usd: Some(20.0),
+            tokens: Some(sheltie_core::TokenUsage {
+                input: 41_000,
+                output: 12_400,
+                cache_read: 1_830_000,
+                cache_write: 96_000,
+            }),
+            runs_with_tokens: 2,
+        }
+    }
+
     fn detail(mode: RepoMode, sv: Savings) -> RepoDetail {
         use sheltie_core::{CommitSha, GuaranteeTier, PrNumber, ResolutionTier};
         use sheltie_store::{LandingItem, QueueItem};
@@ -844,6 +1004,7 @@ mod tests {
             landed_daily: vec![0, 2, 5, 1, 0, 0, 3],
             savings: sv,
             predicted_wait_minutes: (mode == RepoMode::Shadow).then_some(95),
+            spend: spend(),
             queue: vec![QueueItem {
                 pr: PrNumber(7),
                 title: Some("<img src=x onerror=alert(1)>".into()),
@@ -920,7 +1081,62 @@ mod tests {
             landed_daily: vec![1, 0, 4],
             savings: savings(12, Some(9000)),
             predicted_wait_minutes: None,
+            spend: spend(),
         };
         insta::assert_snapshot!(render_overview(&[card], now()));
+    }
+
+    #[test]
+    fn money_and_token_formats() {
+        assert_eq!(usd(0.0), "$0.00");
+        assert_eq!(usd(0.004), "<$0.01");
+        assert_eq!(usd(4.355), "$4.36");
+        assert_eq!(usd(1234.4), "$1,234");
+        assert_eq!(tokens(512), "512");
+        assert_eq!(tokens(48_700), "48k");
+        assert_eq!(tokens(2_480_000), "2.4M");
+        assert_eq!(tokens(1_000_000_000), "1.0B");
+    }
+
+    #[test]
+    fn agent_spend_states() {
+        let sv = savings(12, Some(9000));
+        let full = spend_panel(&spend(), &sv, now());
+        assert!(
+            full.contains(r#"<div class="amount">$4.35</div>"#),
+            "{full}"
+        );
+        assert!(full.contains("3 replays · 2 passed the checks"));
+        assert!(full.contains("$3.10 of $20.00") && full.contains("pbar-c"));
+        assert!(full.contains("<b>1.9M</b>") && full.contains("from 2 of 3 replays"));
+        // 2 h of author time saved for $4.35.
+        assert!(
+            full.contains(&format!("<b>{}</b>", usd(4.35 / 2.0))),
+            "{full}"
+        );
+
+        let near_budget = AgentSpend {
+            last_day_usd: 18.0,
+            ..spend()
+        };
+        assert!(spend_panel(&near_budget, &sv, now()).contains("pbar-warn"));
+
+        let idle = AgentSpend {
+            daily_usd: vec![0.0; 7],
+            ..AgentSpend::default()
+        };
+        assert!(spend_panel(&idle, &sv, now()).contains("Intent replay is off"));
+        let on = AgentSpend {
+            daily_budget_usd: Some(5.0),
+            ..idle
+        };
+        assert!(spend_panel(&on, &sv, now()).contains("daily budget of $5.00"));
+
+        let no_tokens = AgentSpend {
+            tokens: None,
+            runs_with_tokens: 0,
+            ..spend()
+        };
+        assert!(spend_panel(&no_tokens, &sv, now()).contains("not reported by the runner yet"));
     }
 }

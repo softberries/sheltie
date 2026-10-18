@@ -11,6 +11,7 @@ use std::process::Command;
 
 use sheltie_core::{
     CommitSha, Intent, PrNumber, ReplayChecks, ReplayReport, RepoPath, ResolutionTier, Score,
+    TokenUsage,
 };
 
 use crate::engine::EngineError;
@@ -130,7 +131,43 @@ fn shell_quote(s: &str) -> String {
 struct Agent {
     cost_usd: f64,
     turns: u32,
+    tokens: Option<TokenUsage>,
     error: Option<String>,
+}
+
+/// Token counts from Claude Code's JSON result: `modelUsage` covers the whole run (subagents
+/// included) and is summed over models; older versions only have `usage`, the main loop.
+fn token_usage(json: &serde_json::Value) -> Option<TokenUsage> {
+    let count = |v: &serde_json::Value, k: &str| {
+        v.get(k)
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0)
+            .min(TokenUsage::MAX)
+    };
+    let add = |a: u64, b: u64| a.saturating_add(b).min(TokenUsage::MAX);
+    if let Some(models) = json
+        .get("modelUsage")
+        .and_then(serde_json::Value::as_object)
+        .filter(|m| !m.is_empty())
+    {
+        return Some(
+            models
+                .values()
+                .fold(TokenUsage::default(), |t, m| TokenUsage {
+                    input: add(t.input, count(m, "inputTokens")),
+                    output: add(t.output, count(m, "outputTokens")),
+                    cache_read: add(t.cache_read, count(m, "cacheReadInputTokens")),
+                    cache_write: add(t.cache_write, count(m, "cacheCreationInputTokens")),
+                }),
+        );
+    }
+    let usage = json.get("usage").filter(|u| u.is_object())?;
+    Some(TokenUsage {
+        input: count(usage, "input_tokens"),
+        output: count(usage, "output_tokens"),
+        cache_read: count(usage, "cache_read_input_tokens"),
+        cache_write: count(usage, "cache_creation_input_tokens"),
+    })
 }
 
 fn run_agent(request: &ReplayRequest, prompt: &str) -> Result<Agent, EngineError> {
@@ -151,6 +188,7 @@ fn run_agent(request: &ReplayRequest, prompt: &str) -> Result<Agent, EngineError
     let turns = field("num_turns")
         .and_then(serde_json::Value::as_u64)
         .map_or(0, |t| t.min(u64::from(u32::MAX)) as u32);
+    let tokens = json.as_ref().and_then(token_usage);
     let is_error = field("is_error")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
@@ -173,6 +211,7 @@ fn run_agent(request: &ReplayRequest, prompt: &str) -> Result<Agent, EngineError
     Ok(Agent {
         cost_usd,
         turns,
+        tokens,
         error,
     })
 }
@@ -312,6 +351,7 @@ pub fn replay(request: &ReplayRequest) -> Result<ReplayReport, EngineError> {
         checks: None,
         cost_usd: 0.0,
         turns: 0,
+        tokens: None,
         error: None,
     };
     let abort = |repo: &std::path::Path| -> Result<(), EngineError> {
@@ -327,6 +367,7 @@ pub fn replay(request: &ReplayRequest) -> Result<ReplayReport, EngineError> {
     )?;
     report.cost_usd = agent.cost_usd;
     report.turns = agent.turns;
+    report.tokens = agent.tokens;
     if let Some(error) = agent.error {
         report.error = Some(error);
         abort(repo)?;
@@ -443,5 +484,43 @@ mod tests {
     fn quoting() {
         assert_eq!(shell_quote("a::b"), "'a::b'");
         assert_eq!(shell_quote("it's"), "'it'\\''s'");
+    }
+
+    #[test]
+    fn token_usage_sums_models_and_falls_back_to_usage() {
+        let both = serde_json::json!({
+            "usage": {"input_tokens": 1, "output_tokens": 1},
+            "modelUsage": {
+                "claude-opus-5-5": {"inputTokens": 100, "outputTokens": 50,
+                    "cacheReadInputTokens": 1000, "cacheCreationInputTokens": 200},
+                "claude-haiku-5-5": {"inputTokens": 10, "outputTokens": 5}
+            }
+        });
+        assert_eq!(
+            token_usage(&both),
+            Some(TokenUsage {
+                input: 110,
+                output: 55,
+                cache_read: 1000,
+                cache_write: 200
+            })
+        );
+        let usage_only = serde_json::json!({"usage": {"input_tokens": 7, "output_tokens": 3,
+            "cache_read_input_tokens": 2, "cache_creation_input_tokens": 1}});
+        assert_eq!(
+            token_usage(&usage_only),
+            Some(TokenUsage {
+                input: 7,
+                output: 3,
+                cache_read: 2,
+                cache_write: 1
+            })
+        );
+        assert_eq!(
+            token_usage(&serde_json::json!({"total_cost_usd": 1.0})),
+            None
+        );
+        let huge = serde_json::json!({"usage": {"input_tokens": u64::MAX}});
+        assert_eq!(token_usage(&huge).map(|t| t.input), Some(TokenUsage::MAX));
     }
 }

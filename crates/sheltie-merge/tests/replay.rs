@@ -119,7 +119,7 @@ impl Repo {
     }
 }
 
-const OK_JSON: &str = r#"echo '{"type":"result","subtype":"success","is_error":false,"num_turns":4,"total_cost_usd":0.12}'"#;
+const OK_JSON: &str = r#"echo '{"type":"result","subtype":"success","is_error":false,"num_turns":4,"total_cost_usd":0.12,"usage":{"input_tokens":900,"output_tokens":300}}'"#;
 
 #[test]
 fn full_replay_re_derives_a_semantic_conflict() {
@@ -139,6 +139,7 @@ fn full_replay_re_derives_a_semantic_conflict() {
         checks.similarity
     );
     assert_eq!((report.cost_usd, report.turns), (0.12, 4));
+    assert_eq!(report.tokens.map(|t| t.total()), Some(1_200));
     let result = report.result.unwrap();
     assert_eq!(
         r.git(&["show", "-s", "--format=%P", result.as_str()]),

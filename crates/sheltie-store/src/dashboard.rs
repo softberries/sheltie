@@ -12,7 +12,7 @@ use sqlx::postgres::PgRow;
 use sheltie_scheduler::report::build_report;
 use sheltie_scheduler::savings::{Savings, estimate};
 
-use crate::{RepoMode, Store, StoreError, from_db_id, to_db_id};
+use crate::{AgentSpend, RepoMode, Store, StoreError, from_db_id, to_db_id};
 
 /// A signed-in dashboard user.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -116,7 +116,7 @@ pub const CARD_DAYS: u32 = 14;
 pub const DETAIL_DAYS: u32 = 30;
 
 /// One repository on the overview, with its recent activity and time saved.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RepoCard {
     /// The headline numbers.
     pub overview: RepoOverview,
@@ -127,10 +127,12 @@ pub struct RepoCard {
     /// In shadow mode: minutes merges waited after Sheltie said "land now" (the predicted
     /// saving), over the same period.
     pub predicted_wait_minutes: Option<i64>,
+    /// Agent spend on intent replays over the last [`DETAIL_DAYS`] days.
+    pub spend: AgentSpend,
 }
 
 /// Everything the repository page shows.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RepoDetail {
     /// The headline numbers.
     pub overview: RepoOverview,
@@ -140,6 +142,8 @@ pub struct RepoDetail {
     pub savings: Savings,
     /// In shadow mode, the predicted saving (see [`RepoCard::predicted_wait_minutes`]).
     pub predicted_wait_minutes: Option<i64>,
+    /// Agent spend on intent replays over the last [`DETAIL_DAYS`] days.
+    pub spend: AgentSpend,
     /// Open changes, newest activity first.
     pub queue: Vec<QueueItem>,
     /// Recent landings, newest first.
@@ -306,11 +310,13 @@ impl Store {
         for overview in self.repo_overviews(repos).await? {
             let landed_daily = self.landed_daily(overview.id, CARD_DAYS).await?;
             let (savings, predicted_wait_minutes) = self.savings_of(&overview).await?;
+            let spend = self.agent_spend(overview.id, DETAIL_DAYS).await?;
             cards.push(RepoCard {
                 overview,
                 landed_daily,
                 savings,
                 predicted_wait_minutes,
+                spend,
             });
         }
         Ok(cards)
@@ -323,6 +329,7 @@ impl Store {
         };
         let landed_daily = self.landed_daily(repo, DETAIL_DAYS).await?;
         let (savings, predicted_wait_minutes) = self.savings_of(&overview).await?;
+        let spend = self.agent_spend(repo, DETAIL_DAYS).await?;
         let id = to_db_id(repo.0, "repository id")?;
         let state = |r: &PgRow| -> Result<ChangeState, StoreError> {
             r.try_get::<String, _>("state")?.parse().map_err(parse_err)
@@ -430,6 +437,7 @@ impl Store {
             landed_daily,
             savings,
             predicted_wait_minutes,
+            spend,
             queue,
             landed,
             returned,
