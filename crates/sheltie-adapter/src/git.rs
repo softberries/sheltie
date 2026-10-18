@@ -11,20 +11,37 @@ use sheltie_core::{CommitSha, RepoPath, TreeHash};
 
 use crate::Error;
 
-/// A git object id as printed by git.
-pub(crate) type Oid = String;
+/// A git object id, as git prints it.
+pub type Oid = String;
 
-/// The files of one tree: path → blob id.
+/// The files of one tree: path to blob id. Symlinks and submodules are left out.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub(crate) struct TreeFiles(pub(crate) BTreeMap<RepoPath, Oid>);
+pub struct TreeFiles(pub BTreeMap<RepoPath, Oid>);
 
 impl TreeFiles {
-    pub(crate) fn contains(&self, path: &str) -> bool {
+    /// Whether the tree has this file.
+    pub fn contains(&self, path: &str) -> bool {
         self.0.contains_key(&RepoPath::new(path))
     }
 
-    pub(crate) fn oid(&self, path: &str) -> Option<&Oid> {
+    /// The blob id of a file.
+    pub fn oid(&self, path: &str) -> Option<&Oid> {
         self.0.get(&RepoPath::new(path))
+    }
+
+    /// Every file, in path order.
+    pub fn paths(&self) -> impl Iterator<Item = &RepoPath> {
+        self.0.keys()
+    }
+
+    /// Files under `dir` (a path prefix without the trailing slash; empty for the root).
+    pub fn under<'a>(&'a self, dir: &'a str) -> impl Iterator<Item = (&'a RepoPath, &'a Oid)> + 'a {
+        self.0.iter().filter(move |(p, _)| {
+            dir.is_empty()
+                || p.as_str()
+                    .strip_prefix(dir)
+                    .is_some_and(|rest| rest.starts_with('/'))
+        })
     }
 }
 
@@ -70,7 +87,8 @@ impl Git {
         &self.dir
     }
 
-    pub(crate) fn run(&self, args: &[&str]) -> Result<String, Error> {
+    /// Runs `git` with `args` in the repository and returns its standard output.
+    pub fn run(&self, args: &[&str]) -> Result<String, Error> {
         let out = Command::new("git")
             .arg("-C")
             .arg(&self.dir)
@@ -110,7 +128,7 @@ impl Git {
     }
 
     /// Every file in a commit's tree (submodules and symlinks excluded).
-    pub(crate) fn files(&self, commit: &CommitSha) -> Result<TreeFiles, Error> {
+    pub fn files(&self, commit: &CommitSha) -> Result<TreeFiles, Error> {
         let out = self.run(&["ls-tree", "-r", "-z", "--full-tree", commit.as_str()])?;
         let mut files = BTreeMap::new();
         for entry in out.split('\0').filter(|e| !e.is_empty()) {
@@ -130,11 +148,7 @@ impl Git {
     }
 
     /// Paths that differ between two commits (renames appear as delete plus add).
-    pub(crate) fn changed_paths(
-        &self,
-        a: &CommitSha,
-        b: &CommitSha,
-    ) -> Result<Vec<RepoPath>, Error> {
+    pub fn changed_paths(&self, a: &CommitSha, b: &CommitSha) -> Result<Vec<RepoPath>, Error> {
         let out = self.run(&[
             "diff-tree",
             "-r",
@@ -153,7 +167,7 @@ impl Git {
 
     /// The raw diff between two commits: one line per changed path with both blob ids.
     /// Stable across git versions, so its hash identifies the diff.
-    pub(crate) fn raw_diff(&self, a: &CommitSha, b: &CommitSha) -> Result<String, Error> {
+    pub fn raw_diff(&self, a: &CommitSha, b: &CommitSha) -> Result<String, Error> {
         self.run(&[
             "diff-tree",
             "-r",
@@ -165,8 +179,13 @@ impl Git {
         ])
     }
 
+    /// The contents of a blob as text (invalid UTF-8 replaced).
+    pub fn text(&self, oid: &str) -> Result<String, Error> {
+        Ok(String::from_utf8_lossy(&self.blob(oid)?).into_owned())
+    }
+
     /// The contents of a blob, cached by id.
-    pub(crate) fn blob(&self, oid: &str) -> Result<Rc<Vec<u8>>, Error> {
+    pub fn blob(&self, oid: &str) -> Result<Rc<Vec<u8>>, Error> {
         if let Some(b) = self.blobs.borrow().get(oid) {
             return Ok(Rc::clone(b));
         }
@@ -232,14 +251,16 @@ impl std::fmt::Debug for Git {
     }
 }
 
-/// A temporary checkout of one commit, removed on drop. Used to run `cargo metadata`.
-pub(crate) struct Worktree<'a> {
+/// A temporary checkout of one commit, removed on drop, for tools that need files on disk
+/// (such as `cargo metadata`).
+pub struct Worktree<'a> {
     git: &'a Git,
     path: PathBuf,
 }
 
 impl<'a> Worktree<'a> {
-    pub(crate) fn add(git: &'a Git, commit: &CommitSha, scratch: &Path) -> Result<Self, Error> {
+    /// Checks `commit` out under `scratch`.
+    pub fn add(git: &'a Git, commit: &CommitSha, scratch: &Path) -> Result<Self, Error> {
         let path = scratch.join(format!(
             "sheltie-worktree-{}-{}",
             std::process::id(),
@@ -259,7 +280,8 @@ impl<'a> Worktree<'a> {
         Ok(Self { git, path })
     }
 
-    pub(crate) fn path(&self) -> &Path {
+    /// Where the checkout is.
+    pub fn path(&self) -> &Path {
         &self.path
     }
 }

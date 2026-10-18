@@ -9,10 +9,10 @@ use sheltie_core::{RepoPath, TargetId, TestId};
 use sheltie_graph::{EdgeKind, GraphSnapshot, IfaceHash, Target, Zone};
 
 use crate::Error;
-use crate::git::{Git, TreeFiles};
 use crate::metadata::{CrateKind, CrateTarget, Layout, Package};
 use crate::modules::{ModuleTree, PathRef, UseEntry};
-use crate::policy::PathPolicy;
+use sheltie_adapter::PathPolicy;
+use sheltie_adapter::git::{Git, TreeFiles};
 
 /// Target owning workspace-wide build settings; every target reads it.
 pub(crate) const WORKSPACE: &str = "$workspace";

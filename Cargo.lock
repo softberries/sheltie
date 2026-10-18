@@ -2459,6 +2459,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "sheltie-adapter"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "globset",
+ "hex",
+ "insta",
+ "serde_json",
+ "sha2 0.11.1",
+ "sheltie-core",
+ "sheltie-graph",
+ "sheltie-scheduler",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "sheltie-api"
 version = "0.3.0"
 dependencies = [
@@ -2502,6 +2521,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.1",
+ "sheltie-adapter",
  "sheltie-core",
  "sheltie-graph",
  "sheltie-scheduler",

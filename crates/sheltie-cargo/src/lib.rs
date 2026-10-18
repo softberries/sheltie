@@ -13,39 +13,70 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 pub use sheltie_core::FootprintReport;
-use sheltie_core::{DiffHash, RepoPath, TargetId};
+use sheltie_core::{RepoPath, TargetId};
 
-mod git;
-pub mod history;
 mod lockfile;
 mod metadata;
 mod modules;
-mod policy;
 mod snapshot;
 
-pub use git::Git;
-pub use policy::{DEFAULT_IGNORE, DEFAULT_PLAIN, PathPolicy};
+use sheltie_adapter::git;
+pub use sheltie_adapter::{DEFAULT_IGNORE, Error, Git, PathPolicy, history};
 
-/// Errors from the adapter.
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    /// A git command failed.
-    #[error("git {args} failed: {stderr}")]
-    Git {
-        /// The arguments.
-        args: String,
-        /// What git printed.
-        stderr: String,
-    },
-    /// `cargo metadata` failed.
-    #[error("cargo metadata failed: {0}")]
-    Metadata(String),
-    /// Invalid configuration.
-    #[error("invalid configuration: {0}")]
-    Config(String),
-    /// Any other I/O problem.
-    #[error("{0}")]
-    Io(String),
+/// Rust tooling files outside the build: tracked (two changes conflict), but not leaky.
+pub const CARGO_PLAIN: &[&str] = &[
+    "rustfmt.toml",
+    ".rustfmt.toml",
+    "clippy.toml",
+    ".clippy.toml",
+    "deny.toml",
+];
+
+/// [`CARGO_PLAIN`] and the plain files every adapter shares.
+pub const DEFAULT_PLAIN: &[&str] = &[
+    ".github/**",
+    ".gitlab-ci.yml",
+    ".pre-commit-config.yaml",
+    "rustfmt.toml",
+    ".rustfmt.toml",
+    "clippy.toml",
+    ".clippy.toml",
+    "deny.toml",
+];
+
+/// The Cargo adapter, for the shared command line and history replay.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Cargo;
+
+impl sheltie_adapter::Adapter for Cargo {
+    fn name(&self) -> &'static str {
+        "sheltie-cargo"
+    }
+    fn version(&self) -> &'static str {
+        ADAPTER_VERSION
+    }
+    fn plain(&self) -> &'static [&'static str] {
+        CARGO_PLAIN
+    }
+    fn compute(
+        &self,
+        git: &Git,
+        base: &str,
+        head: &str,
+        policy: &PathPolicy,
+        scratch: &Path,
+    ) -> Result<FootprintReport, Error> {
+        compute(git, base, head, policy, scratch)
+    }
+    fn graph(
+        &self,
+        git: &Git,
+        rev: &str,
+        policy: &PathPolicy,
+        scratch: &Path,
+    ) -> Result<sheltie_graph::GraphSnapshot, Error> {
+        graph(git, rev, policy, scratch)
+    }
 }
 
 /// Version of the footprint format and algorithm; part of every report.
@@ -65,37 +96,6 @@ pub fn graph(
         metadata::layout(wt.path())?
     };
     Ok(snapshot::build(git, &files, &layout, policy, &BTreeSet::new())?.snapshot)
-}
-
-/// `seq:<first glob>` for every `[[sequence]]` rule in `rules` that a changed path matches.
-/// An unreadable rules file yields nothing; the merge engine reports it.
-fn sequence_targets(rules: &str, changed: &BTreeSet<RepoPath>) -> BTreeSet<TargetId> {
-    let Ok(value) = rules.parse::<toml::Table>() else {
-        return BTreeSet::new();
-    };
-    let Some(sequences) = value.get("sequence").and_then(toml::Value::as_array) else {
-        return BTreeSet::new();
-    };
-    let mut targets = BTreeSet::new();
-    for seq in sequences.iter().take(100) {
-        let globs: Vec<&str> = seq
-            .get("paths")
-            .and_then(toml::Value::as_array)
-            .map(|a| a.iter().filter_map(toml::Value::as_str).collect())
-            .unwrap_or_default();
-        let Some(first) = globs.first() else { continue };
-        let mut set = globset::GlobSetBuilder::new();
-        for g in &globs {
-            if let Ok(glob) = globset::Glob::new(g) {
-                set.add(glob);
-            }
-        }
-        let Ok(set) = set.build() else { continue };
-        if changed.iter().any(|p| set.is_match(p.as_str())) {
-            targets.insert(TargetId::new(format!("seq:{first}")));
-        }
-    }
-    targets
 }
 
 /// Computes the footprint of `head` against `base` in the repository `git`.
@@ -180,16 +180,7 @@ pub fn compute(
     }
 
     let mut footprint = sheltie_graph::footprint(&b.snapshot, &h.snapshot, &relevant, &extra_reads);
-    // Numbered files (`[[sequence]]` in `.sheltie/merge.toml` at the base, never the PR's) share
-    // one target per rule: two changes adding migrations conflict even when their file names
-    // differ, so the merge engine renumbers them.
-    if let Some(oid) = base_files.oid(".sheltie/merge.toml") {
-        let rules = String::from_utf8_lossy(&git.blob(oid)?).into_owned();
-        for seq in sequence_targets(&rules, &changed) {
-            footprint.writes.insert(seq.clone());
-            footprint.reads.insert(seq);
-        }
-    }
+    sheltie_adapter::add_sequence_targets(git, &base_files, &changed, &mut footprint)?;
     if !leak_reasons.is_empty() {
         footprint.leaky = true;
     }
@@ -230,31 +221,5 @@ pub fn compute(
         leak_reasons.dedup();
     }
 
-    Ok(FootprintReport {
-        adapter: ADAPTER_VERSION.to_owned(),
-        base_tree: git.tree(&base)?,
-        diff_hash: DiffHash::new(format!(
-            "sha256:{}",
-            snapshot::sha256(&git.raw_diff(&base, &head)?)
-        )),
-        base,
-        head,
-        footprint,
-        leak_reasons,
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn sequence_rules_give_a_shared_target() {
-        let rules = "[[sequence]]\npaths = [\"migrations/*.sql\"]\nkey = \"^(\\\\d+)_\"\n";
-        let changed = |p: &str| BTreeSet::from([RepoPath::new(p)]);
-        let t = sequence_targets(rules, &changed("migrations/0002_orders.sql"));
-        assert_eq!(t, BTreeSet::from([TargetId::new("seq:migrations/*.sql")]));
-        assert!(sequence_targets(rules, &changed("src/lib.rs")).is_empty());
-        assert!(sequence_targets("not toml [", &changed("migrations/1_x.sql")).is_empty());
-    }
+    sheltie_adapter::report(ADAPTER_VERSION, git, base, head, footprint, leak_reasons)
 }

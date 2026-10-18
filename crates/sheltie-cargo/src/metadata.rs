@@ -80,19 +80,25 @@ pub(crate) fn layout(checkout: &Path) -> Result<Layout, Error> {
         .no_deps()
         .other_options(vec!["--offline".to_owned()])
         .exec()
-        .map_err(|e| Error::Metadata(e.to_string()))?;
+        .map_err(|e| Error::Tool(format!("cargo metadata failed: {e}")))?;
     // Canonicalize: the worktree may sit behind a symlink (e.g. /tmp on macOS).
     let root = checkout
         .canonicalize()
         .map_err(|e| Error::Io(format!("canonicalizing {}: {e}", checkout.display())))?;
     let rel = |p: &Path| -> Result<RepoPath, Error> {
         let p = p.canonicalize().unwrap_or_else(|_| p.to_path_buf());
-        let rel = p
-            .strip_prefix(&root)
-            .map_err(|_| Error::Metadata(format!("{} is outside the repository", p.display())))?;
-        let s = rel
-            .to_str()
-            .ok_or_else(|| Error::Metadata(format!("non-UTF-8 path {}", rel.display())))?;
+        let rel = p.strip_prefix(&root).map_err(|_| {
+            Error::Tool(format!(
+                "cargo metadata failed: {} is outside the repository",
+                p.display()
+            ))
+        })?;
+        let s = rel.to_str().ok_or_else(|| {
+            Error::Tool(format!(
+                "cargo metadata failed: non-UTF-8 path {}",
+                rel.display()
+            ))
+        })?;
         Ok(RepoPath::new(s.replace('\\', "/")))
     };
 
