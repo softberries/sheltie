@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-19
+
 ### Added
 
 - Adapters for more build tools, each a binary shipped with every release and picked by the
@@ -33,6 +35,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The footprint workflow no longer fails on pull requests from forks, which get no OIDC
   token: it skips the upload with a notice, and Sheltie leaves the pull request to be merged
   by hand. See "Pull requests from forks" in `docs/workflows.md`.
+
+### Upgrading
+
+- Bump `@v0.3.0` and `sheltie-version` in your workflows to `v0.4.0`. Repositories that are
+  not Cargo need no other change: the footprint workflow detects the build tool, or set
+  `tool` explicitly.
 
 ## [0.3.0] - 2026-10-18
 
@@ -241,7 +249,8 @@ The first public release.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
 
-[Unreleased]: https://github.com/softberries/sheltie/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/softberries/sheltie/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/softberries/sheltie/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/softberries/sheltie/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/softberries/sheltie/releases/tag/v0.1.0

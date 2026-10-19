@@ -61,9 +61,9 @@ permissions:
   pull-requests: read
 jobs:
   replay:
-    uses: softberries/sheltie/.github/workflows/replay.yml@v0.3.0
+    uses: softberries/sheltie/.github/workflows/replay.yml@v0.4.0
     with:
-      sheltie-version: v0.3.0
+      sheltie-version: v0.4.0
       sheltie-url: https://sheltie.example.com
       pr: ${{ github.event.client_payload.pr }}
       head: ${{ github.event.client_payload.head }}
