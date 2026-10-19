@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-19
+
 ### Added
 
 - [Sheltie on real repositories](docs/real-world.md): what Sheltie would have done on 23
@@ -33,6 +35,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `sheltie-node`: a `package.json` starting with a UTF-8 byte order mark is read, as Node
   reads it.
 - `.circleci/**` is a plain file for every adapter, like `.github/**` and `.gitlab-ci.yml`.
+
+### Upgrading
+
+- Bump `@v0.4.0` and `sheltie-version` in your workflows to `v0.5.0`. Footprints computed by
+  the new adapters can be less leaky than before (Go embeds, Rust modules declared in macros,
+  `package.json` with a byte order mark), so more changes can land without a rebuild.
+- `sheltie-<tool> roi` reports lower savings than 0.4.0 for the same history: earlier
+  versions assumed every change was tested on the branch as of landing and overstated them.
 
 ## [0.4.0] - 2026-10-19
 
@@ -277,7 +287,8 @@ The first public release.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
 
-[Unreleased]: https://github.com/softberries/sheltie/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/softberries/sheltie/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/softberries/sheltie/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/softberries/sheltie/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/softberries/sheltie/compare/v0.1.0...v0.2.0
