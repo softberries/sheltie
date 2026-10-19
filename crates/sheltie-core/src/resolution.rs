@@ -19,9 +19,9 @@ text_enum! {
         Regenerate => "regenerate",
         /// Tier 3: merge semantics declared in `.sheltie/merge.toml`.
         Declared => "declared",
-        /// Tier 4a: intent replay on the conflicting hunks.
+        /// Tier 4a: an agent re-derives the conflicting hunks.
         ReplayHunks => "replay_hunks",
-        /// Tier 4b: intent replay of the whole change on the new base.
+        /// Tier 4b: an agent re-derives the whole change on the new base.
         ReplayFull => "replay_full",
         /// Tier 5: resolved by a person.
         Human => "human",

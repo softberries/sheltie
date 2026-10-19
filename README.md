@@ -17,7 +17,7 @@ resolves conflicts in escalating tiers:
 1. structural merge;
 2. regenerating derived files;
 3. declared merge rules;
-4. re-deriving the change from the agent's recorded intent.
+4. re-deriving the change with an agent, checked against the tests it adds.
 
 Before work starts, it also keeps agents off overlapping issues.
 
@@ -83,7 +83,7 @@ The documentation is at [sheltie.dev/docs](https://sheltie.dev/docs/):
 
 - [Self-hosting](https://sheltie.dev/docs/self-hosting.html) and [configuration](https://sheltie.dev/docs/configuration.html)
 - [Workflows](https://sheltie.dev/docs/workflows.html) to add to your repositories
-- [Merge rules](https://sheltie.dev/docs/merge-rules.html) and [intent replay](https://sheltie.dev/docs/intent-replay.html)
+- [Merge rules](https://sheltie.dev/docs/merge-rules.html) and [replay](https://sheltie.dev/docs/intent-replay.html)
 - [Coordinating agents](https://sheltie.dev/docs/agents.html) (MCP server, issue leases)
 - [Dashboard](https://sheltie.dev/docs/dashboard.html), including the time-saved estimate
 - [Sheltie on real repositories](https://sheltie.dev/docs/real-world.html): what it would have done on 23 open-source projects, including where it does not help and what could not be proven ([PDF](https://sheltie.dev/assets/sheltie-on-real-repositories.pdf))

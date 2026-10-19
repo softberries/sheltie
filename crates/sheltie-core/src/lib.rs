@@ -75,7 +75,10 @@ pub use ids::{
     InvalidRepoName, Login, PrNumber, RepoFullName, RepoId, RepoPath, RunnerId, TargetId, TestId,
     TreeHash,
 };
-pub use intent::{Intent, InvalidIntent, ReplayChecks, ReplayReport, TokenUsage};
+pub use intent::{
+    AcceptanceTest, Intent, InvalidIntent, MAX_ACCEPTANCE_CANDIDATES, ReplayChecks, ReplayContext,
+    ReplayReport, TestLanguage, TestOutcome, TokenUsage,
+};
 pub use resolution::{FileResolution, MergeReport, Resolution, ResolutionTier};
 pub use score::{InvalidScore, Score};
 pub use verification::{Outcome, Verification};

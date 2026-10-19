@@ -2631,6 +2631,7 @@ dependencies = [
  "anyhow",
  "clap",
  "globset",
+ "insta",
  "proptest",
  "regex",
  "serde",

@@ -32,7 +32,9 @@ pub const REPLAYED_LABEL: &str = sheltie_github::labels::REPLAYED.name;
 pub const REAPPROVAL_LABEL: &str = sheltie_github::labels::NEEDS_REAPPROVAL.name;
 
 /// A replay that has not reported for this long is given up on (agent runs are slow).
-const REPLAY_TIMEOUT_MINUTES: i64 = 90;
+const REPLAY_TIMEOUT_MINUTES: i64 = 150;
+/// Most characters of a linked issue's body sent to the runner in the dispatch payload.
+const MAX_ISSUE_BODY_IN_PAYLOAD: usize = 8_000;
 /// Lost compare-and-swaps tolerated per change and epoch before trying again next epoch.
 const MAX_CAS_RETRIES: usize = 3;
 /// A verify branch on which no CI reports for this long is given up on.
@@ -673,8 +675,9 @@ impl Committer {
         })
     }
 
-    /// Tier 4: asks the runner to re-derive the change from its intent onto `onto`, within the
-    /// repository's attempt and budget limits; otherwise returns it with `reason`.
+    /// Tier 4: asks the runner to re-derive the change onto `onto` with an agent, within the
+    /// repository's attempt and budget limits; otherwise returns it with `reason`. No intent
+    /// block is needed: the runner works from the pull request itself.
     async fn try_replay(
         &self,
         repo: &RepoAccess,
@@ -690,12 +693,6 @@ impl Committer {
             Ok(config) => config,
             Err(_) => return self.return_change(repo, id, reason).await,
         };
-        if self.store.change_intent(id).await?.is_none() {
-            let reason = format!(
-                "{reason}. Add a valid `sheltie-intent` block to the description to let Sheltie re-derive it"
-            );
-            return self.return_change(repo, id, &reason).await;
-        }
         let attempts = self.store.replay_attempts(id).await?;
         if attempts >= config.max_attempts {
             let reason = format!("{reason}; {attempts} replay attempts did not land it");
@@ -710,12 +707,26 @@ impl Committer {
         } else {
             "full"
         };
+        // The issue the pull request closes, as context for the agent. The runner gets it in
+        // the payload, so its workflow needs no permission to read issues.
+        let issue = self
+            .store
+            .closed_issue(c.change.repo, c.change.pr)
+            .await?
+            .map(|i| {
+                serde_json::json!({
+                    "number": i.number.0,
+                    "title": i.title.chars().take(500).collect::<String>(),
+                    "body": i.body.chars().take(MAX_ISSUE_BODY_IN_PAYLOAD).collect::<String>(),
+                })
+            });
         let payload = serde_json::json!({
             "pr": c.change.pr.0,
             "head": c.change.head.as_str(),
             "onto": onto.as_str(),
             "branch": repo.default_branch,
             "mode": mode,
+            "issue": issue,
         });
         self.github
             .dispatch(repo.installation, &repo.full_name, REPLAY_EVENT, payload)
@@ -723,7 +734,7 @@ impl Committer {
         self.store
             .start_replay(c.change.repo, id, tier, onto)
             .await?;
-        tracing::info!(repo = %repo.full_name, change = %c.change, %tier, attempt = attempts + 1, "replaying from intent");
+        tracing::info!(repo = %repo.full_name, change = %c.change, %tier, attempt = attempts + 1, "replaying with an agent");
         Ok(Outcome::Verifying)
     }
 
@@ -758,10 +769,15 @@ impl Committer {
                     result: Some(sha),
                     checks_passed: true,
                     similarity,
+                    details,
                     ..
                 }) => {
                     let similarity = similarity.map_or(0.0, Score::get);
-                    if similarity >= threshold {
+                    // A full rebuild that no test checked has only CI to show it builds, not
+                    // that it still does what the reviewed change did.
+                    let untested =
+                        run.tier == ResolutionTier::ReplayFull && !details.acceptance_checked;
+                    if similarity >= threshold && !untested {
                         let branch = verify_branch(pr, &c.change.head);
                         self.github
                             .reset_branch(repo.installation, &repo.full_name, &branch, sha)
@@ -789,12 +805,23 @@ impl Committer {
                         self.github
                             .add_labels(repo.installation, &repo.full_name, pr, &[REAPPROVAL_LABEL])
                             .await?;
-                        let reason = format!(
-                            "it was re-derived from its intent on branch `{branch}`, but the result differs from the reviewed change (similarity {similarity:.2}, below {threshold:.2}); review that branch and push it to this pull request to land it"
-                        );
-                        let body = sheltie_github::comments::needs_reapproval(
-                            &branch, similarity, threshold,
-                        );
+                        let (reason, body) = if untested {
+                            (
+                                format!(
+                                    "it was rebuilt on the new head on branch `{branch}`, but it adds no test that fails without it, so nothing shows the rebuilt change still works; review that branch and push it to this pull request to land it"
+                                ),
+                                sheltie_github::comments::untested_rebuild(&branch),
+                            )
+                        } else {
+                            (
+                                format!(
+                                    "it was re-derived on branch `{branch}`, but the result differs from the reviewed change (similarity {similarity:.2}, below {threshold:.2}); review that branch and push it to this pull request to land it"
+                                ),
+                                sheltie_github::comments::needs_reapproval(
+                                    &branch, similarity, threshold,
+                                ),
+                            )
+                        };
                         self.return_with(repo, run.change_db_id, &reason, &body)
                             .await?;
                     }
@@ -804,7 +831,7 @@ impl Committer {
                     let why = outcome.error.clone().unwrap_or_else(|| {
                         "the result failed its checks (files outside the change, or acceptance tests)".into()
                     });
-                    let reason = format!("re-deriving it from its intent failed: {why}");
+                    let reason = format!("re-deriving it with an agent failed: {why}");
                     // 4a escalates to 4b; 4b is retried. Attempts and budget cap both.
                     self.try_replay(
                         repo,

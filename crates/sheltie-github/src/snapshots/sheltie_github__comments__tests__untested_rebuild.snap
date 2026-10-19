@@ -1,0 +1,11 @@
+---
+source: crates/sheltie-github/src/comments.rs
+expression: text
+---
+### 🤖 Rebuilt, but nothing shows it still works
+
+Sheltie re-implemented this change with an agent on top of the current head. The result is on branch `sheltie/replay/7-0123456789ab`, but this pull request adds no test that fails without it, so nothing shows that the rebuilt change still does what it did. It was not landed.
+
+**What to do:** review `sheltie/replay/7-0123456789ab` and, if it is right, push it to this pull request. Adding a test that fails without the change lets Sheltie check future rebuilds itself.
+
+<sub>Sheltie · [About replay](https://sheltie.dev/docs/intent-replay.html)</sub>

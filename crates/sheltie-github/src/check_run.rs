@@ -1,7 +1,9 @@
 //! What the "Sheltie" check run says for each change state.
 
-use sheltie_core::{ChangeState, CommitSha, GuaranteeTier, ResolutionTier};
-use sheltie_store::{FootprintSummary, Landing, ReadinessFlags};
+use sheltie_core::{
+    AcceptanceTest, ChangeState, CommitSha, GuaranteeTier, ResolutionTier, TestOutcome,
+};
+use sheltie_store::{FootprintSummary, Landing, ReadinessFlags, ReplayDetails};
 
 /// Name of the check run Sheltie posts on every pull request head.
 pub const CHECK_NAME: &str = "Sheltie";
@@ -67,6 +69,8 @@ pub struct CheckContext<'a> {
     pub resolution: Option<ResolutionTier>,
     /// The replay tier in progress, if an agent is re-deriving it.
     pub replaying: Option<ResolutionTier>,
+    /// What the latest reported replay was built from and tested with.
+    pub replay: Option<&'a ReplayDetails>,
 }
 
 fn short(sha: &CommitSha) -> &str {
@@ -80,8 +84,8 @@ pub fn tier_words(tier: ResolutionTier) -> &'static str {
         ResolutionTier::Structural => "structural merge (mergiraf)",
         ResolutionTier::Regenerate => "regenerated derived files",
         ResolutionTier::Declared => "declared merge rules",
-        ResolutionTier::ReplayHunks => "re-derived conflicting hunks from its intent (4a)",
-        ResolutionTier::ReplayFull => "re-derived from its intent (4b)",
+        ResolutionTier::ReplayHunks => "conflicting hunks re-derived by an agent (4a)",
+        ResolutionTier::ReplayFull => "re-derived by an agent on the new head (4b)",
         ResolutionTier::Human => "resolved by a person",
     }
 }
@@ -131,7 +135,7 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
         ChangeState::Merging => match ctx.replaying {
             Some(tier) => {
                 body.push_str(&format!(
-                    "This change conflicts with what landed, and the merge engine could not combine them. An agent is now re-deriving it from the intent in the description, on your CI runner ({}).\n\nThe result lands only if it passes the acceptance tests, stays inside this change's files, and is close to the reviewed diff.",
+                    "This change conflicts with what landed, and the merge engine could not combine them. An agent is now re-deriving it on your CI runner ({}), from this pull request's diff, description, commits and linked issue.\n\nThe result lands only if it stays inside this change's files, passes the tests this pull request adds that fail without it, and is close to the reviewed diff.",
                     if tier == ResolutionTier::ReplayHunks {
                         "resolving the conflicting hunks, tier 4a"
                     } else {
@@ -140,8 +144,8 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
                 ));
                 (
                     CheckStatus::InProgress,
-                    "Re-deriving from its intent".into(),
-                    "🤖 Re-deriving from intent",
+                    "Re-deriving with an agent".into(),
+                    "🤖 Re-deriving with an agent",
                 )
             }
             None => {
@@ -219,6 +223,16 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
             )
         }
     };
+    if let (
+        Some(d),
+        ChangeState::Verifying
+        | ChangeState::Committable
+        | ChangeState::Landed
+        | ChangeState::Returned,
+    ) = (ctx.replay, ctx.state)
+    {
+        body.push_str(&format!("\n\n{}", replay_section(d)));
+    }
     // A closed change's footprint no longer matters; a pending one lists it in its checklist.
     let footprint = match (ctx.state, ctx.footprint) {
         (ChangeState::Closed, _) | (ChangeState::Pending, None) => String::new(),
@@ -237,6 +251,84 @@ pub fn spec_for(ctx: &CheckContext<'_>) -> CheckRunSpec {
             short(ctx.head)
         ),
     }
+}
+
+/// Why a test found in the diff was not used as an acceptance test.
+fn dropped_because(t: &AcceptanceTest) -> String {
+    match (t.head, t.base) {
+        (TestOutcome::NotRun, _) => format!("not run: no test command for {}", t.language.as_str()),
+        (TestOutcome::Failed, _) => "fails with the change".into(),
+        (TestOutcome::TimedOut, _) => "timed out with the change".into(),
+        (_, TestOutcome::Passed) => "passes without the change too".into(),
+        (_, TestOutcome::TimedOut) => "timed out without the change".into(),
+        _ => "not run".into(),
+    }
+}
+
+fn outcome_words(o: TestOutcome) -> &'static str {
+    match o {
+        TestOutcome::Passed => "✅ passes on the result",
+        TestOutcome::Failed => "❌ fails on the result",
+        TestOutcome::TimedOut => "❌ timed out on the result",
+        TestOutcome::Missing => "❌ removed by the replay",
+        TestOutcome::NotRun => "not run on the result",
+    }
+}
+
+/// What a replay was built from and which tests checked it.
+pub fn replay_section(d: &ReplayDetails) -> String {
+    let mut s = String::from("**Replay**");
+    if let Some(c) = &d.context {
+        let mut sources = vec!["the diff".to_owned()];
+        if c.description {
+            sources.push("title and description".into());
+        }
+        if let Some(n) = c.issue {
+            sources.push(format!("issue #{n}"));
+        }
+        if c.commits > 0 {
+            sources.push(format!(
+                "{} commit message{}",
+                c.commits,
+                if c.commits == 1 { "" } else { "s" }
+            ));
+        }
+        if c.intent_block {
+            sources.push("the intent block".into());
+        }
+        s.push_str(&format!(" · built from {}", sources.join(", ")));
+    }
+    s.push('\n');
+    let kept: Vec<&AcceptanceTest> = d.acceptance.iter().filter(|t| t.kept()).collect();
+    if kept.is_empty() {
+        s.push_str(if d.acceptance_checked {
+            "\nChecked with the tests listed in the intent block."
+        } else {
+            "\nNo acceptance tests: this pull request adds no test that fails without it."
+        });
+    } else {
+        s.push_str("\nAcceptance tests (they pass with the change and fail without it):\n");
+        for t in &kept {
+            s.push_str(&format!(
+                "- `{}`: {}\n",
+                t.name.replace('`', "'"),
+                outcome_words(t.result)
+            ));
+        }
+    }
+    let dropped: Vec<String> = d
+        .acceptance
+        .iter()
+        .filter(|t| !t.kept())
+        .map(|t| format!("`{}` ({})", t.name.replace('`', "'"), dropped_because(t)))
+        .collect();
+    if !dropped.is_empty() {
+        s.push_str(&format!(
+            "\nAlso found in the diff, not used: {}.",
+            dropped.join(", ")
+        ));
+    }
+    s.trim_end().to_owned()
 }
 
 /// The checklist of what a pending change still lacks.
@@ -388,6 +480,36 @@ mod tests {
             landing: None,
             resolution: None,
             replaying: None,
+            replay: None,
+        };
+        let replay = ReplayDetails {
+            context: Some(sheltie_core::ReplayContext {
+                intent_block: false,
+                description: true,
+                issue: Some(12),
+                commits: 2,
+            }),
+            acceptance: vec![
+                AcceptanceTest {
+                    name: "billing::retries_three_times".into(),
+                    language: sheltie_core::TestLanguage::Rust,
+                    head: TestOutcome::Passed,
+                    base: TestOutcome::Missing,
+                    result: TestOutcome::Passed,
+                },
+                AcceptanceTest {
+                    name: "billing::formats_amounts".into(),
+                    language: sheltie_core::TestLanguage::Rust,
+                    head: TestOutcome::Passed,
+                    base: TestOutcome::Passed,
+                    result: TestOutcome::NotRun,
+                },
+            ],
+            acceptance_checked: true,
+        };
+        let untested = ReplayDetails {
+            context: replay.context.clone(),
+            ..ReplayDetails::default()
         };
         let readiness = ReadinessFlags {
             approved: false,
@@ -452,6 +574,30 @@ mod tests {
                 },
             ),
             (
+                "verifying_replayed",
+                CheckContext {
+                    state: ChangeState::Verifying,
+                    footprint: Some(&fp),
+                    merge_mode: true,
+                    resolution: Some(ResolutionTier::ReplayFull),
+                    replay: Some(&replay),
+                    ..base
+                },
+            ),
+            (
+                "returned_untested_replay",
+                CheckContext {
+                    state: ChangeState::Returned,
+                    footprint: Some(&fp),
+                    merge_mode: true,
+                    returned_reason: Some(
+                        "it was rebuilt on the new head, but no test shows the rebuilt change still works",
+                    ),
+                    replay: Some(&untested),
+                    ..base
+                },
+            ),
+            (
                 "landed",
                 CheckContext {
                     state: ChangeState::Landed,
@@ -502,6 +648,7 @@ mod tests {
                 landing: None,
                 resolution: None,
                 replaying: None,
+                replay: None,
             };
             let completed = matches!(spec_for(&ctx).status, CheckStatus::Completed(_));
             let finished = matches!(

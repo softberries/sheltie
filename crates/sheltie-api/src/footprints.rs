@@ -1,6 +1,6 @@
 //! Uploads from CI, authenticated with GitHub Actions OIDC tokens:
 //! `POST /v1/footprints` (a change's footprint), `POST /v1/merges` (a merge-engine report) and
-//! `POST /v1/replays` (an intent-replay report) and `POST /v1/graphs` (the default branch's
+//! `POST /v1/replays` (a replay report) and `POST /v1/graphs` (the default branch's
 //! build graph, for footprint prediction).
 //!
 //! Authenticated with a GitHub Actions OIDC token (`Authorization: Bearer <jwt>`). The token

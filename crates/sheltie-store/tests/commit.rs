@@ -254,3 +254,65 @@ async fn speculation_group_lifecycle(pool: PgPool) {
         "back in the queue"
     );
 }
+
+#[sqlx::test(migrator = "sheltie_store::MIGRATOR")]
+async fn replay_details_are_stored_with_the_report(pool: PgPool) {
+    use sheltie_core::{
+        AcceptanceTest, ReplayChecks, ReplayContext, ReplayReport, ResolutionTier, Score,
+        TestLanguage, TestOutcome,
+    };
+    let (store, id) = setup(&pool).await;
+    store
+        .start_replay(REPO, id, ResolutionTier::ReplayFull, &sha('b'))
+        .await
+        .unwrap();
+    let test = AcceptanceTest {
+        name: "doubled_is_forty".into(),
+        language: TestLanguage::Rust,
+        head: TestOutcome::Passed,
+        base: TestOutcome::Missing,
+        result: TestOutcome::Passed,
+    };
+    let context = ReplayContext {
+        intent_block: false,
+        description: true,
+        issue: Some(12),
+        commits: 3,
+    };
+    let report = ReplayReport {
+        pr: PrNumber(1),
+        head: sha('a'),
+        onto: sha('b'),
+        tier: ResolutionTier::ReplayFull,
+        result: Some(sha('c')),
+        checks: Some(ReplayChecks {
+            outside_scope: vec![],
+            acceptance_passed: Some(true),
+            similarity: Score::new(0.8).unwrap(),
+        }),
+        cost_usd: 0.3,
+        turns: 5,
+        tokens: None,
+        model: None,
+        error: None,
+        context: Some(context.clone()),
+        acceptance: vec![test.clone()],
+    };
+    store.record_replay_report(REPO, &report).await.unwrap();
+    let runs = store.pending_replays(REPO).await.unwrap();
+    let details = &runs[0].report.as_ref().unwrap().details;
+    assert_eq!(details.context, Some(context));
+    assert_eq!(details.acceptance, [test]);
+    assert!(details.acceptance_checked);
+
+    // A report from an older client: no details, and no acceptance test checked it.
+    sqlx::query("UPDATE replay_runs SET details = NULL")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let runs = store.pending_replays(REPO).await.unwrap();
+    assert_eq!(
+        runs[0].report.as_ref().unwrap().details,
+        sheltie_store::ReplayDetails::default()
+    );
+}

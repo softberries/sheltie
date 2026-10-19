@@ -177,7 +177,7 @@ pub struct PrOutcome {
     pub returned: bool,
     /// Sheltie reverted it after it landed.
     pub reverted: bool,
-    /// Sheltie re-derived it from its intent.
+    /// Sheltie re-derived it with an agent.
     pub replayed: bool,
     /// Reviews that requested changes.
     pub changes_requested: u32,
@@ -200,7 +200,7 @@ pub struct Scorecard {
     pub returned: u32,
     /// Merged and later reverted by Sheltie.
     pub reverted: u32,
-    /// Merged after Sheltie re-derived them from their intent.
+    /// Merged after Sheltie re-derived them with an agent.
     pub replayed: u32,
     /// Merged / (merged + closed); `None` before any finished.
     pub merge_rate: Option<f64>,

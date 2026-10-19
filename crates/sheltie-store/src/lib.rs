@@ -37,7 +37,7 @@ pub use intake::Ingested;
 pub use merges::{MergeOutcome, MergeReportOutcome, MergeRun};
 pub use readiness::{Readiness, ReadinessJob};
 pub use reality::{BranchCiJob, CiState, RedWindow};
-pub use replays::{ReplayOutcome, ReplayReportOutcome, ReplayRun};
+pub use replays::{ReplayDetails, ReplayOutcome, ReplayReportOutcome, ReplayRun};
 pub use sheltie_core::agents::{AgentKey, AgentRule, Scorecard};
 pub use sheltie_scheduler::capacity::{
     Capacity, CapacityPoint, DEFAULT_CLEAN_SHARE, HotTarget, MIN_FOOTPRINTS, capacity,

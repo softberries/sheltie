@@ -11,7 +11,8 @@ built together speculatively or resolved in escalating tiers:
 1. structural merge (mergiraf);
 2. regenerating derived files such as lockfiles;
 3. merge rules you declare;
-4. re-deriving the change from the agent's recorded intent with Claude Code.
+4. re-deriving the change with Claude Code, from the pull request itself, checked against the
+   tests it adds.
 
 Before work starts, Sheltie can also keep agents off overlapping issues.
 

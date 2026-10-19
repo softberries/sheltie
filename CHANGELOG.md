@@ -6,6 +6,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Acceptance tests found automatically (fail-to-pass): tests the pull request adds or
+  changes (Rust, Go, Python, JavaScript/TypeScript, Java/Kotlin) that pass with the change and
+  fail without it. The replay result must pass them. They run in the replay job, one at a
+  time, at most 10.
+- `[replay] test_commands`: a test command per language, for repositories with more than one.
+- The check run shows what a replay was built from and which tests checked it.
+
+### Changed
+
+- Replay (tier 4) no longer needs a `sheltie-intent` block: the agent works from the pull
+  request's diff, title, description, commit messages, the issue it closes, and what the
+  default branch changed in the same files. It works the same whichever agent, or person,
+  wrote the pull request. A valid intent block still adds the author's task, plan and tests.
+- A full rebuild (4b) that no acceptance test checked needs re-approval, however similar it
+  is to the original.
+- The server waits up to 150 minutes for a replay report (was 90), and the replay job's limit
+  is 90 minutes (was 60), for the fail-to-pass runs.
+
 ## [0.5.0] - 2026-10-19
 
 ### Added

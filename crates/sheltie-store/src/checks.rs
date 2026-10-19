@@ -51,6 +51,8 @@ pub struct CheckRunJob {
     pub resolution: Option<ResolutionTier>,
     /// The replay tier in progress, while an agent re-derives it.
     pub replaying: Option<ResolutionTier>,
+    /// What the latest reported replay was built from and tested with, if there was one.
+    pub replay: Option<crate::ReplayDetails>,
 }
 
 /// The parts of readiness a check run explains.
@@ -140,7 +142,10 @@ impl Store {
                     (SELECT rs.tier FROM resolutions rs JOIN resolution_changes rc ON rc.resolution_id = rs.id
                      WHERE rc.change_id = c.id ORDER BY rs.id DESC LIMIT 1) AS resolution_tier,
                     (SELECT rr.tier FROM replay_runs rr
-                     WHERE rr.change_id = c.id AND NOT rr.handled ORDER BY rr.id DESC LIMIT 1) AS replay_tier
+                     WHERE rr.change_id = c.id AND NOT rr.handled ORDER BY rr.id DESC LIMIT 1) AS replay_tier,
+                    (SELECT rr.details FROM replay_runs rr
+                     WHERE rr.change_id = c.id AND rr.reported_at IS NOT NULL
+                     ORDER BY rr.id DESC LIMIT 1) AS replay_details
              FROM claimed
              JOIN changes c ON c.id = claimed.change_id
              JOIN repositories r ON r.id = c.repo_id
@@ -304,6 +309,10 @@ fn job_from_row(row: &PgRow) -> Result<CheckRunJob, StoreError> {
         },
         resolution: tier_column(row, "resolution_tier")?,
         replaying: tier_column(row, "replay_tier")?,
+        replay: row
+            .try_get::<Option<serde_json::Value>, _>("replay_details")?
+            .map(|v| crate::ReplayDetails::from_column(Some(v)))
+            .transpose()?,
     })
 }
 
