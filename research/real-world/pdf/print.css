@@ -49,7 +49,7 @@ strong { font-weight: 650; }
 .rw-pdf { display: none; }
 
 /* Key figures */
-.rw-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7pt; margin: 12pt 0 6pt; break-inside: avoid; }
+.rw-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7pt; margin: 12pt 0 6pt; break-inside: avoid; }
 .rw-kpi { --c: var(--info); position: relative; padding: 9pt 10pt 9pt 12pt; border-radius: 9pt; overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--c) 28%, transparent); background: color-mix(in srgb, var(--c) 6%, white); }
 .rw-kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3pt; background: var(--c); }

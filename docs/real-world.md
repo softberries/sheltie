@@ -18,10 +18,6 @@ The scripts, the bench and every number are in
 <div class="rw-kpis">
 <div class="rw-kpi good"><b>47–75%</b><span>less waiting in the merge queue, on five GitHub merge-queue projects (like for like)</span></div>
 <div class="rw-kpi good"><b>72–85%</b><span>fewer CI runs where the queue runs the same CI as pull requests</span></div>
-<div class="rw-kpi warn"><b>223</b><span>pull requests failed in the real queue that Sheltie would have landed at once</span></div>
-<div class="rw-kpi bad"><b>1 + 9</b><span>a semantic conflict footprints missed, and 9 changes whose cause we could not determine</span></div>
-<div class="rw-kpi bad"><b>83 vs 85.8</b><span>red <code>main</code> episodes with an overlapping landing, against chance: no evidence Sheltie prevents them</span></div>
-<div class="rw-kpi info"><b>7</b><span>problems in Sheltie the study found: six in adapters and an overstated ROI report, all fixed</span></div>
 </div>
 
 ## Summary
@@ -46,12 +42,14 @@ saving disappears: Sheltie would need about as many runs as their queue builds t
 
 </div>
 
-<div class="rw-callout bad">
+<div class="rw-callout warn">
 
-**Sheltie would have landed some changes the queue caught.** On the five GitHub merge-queue
-projects, 223 pull requests that Sheltie would have landed at once failed in the real queue at
-least once. Most went back into the queue
-unchanged and merged. In 40 the pull request's own diff changed after the failure:
+**Queue failures happen either way; a few would have reached `main`.** On the five GitHub
+merge-queue projects, 223 pull requests that Sheltie would have landed at once failed a queue
+build at least once. 165 of them went back into the queue with no new commits and merged: the
+failure was most likely a flaky test or another pull request in the same build, and the same
+reruns would likely happen with Sheltie. 18 only rebased. In 40 the pull request's own diff
+changed after the failure:
 - 14 failed checks that run only in the queue: 10 repository-wide checks at gradle and 4
   jobs at bevy;
 - 14 more at gradle followed failures in its fuller queue CI. We did not identify the failing
@@ -77,12 +75,8 @@ upper bound.
 
 </div>
 
-<div class="rw-callout info">
-
-**The study found real bugs in Sheltie, now fixed:** six adapter problems and an
-over-optimistic ROI report (see [What the study changed in Sheltie](#what-the-study-changed-in-sheltie)).
-
-</div>
+The study also found problems in Sheltie, fixed before these results were computed (see
+[What the study changed in Sheltie](#what-the-study-changed-in-sheltie)).
 
 ## The projects and how they merge
 
