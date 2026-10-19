@@ -27,13 +27,13 @@
 
 | Project | Queue CI | Real queue builds (failed) | Sheltie CI runs | Sheltie, if PR CI had to run the queue's full CI |
 | --- | --- | --- | --- | --- |
-| rust-analyzer | same | 297 (7) | 83 | not needed |
-| junit-framework | same | 165 (5) | 36 | not needed |
-| trino | same | 2357 (579) | 348 | not needed |
+| rust-analyzer | same | 297 (7) | 83 | *not needed* |
+| junit-framework | same | 165 (5) | 36 | *not needed* |
+| trino | same | 2357 (579) | 348 | *not needed* |
 | bevy | heavier | 768 (71) | 224 | 816 |
 | gradle | heavier | ≥599 (167) | 170 | 580 |
 | rust-lang/rust | heavier | 625 (190) | 116 | 556 |
-| traefik | same | 37 | 0 | not needed |
+| traefik | same | 37 | 0 | *not needed* |
 
 ## queue-decisions
 
@@ -118,7 +118,7 @@
 | prometheus | go | 95/415 (23%) | web/ui/pnpm-lock.yaml is outside the module graph |
 | pydantic | python | 54/221 (24%) | pydantic-core/src/serializers/shared.rs is outside the module graph |
 | cpython | python | 917/1214 (76%) | setup.py builds extensions |
-| rust-lang/rust | cargo | 417/440 (95%) | cannot parse compiler/rustc_hir_analysis/src/collect/resolve_bound_vars.rs: u… |
+| rust-lang/rust | cargo | 417/440 (95%) | cannot parse compiler/rustc_trait_selection/src/error_reporting/infer/need_ty… |
 | rust-analyzer | cargo | 160/289 (55%) | build script crates/rust-analyzer/build.rs |
 | okhttp | gradle | 9/153 (6%) | okhttp/api/android/okhttp.api is outside the module graph |
 | storybook | node | 18/162 (11%) | scripts/build/entry-configs.ts is outside the module graph |

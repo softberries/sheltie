@@ -12,10 +12,21 @@ They are simulations, not production runs.
 
 The scripts, the bench and every number are in
 [`research/real-world`](https://github.com/softberries/sheltie/tree/main/research/real-world).
-A [PDF of this page](https://sheltie.dev/assets/sheltie-on-real-repositories.pdf) is
-available.
+
+<p class="rw-pdf"><a href="https://sheltie.dev/assets/sheltie-on-real-repositories.pdf">Download this report as a PDF</a></p>
+
+<div class="rw-kpis">
+<div class="rw-kpi good"><b>47–75%</b><span>less waiting in the merge queue, on five GitHub merge-queue projects (like for like)</span></div>
+<div class="rw-kpi good"><b>72–85%</b><span>fewer CI runs where the queue runs the same CI as pull requests</span></div>
+<div class="rw-kpi warn"><b>223</b><span>pull requests failed in the real queue that Sheltie would have landed at once</span></div>
+<div class="rw-kpi bad"><b>1 + 9</b><span>a semantic conflict footprints missed, and 9 changes whose cause we could not determine</span></div>
+<div class="rw-kpi bad"><b>83 vs 85.8</b><span>red <code>main</code> episodes with an overlapping landing, against chance: no evidence Sheltie prevents them</span></div>
+<div class="rw-kpi info"><b>7</b><span>problems in Sheltie the study found: six in adapters and an overstated ROI report, all fixed</span></div>
+</div>
 
 ## Summary
+
+<div class="rw-callout good">
 
 **Where projects use a merge queue, Sheltie would cut waiting substantially.** For pull
 requests the real queue never ejected, total time from entering the queue to landing fell by
@@ -23,11 +34,19 @@ requests the real queue never ejected, total time from entering the queue to lan
 Where the queue runs the same CI as the pull request (rust-analyzer, junit, trino), Sheltie
 also needed 72–85% fewer CI runs than the queue's builds.
 
+</div>
+
+<div class="rw-callout warn">
+
 **Most of that comes from landing a change without a new build when nothing that landed since
 its CI touches what it reads.** That is only as safe as the pull request's CI. Three of the
 projects (bevy, gradle, rust-lang/rust) run more in their queue than on pull requests. For
 them, the fair comparison makes Sheltie run their full CI on every pull request, and the CI
 saving disappears: Sheltie would need about as many runs as their queue builds today.
+
+</div>
+
+<div class="rw-callout bad">
 
 **Sheltie would have landed some changes the queue caught.** On the five GitHub merge-queue
 projects, 223 pull requests that Sheltie would have landed at once failed in the real queue at
@@ -44,6 +63,10 @@ unchanged and merged. In 40 the pull request's own diff changed after the failur
 That 1 and those 9, and possibly some of the 14 unconfirmed gradle cases, are where Sheltie's
 footprints may have missed a real interaction.
 
+</div>
+
+<div class="rw-callout bad">
+
 **On projects without a merge queue, we could not show that Sheltie prevents red `main`.**
 `main` went red and stayed red (two or more consecutive failed runs) 176 times across 13
 projects. An overlapping landing was in range in 83 of those episodes; chance alone predicts
@@ -52,8 +75,14 @@ they do not explain the breakage we can see. In these projects Sheltie would add
 89 days of CI wall time over 90 days across the 14 projects whose CI time we have, as an
 upper bound.
 
+</div>
+
+<div class="rw-callout info">
+
 **The study found real bugs in Sheltie, now fixed:** six adapter problems and an
 over-optimistic ROI report (see [What the study changed in Sheltie](#what-the-study-changed-in-sheltie)).
+
+</div>
 
 ## The projects and how they merge
 
@@ -121,6 +150,8 @@ Whether the queue runs more than pull request CI decides how to read the results
 
 Waits are median / 90th percentile / total.
 
+<div class="rw-table rw-hl-last">
+
 <!-- tables:queue-like-for-like -->
 | Project | CI per build | PRs (never ejected) | Real wait: median / p90 / total | Sheltie wait: median / p90 / total | Total wait saved |
 | --- | --- | --- | --- | --- | --- |
@@ -132,6 +163,8 @@ Waits are median / 90th percentile / total.
 | rust-lang/rust | 3 h 8 min | 428 | 5 h 18 min / 17 h 2 min / 155 d 23 h | 0 s / 3 h 8 min / 19 d 8 h | 88% |
 | traefik | 13 min | 37 | 2 min / 15 min / 9 h 37 min | 0 s / 0 s / 0 s | 100% |
 <!-- /tables:queue-like-for-like -->
+
+</div>
 
 Read with care:
 
@@ -148,17 +181,21 @@ Read with care:
 
 ### CI runs
 
+<div class="rw-table rw-hl-ci">
+
 <!-- tables:queue-ci-cost -->
 | Project | Queue CI | Real queue builds (failed) | Sheltie CI runs | Sheltie, if PR CI had to run the queue's full CI |
 | --- | --- | --- | --- | --- |
-| rust-analyzer | same | 297 (7) | 83 | not needed |
-| junit-framework | same | 165 (5) | 36 | not needed |
-| trino | same | 2357 (579) | 348 | not needed |
+| rust-analyzer | same | 297 (7) | 83 | *not needed* |
+| junit-framework | same | 165 (5) | 36 | *not needed* |
+| trino | same | 2357 (579) | 348 | *not needed* |
 | bevy | heavier | 768 (71) | 224 | 816 |
 | gradle | heavier | ≥599 (167) | 170 | 580 |
 | rust-lang/rust | heavier | 625 (190) | 116 | 556 |
-| traefik | same | 37 | 0 | not needed |
+| traefik | same | 37 | 0 | *not needed* |
 <!-- /tables:queue-ci-cost -->
+
+</div>
 
 - Real queues build every entry, and rebuild entries behind every failure. Sheltie builds a
   change again only when something that landed after its CI overlaps it.
@@ -239,11 +276,15 @@ and read the failed jobs and follow-up commits:
 - **9** have a code change whose cause we could not determine: 5 at trino, 2 at
   rust-analyzer, 2 at bevy.
 
+<div class="rw-callout warn">
+
 **This is the honest worst case:** on the three projects whose queue runs the same CI as
 pull requests (1,263 changes), 9 pull requests changed after a queue failure, and Sheltie
 would have landed them without a rebuild. For 7 of them we cannot say whether the failure was
 an interaction footprints missed. In those projects Sheltie's sweeper (post-landing CI with
 bisect and revert) would be the safety net. We did not simulate it.
+
+</div>
 
 ## Projects without a merge queue
 
@@ -268,6 +309,8 @@ bisect and revert) would be the safety net. We did not simulate it.
 
 ### Results
 
+<div class="rw-table rw-dense">
+
 <!-- tables:plain -->
 | Project | Adapter | PRs | PR CI | Stale at merge | Sheltie would rebuild | Extra CI (wall time, upper bound) | Leaky footprints | Persistent red episodes | …with an overlapping landing: seen vs by chance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -288,6 +331,8 @@ bisect and revert) would be the safety net. We did not simulate it.
 | cpython | python | 1211 | 32 min | 919/1211 (76%) | 691 (57%) | 15 d 10 h | 914 (75%) | 22 | 11 vs 12.6 |
 | **Total** | | | | | | | | **176** | **83 vs 85.8** |
 <!-- /tables:plain -->
+
+</div>
 
 n/m means not measurable:
 - keycloak runs no CI on pushes to `main`, so red `main` is invisible;
@@ -344,7 +389,7 @@ the fixes below:
 | prometheus | go | 95/415 (23%) | web/ui/pnpm-lock.yaml is outside the module graph |
 | pydantic | python | 54/221 (24%) | pydantic-core/src/serializers/shared.rs is outside the module graph |
 | cpython | python | 917/1214 (76%) | setup.py builds extensions |
-| rust-lang/rust | cargo | 417/440 (95%) | cannot parse compiler/rustc_hir_analysis/src/collect/resolve_bound_vars.rs: u… |
+| rust-lang/rust | cargo | 417/440 (95%) | cannot parse compiler/rustc_trait_selection/src/error_reporting/infer/need_ty… |
 | rust-analyzer | cargo | 160/289 (55%) | build script crates/rust-analyzer/build.rs |
 | okhttp | gradle | 9/153 (6%) | okhttp/api/android/okhttp.api is outside the module graph |
 | storybook | node | 18/162 (11%) | scripts/build/entry-configs.ts is outside the module graph |
@@ -381,6 +426,10 @@ The causes that remain are mostly deliberate caution:
 
 ## What we cannot prove
 
+<div class="rw-callout bad rw-limits">
+
+**These are the limits of this study.** Read every result above with them in mind.
+
 - **These are simulations.** No project ran Sheltie.
   - The replay assumes every CI run passes and every merge-engine resolution succeeds.
   - It uses one CI time per project (the median) for every build.
@@ -404,22 +453,24 @@ The causes that remain are mostly deliberate caution:
 - **One window.** 90 days, ending 2026-10-19. Release cycles and freezes inside it are not
   separated out.
 
+</div>
+
 ## What was verified, and how
 
 | Claim | How it was checked | Verified |
 | --- | --- | --- |
-| Each project's merge setup | `merge_group` runs, bors comments, Tide statuses, label events in the collected data | Yes |
-| Merge-queue landing time is `mergedAt`, not the commit time | the queue commit's committer time equals its build start (checked on junit) | Yes |
-| Queue CI vs pull request CI | workflow files (bevy `validation-jobs.yml`, trino `ci.yml`, rust `jobs.yml`: 11 PR / 82 auto jobs); gradle statuses on PR and queue commits | Yes |
-| gradle queue CI time (1 h 19 min) | `GitHub Merge Queue Check Pass` status on all 410 landed queue commits | Yes |
-| Ejections and their reasons | `RemovedFromMergeQueueEvent.reason` | Yes |
-| Footprints are what Sheltie computes | the released adapters at each landing; 0 errors in the final set | Yes |
-| The replay is Sheltie's | the bench checks every replay against `sheltie_scheduler::roi::replay` and stops on any difference | Yes |
-| 18 escape candidates only rebased | pull request diff at the failure equals the final diff | Yes |
-| Causes of the 40 escape candidates whose diff changed | read from failed jobs, follow-up commits and changed files | Partly (9 undetermined; for 14 at gradle the failing test is not identified) |
-| Red `main` is not explained by stale overlap | statistical baseline only | **No** (no per-episode cause) |
-| Required status checks | not public | **No** |
-| Sheltie's behaviour in production on these projects | simulation only | **No** |
+| Each project's merge setup | `merge_group` runs, bors comments, Tide statuses, label events in the collected data | <span class="rw-pill yes">Yes</span> |
+| Merge-queue landing time is `mergedAt`, not the commit time | the queue commit's committer time equals its build start (checked on junit) | <span class="rw-pill yes">Yes</span> |
+| Queue CI vs pull request CI | workflow files (bevy `validation-jobs.yml`, trino `ci.yml`, rust `jobs.yml`: 11 PR / 82 auto jobs); gradle statuses on PR and queue commits | <span class="rw-pill yes">Yes</span> |
+| gradle queue CI time (1 h 19 min) | `GitHub Merge Queue Check Pass` status on all 410 landed queue commits | <span class="rw-pill yes">Yes</span> |
+| Ejections and their reasons | `RemovedFromMergeQueueEvent.reason` | <span class="rw-pill yes">Yes</span> |
+| Footprints are what Sheltie computes | the released adapters at each landing; 0 errors in the final set | <span class="rw-pill yes">Yes</span> |
+| The replay is Sheltie's | the bench checks every replay against `sheltie_scheduler::roi::replay` and stops on any difference | <span class="rw-pill yes">Yes</span> |
+| 18 escape candidates only rebased | pull request diff at the failure equals the final diff | <span class="rw-pill yes">Yes</span> |
+| Causes of the 40 escape candidates whose diff changed | read from failed jobs, follow-up commits and changed files | <span class="rw-pill partly">Partly</span> (9 undetermined; for 14 at gradle the failing test is not identified) |
+| Red `main` is not explained by stale overlap | statistical baseline only | <span class="rw-pill no">No</span> (no per-episode cause) |
+| Required status checks | not public | <span class="rw-pill no">No</span> |
+| Sheltie's behaviour in production on these projects | simulation only | <span class="rw-pill no">No</span> |
 
 ## Reproduce it
 

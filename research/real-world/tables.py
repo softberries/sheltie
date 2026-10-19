@@ -42,7 +42,7 @@ for r in QUEUE:
     b = q["ci"]["builds"]
     failed = q["ci"]["failed_builds"]
     bs = f"{'≥' if r == 'gradle/gradle' else ''}{b}" + (f" ({failed})" if failed is not None else "") if b is not None else "–"
-    print(f"| {name(r)} | {q['queue_ci']} | {bs} | {s} | {full if full is not None else 'not needed'} |")
+    print(f"| {name(r)} | {q['queue_ci']} | {bs} | {s} | {full if full is not None else '*not needed*'} |")
 
 print("\n## queue-decisions\n")
 print("| Project | Changes | Land at once | Rebuild (reverify) | Merge engine | Built together | Leaky footprints |")

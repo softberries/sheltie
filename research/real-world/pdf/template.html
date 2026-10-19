@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>$title$</title>
+$for(css)$
+<link rel="stylesheet" href="$css$">
+$endfor$
+</head>
+<body>
+<section class="cover">
+  <div class="cover-top">
+    <img src="assets/logo-256.png" alt="">
+    <span>Sheltie</span>
+  </div>
+  <div class="cover-main">
+    <p class="eyebrow">Research report · $date$</p>
+    <h1>Sheltie on <em>real repositories</em></h1>
+    <p class="lede">What Sheltie would have done on 23 open-source projects over 90 days, against what each project does today. Including where it does not help, what it would have let through, and what we could not prove.</p>
+  </div>
+  <dl class="cover-facts">
+    <div><dt>Projects</dt><dd>23 measured, 26 classified</dd></div>
+    <div><dt>Window</dt><dd>2026-07-21 to 2026-10-19</dd></div>
+    <div><dt>Method</dt><dd>Exact footprints, replayed queues</dd></div>
+    <div><dt>Data</dt><dd>github.com/softberries/sheltie, research/real-world</dd></div>
+  </dl>
+  <p class="cover-foot">sheltie.dev · Simulation study: no project ran Sheltie.</p>
+</section>
+<main>
+$body$
+</main>
+</body>
+</html>
