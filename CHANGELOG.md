@@ -6,10 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `sheltie-go`: files a package embeds with `//go:embed` are resolved from the tree (the go
+  command's pattern rules) and belong to the package, which stays hermetic. Only a pattern
+  that cannot be resolved makes it leaky.
+
 ### Fixed
 
 - `sheltie-cargo`: modules declared with a raw identifier (`mod r#type;`) or with a
   `#[path]` in a file that is not `mod.rs` are found, instead of making footprints leaky.
+- Adapters: two checkouts of the same commit in one process no longer collide on the
+  worktree directory name.
 
 ## [0.4.0] - 2026-10-19
 

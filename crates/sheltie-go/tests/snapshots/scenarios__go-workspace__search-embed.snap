@@ -3,25 +3,20 @@ source: crates/sheltie-go/tests/scenarios.rs
 expression: "Golden\n{\n    description: &scenario.description, footprint: &report.footprint,\n    leak_reasons: &report.leak_reasons,\n}"
 ---
 {
-  "description": "search starts embedding a file: the package is no longer hermetic.",
+  "description": "search starts embedding a file: the file becomes part of the package, which stays hermetic.",
   "footprint": {
     "writes": [
-      "example.com/shop/search",
-      "example.com/shop/search/files"
+      "example.com/shop/search"
     ],
     "reads": [
       "example.com/shop/cmd/shop",
-      "example.com/shop/search",
-      "example.com/shop/search/files"
+      "example.com/shop/search"
     ],
     "tests": [
       "example.com/shop/cmd/shop",
       "example.com/shop/search"
     ],
-    "leaky": true
+    "leaky": false
   },
-  "leak_reasons": [
-    "example.com/shop/search: embeds files",
-    "search/stopwords.txt is outside the module graph"
-  ]
+  "leak_reasons": []
 }

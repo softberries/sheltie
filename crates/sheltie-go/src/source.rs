@@ -21,8 +21,8 @@ pub(crate) struct GoFile {
     /// when an exported part mentions them: a field of an unexported embedded type, or an
     /// exported constant computed from an unexported one, is visible to dependents.
     pub(crate) private: BTreeMap<String, Vec<String>>,
-    /// Whether the file has a `//go:embed` directive.
-    pub(crate) embeds: bool,
+    /// The patterns of its `//go:embed` directives, as written (quotes removed).
+    pub(crate) embeds: Vec<String>,
 }
 
 impl GoFile {
@@ -40,8 +40,8 @@ pub(crate) fn parse(src: &str) -> GoFile {
         if l.starts_with("//go:build") || l.starts_with("// +build") {
             file.exported.push(canon(l));
         }
-        if l.starts_with("//go:embed") {
-            file.embeds = true;
+        if let Some(rest) = l.strip_prefix("//go:embed") {
+            file.embeds.extend(embed_patterns(rest));
         }
     }
     for decl in top_level(&strip_c_comments(src)) {
@@ -345,6 +345,50 @@ fn string_literals(s: &str) -> Vec<String> {
     out
 }
 
+/// The patterns of one `//go:embed` line: space-separated, each optionally a Go string
+/// literal (so it can contain spaces). An unterminated literal yields an empty pattern,
+/// which matches nothing.
+fn embed_patterns(rest: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut chars = rest.trim().chars().peekable();
+    while let Some(&c) = chars.peek() {
+        if c.is_whitespace() {
+            chars.next();
+            continue;
+        }
+        if c == '"' || c == '`' {
+            chars.next();
+            let mut lit = String::new();
+            let mut closed = false;
+            while let Some(n) = chars.next() {
+                if n == c {
+                    closed = true;
+                    break;
+                }
+                if n == '\\' && c == '"' {
+                    if let Some(e) = chars.next() {
+                        lit.push(e);
+                    }
+                    continue;
+                }
+                lit.push(n);
+            }
+            out.push(if closed { lit } else { String::new() });
+        } else {
+            let mut word = String::new();
+            while let Some(&n) = chars.peek() {
+                if n.is_whitespace() {
+                    break;
+                }
+                word.push(n);
+                chars.next();
+            }
+            out.push(word);
+        }
+    }
+    out
+}
+
 /// Identifiers outside literals in canonical text.
 fn identifiers(text: &str) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
@@ -596,6 +640,9 @@ var internal = 3
     fn directives() {
         let f =
             parse("package a\n\nimport _ \"embed\"\n\n//go:embed static/*\nvar files embed.FS\n");
-        assert!(f.embeds);
+        assert_eq!(f.embeds, ["static/*"]);
+        let f = parse("package a\n//go:embed a.txt \"b c.txt\" `all:d`\nvar x string\n");
+        assert_eq!(f.embeds, ["a.txt", "b c.txt", "all:d"]);
+        assert_eq!(embed_patterns(" \"open"), [""]);
     }
 }

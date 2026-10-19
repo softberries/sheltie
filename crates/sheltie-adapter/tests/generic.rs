@@ -186,3 +186,15 @@ fn graph_has_units_and_workspace() {
     let targets: Vec<&str> = snap.targets.keys().map(TargetId::as_str).collect();
     assert_eq!(targets, ["$workspace", "api", "core", "web"]);
 }
+
+#[test]
+fn two_checkouts_of_one_commit_coexist() {
+    let work = repo("worktrees");
+    let g = Git::open(&work).unwrap();
+    let head = g.commit("main").unwrap();
+    let scratch = Path::new(env!("CARGO_TARGET_TMPDIR"));
+    let a = sheltie_adapter::Worktree::add(&g, &head, scratch).unwrap();
+    let b = sheltie_adapter::Worktree::add(&g, &head, scratch).unwrap();
+    assert_ne!(a.path(), b.path());
+    assert!(a.path().join("README.md").exists() && b.path().join("README.md").exists());
+}

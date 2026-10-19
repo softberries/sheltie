@@ -12,7 +12,9 @@
 //!   formatting do not count, so a body-only change does not reach dependents;
 //! - `go.mod` and `go.work` files are workspace configuration; `go.sum`, `go.work.sum` and
 //!   vendored code are lockfiles;
-//! - cgo (`import "C"`) and `//go:embed` make a package non-hermetic.
+//! - files a package embeds (`//go:embed`) are resolved from the tree and belong to the
+//!   package; cgo (`import "C"`), or an embed pattern that cannot be resolved, makes a
+//!   package non-hermetic.
 //!
 //! See `docs/go.md` for what this does and does not claim.
 
@@ -22,6 +24,7 @@ use sheltie_adapter::scan::{hash_parts, strip_c_comments};
 use sheltie_adapter::{Error, Git, Tool, TreeFiles, Unit, Workspace};
 use sheltie_core::{RepoPath, TargetId, TestId};
 
+mod embed;
 mod source;
 
 /// The Go build tool, for [`sheltie_adapter::Generic`].
@@ -74,6 +77,8 @@ impl Tool for Go {
                 _ => {}
             }
         }
+        let module_dirs: std::collections::BTreeSet<&str> =
+            modules.keys().map(String::as_str).collect();
         for (dir, sources) in packages {
             let Some((root, module)) = modules
                 .iter()
@@ -92,26 +97,43 @@ impl Tool for Go {
             } else {
                 format!("{module}/{rel}")
             };
-            ws.units.push(package(git, id, dir, &sources)?);
+            ws.units
+                .push(package(git, files, &module_dirs, id, dir, &sources)?);
         }
         Ok(ws)
     }
 }
 
-/// One package: its files, the imports that resolve to other packages (filtered by
-/// [`sheltie_adapter::workspace::assemble`]), interface and leaks.
-fn package(git: &Git, id: String, dir: &str, sources: &[(&RepoPath, &str)]) -> Result<Unit, Error> {
+/// One package: its files (sources and the files it embeds), the imports that resolve to
+/// other packages (filtered by [`sheltie_adapter::workspace::assemble`]), interface and
+/// leaks.
+fn package(
+    git: &Git,
+    files: &TreeFiles,
+    modules: &std::collections::BTreeSet<&str>,
+    id: String,
+    dir: &str,
+    sources: &[(&RepoPath, &str)],
+) -> Result<Unit, Error> {
     let mut parsed = Vec::new();
     let mut reads = std::collections::BTreeSet::new();
     let mut leaks = Vec::new();
+    let mut owned: std::collections::BTreeSet<RepoPath> =
+        sources.iter().map(|(p, _)| (*p).clone()).collect();
     for (path, oid) in sources {
         let file = source::parse(&git.text(oid)?);
         reads.extend(file.imports.iter().map(TargetId::new));
         if file.cgo() && !leaks.contains(&"cgo") {
             leaks.push("cgo");
         }
-        if file.embeds && !leaks.contains(&"embeds files") {
-            leaks.push("embeds files");
+        if !file.embeds.is_empty() {
+            match embed::resolve(files, dir, &file.embeds, modules) {
+                Some(embedded) => owned.extend(embedded),
+                None if !leaks.contains(&"embed pattern not resolved") => {
+                    leaks.push("embed pattern not resolved");
+                }
+                None => {}
+            }
         }
         if !path.as_str().ends_with("_test.go") {
             parsed.push(file);
@@ -123,7 +145,7 @@ fn package(git: &Git, id: String, dir: &str, sources: &[(&RepoPath, &str)]) -> R
         tests: [TestId::new(id.clone())].into(),
         id: TargetId::new(id),
         root: dir.to_owned(),
-        files: sources.iter().map(|(p, _)| (*p).clone()).collect(),
+        files: owned,
         reads,
         leaks: leaks.into_iter().map(str::to_owned).collect(),
     })
