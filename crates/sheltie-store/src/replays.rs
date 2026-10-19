@@ -1,7 +1,10 @@
 //! Intents and replay runs (tier 4).
 
 use chrono::{DateTime, Utc};
-use sheltie_core::{CommitSha, Intent, ReplayReport, RepoId, ResolutionTier, Score};
+use serde::{Deserialize, Serialize};
+use sheltie_core::{
+    AcceptanceTest, CommitSha, Intent, ReplayContext, ReplayReport, RepoId, ResolutionTier, Score,
+};
 use sqlx::Row;
 
 use crate::{Store, StoreError, to_db_id};
@@ -34,6 +37,42 @@ pub struct ReplayOutcome {
     pub similarity: Option<Score>,
     /// Why it failed, if it did.
     pub error: Option<String>,
+    /// What the replay was built from and tested with.
+    pub details: ReplayDetails,
+}
+
+/// What a reported replay was built from and tested with (`replay_runs.details`).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReplayDetails {
+    /// What the prompt was built from; `None` from clients before 0.6.
+    #[serde(default)]
+    pub context: Option<ReplayContext>,
+    /// Tests found in the pull request's diff and how they ran.
+    #[serde(default)]
+    pub acceptance: Vec<AcceptanceTest>,
+    /// Whether any acceptance test (found, or listed in an intent block) checked the result.
+    #[serde(default)]
+    pub acceptance_checked: bool,
+}
+
+impl ReplayDetails {
+    /// The details of a report.
+    pub fn of(report: &ReplayReport) -> Self {
+        Self {
+            context: report.context.clone(),
+            acceptance: report.acceptance.clone(),
+            acceptance_checked: report
+                .checks
+                .as_ref()
+                .is_some_and(|c| c.acceptance_passed.is_some()),
+        }
+    }
+
+    pub(crate) fn from_column(v: Option<serde_json::Value>) -> Result<Self, StoreError> {
+        v.map(|v| serde_json::from_value(v).map_err(|e| StoreError::InvalidRow(e.to_string())))
+            .transpose()
+            .map(Option::unwrap_or_default)
+    }
 }
 
 /// Result of [`Store::record_replay_report`].
@@ -162,7 +201,7 @@ impl Store {
             "UPDATE replay_runs SET reported_at = now(), result_sha = $2, checks_passed = $3,
                  similarity = $4, cost_usd = $5, turns = $6, error = $7,
                  input_tokens = $8, output_tokens = $9, cache_read_tokens = $10,
-                 cache_write_tokens = $11, model = $12
+                 cache_write_tokens = $11, model = $12, details = $13
              WHERE id = $1",
         )
         .bind(run)
@@ -177,6 +216,10 @@ impl Store {
         .bind(tokens.map(|t| t.cache_read))
         .bind(tokens.map(|t| t.cache_write))
         .bind(report.model.as_deref())
+        .bind(
+            serde_json::to_value(ReplayDetails::of(report))
+                .map_err(|e| StoreError::InvalidRow(e.to_string()))?,
+        )
         .execute(&self.pool)
         .await?;
         Ok(ReplayReportOutcome::Stored)
@@ -186,7 +229,7 @@ impl Store {
     pub async fn pending_replays(&self, repo: RepoId) -> Result<Vec<ReplayRun>, StoreError> {
         let rows = sqlx::query(
             "SELECT DISTINCT ON (r.change_id) r.id, r.change_id, r.tier, r.onto_sha, r.requested_at,
-                    r.reported_at, r.result_sha, r.checks_passed, r.similarity, r.error
+                    r.reported_at, r.result_sha, r.checks_passed, r.similarity, r.error, r.details
              FROM replay_runs r JOIN changes c ON c.id = r.change_id
              WHERE c.repo_id = $1 AND c.state = 'merging' AND NOT r.handled
              ORDER BY r.change_id, r.id DESC",
@@ -222,6 +265,7 @@ impl Store {
                                 .unwrap_or(false),
                             similarity: similarity.and_then(|s| Score::new(s).ok()),
                             error: r.try_get("error")?,
+                            details: ReplayDetails::from_column(r.try_get("details")?)?,
                         }),
                     },
                 })

@@ -11,7 +11,7 @@ fn comment(icon: &str, headline: &str, body: &str, next: Option<&str>, docs: &st
     s.push_str(&format!(
         "\n<sub>Sheltie · [{}]({DOCS_URL}/{docs})</sub>",
         match docs {
-            "intent-replay.html" => "About intent replay",
+            "intent-replay.html" => "About replay",
             "agents.html" => "About coordinating agents",
             _ => "How Sheltie works",
         }
@@ -40,10 +40,25 @@ pub fn needs_reapproval(branch: &str, similarity: f32, threshold: f32) -> String
         "🤖",
         "Re-derived, but it needs your review",
         &format!(
-            "Sheltie re-derived this change from its intent on top of the current head. The result is on branch `{branch}`, but it differs from the change that was reviewed (similarity {similarity:.2}, threshold {threshold:.2}), so it was not landed."
+            "Sheltie re-derived this change with an agent on top of the current head. The result is on branch `{branch}`, but it differs from the change that was reviewed (similarity {similarity:.2}, threshold {threshold:.2}), so it was not landed."
         ),
         Some(&format!(
             "review `{branch}` and, if it is right, push it to this pull request. Sheltie lands it once it is approved again."
+        )),
+        "intent-replay.html",
+    )
+}
+
+/// A full rebuild (4b) that no acceptance test checked.
+pub fn untested_rebuild(branch: &str) -> String {
+    comment(
+        "🤖",
+        "Rebuilt, but nothing shows it still works",
+        &format!(
+            "Sheltie re-implemented this change with an agent on top of the current head. The result is on branch `{branch}`, but this pull request adds no test that fails without it, so nothing shows that the rebuilt change still does what it did. It was not landed."
+        ),
+        Some(&format!(
+            "review `{branch}` and, if it is right, push it to this pull request. Adding a test that fails without the change lets Sheltie check future rebuilds itself."
         )),
         "intent-replay.html",
     )
@@ -167,6 +182,10 @@ mod tests {
             (
                 "needs_reapproval",
                 needs_reapproval("sheltie/replay/7-0123456789ab", 0.31, 0.6),
+            ),
+            (
+                "untested_rebuild",
+                untested_rebuild("sheltie/replay/7-0123456789ab"),
             ),
             ("reverted", reverted("main", 42)),
             ("revert_conflict", revert_conflict("main")),

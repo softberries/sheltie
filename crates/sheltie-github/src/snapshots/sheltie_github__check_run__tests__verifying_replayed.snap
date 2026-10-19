@@ -1,0 +1,33 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: InProgress
+title: Verifying on main
+---
+## 🔍 Verifying
+
+This change is merged onto the current `main` on a `sheltie/` branch, where your CI runs. It lands when CI passes there.
+
+Conflict resolved: re-derived by an agent on the new head (4b).
+
+**Replay** · built from the diff, title and description, issue #12, 2 commit messages
+
+Acceptance tests (they pass with the change and fail without it):
+- `billing::retries_three_times`: ✅ passes on the result
+
+Also found in the diff, not used: `billing::formats_amounts` (passes without the change too).
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

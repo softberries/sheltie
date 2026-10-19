@@ -1,6 +1,8 @@
 //! Agent intents: what a pull request is meant to do, so it can be re-derived (tier 4).
 //!
-//! An intent is a fenced block in the pull request description:
+//! Replay does not need one: the replay client works out the goal from the pull request
+//! itself and finds acceptance tests in its diff ([`AcceptanceTest`]). An author can still add
+//! an explicit intent, a fenced block in the pull request description:
 //!
 //! ````text
 //! ```sheltie-intent
@@ -148,6 +150,101 @@ impl TokenUsage {
     }
 }
 
+/// Most tests the replay client checks fail-to-pass.
+pub const MAX_ACCEPTANCE_CANDIDATES: usize = 10;
+
+/// What the replay prompt was built from, besides the diff.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReplayContext {
+    /// A valid `sheltie-intent` block in the description supplied the task.
+    pub intent_block: bool,
+    /// The pull request's title and description.
+    pub description: bool,
+    /// The linked issue (first closing reference in the description), when one was read.
+    pub issue: Option<u64>,
+    /// Commit messages included.
+    pub commits: u32,
+}
+
+/// The language of a test found in a diff; selects the test command.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TestLanguage {
+    /// `#[test]` functions.
+    Rust,
+    /// `func TestX(t *testing.T)` in `_test.go` files.
+    Go,
+    /// pytest `test_*` functions.
+    Python,
+    /// `it`/`test` cases in `*.test.*` and `*.spec.*` files (JavaScript and TypeScript).
+    Javascript,
+    /// `@Test` methods (Java and Kotlin).
+    Java,
+}
+
+impl TestLanguage {
+    /// Every language, in a stable order.
+    pub const ALL: [TestLanguage; 5] = [
+        TestLanguage::Rust,
+        TestLanguage::Go,
+        TestLanguage::Python,
+        TestLanguage::Javascript,
+        TestLanguage::Java,
+    ];
+
+    /// The name used in configuration and reports.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            TestLanguage::Rust => "rust",
+            TestLanguage::Go => "go",
+            TestLanguage::Python => "python",
+            TestLanguage::Javascript => "javascript",
+            TestLanguage::Java => "java",
+        }
+    }
+}
+
+/// How one run of one test ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TestOutcome {
+    /// The command exited with success.
+    Passed,
+    /// The command exited with failure.
+    Failed,
+    /// The command ran past its time limit and was stopped.
+    TimedOut,
+    /// The test is not defined in that tree, so it was not run; on the base this counts as
+    /// failing, on the replay result as failed.
+    Missing,
+    /// Not run (an earlier run already decided the test, or no command for its language).
+    NotRun,
+}
+
+/// A test the pull request added or changed, checked fail-to-pass: kept as an acceptance
+/// test when it passes on the pull request's head and fails (or is missing) on its base.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AcceptanceTest {
+    /// The name passed to the test command.
+    pub name: String,
+    /// Its language.
+    pub language: TestLanguage,
+    /// On the pull request's head.
+    pub head: TestOutcome,
+    /// On the merge base.
+    pub base: TestOutcome,
+    /// On the replay result; [`TestOutcome::NotRun`] when it was not kept.
+    pub result: TestOutcome,
+}
+
+impl AcceptanceTest {
+    /// Whether the test shows the change's behaviour: passes with the change, not without.
+    pub fn kept(&self) -> bool {
+        self.head == TestOutcome::Passed
+            && matches!(self.base, TestOutcome::Failed | TestOutcome::Missing)
+    }
+}
+
 /// What the replay client reports after running the agent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReplayReport {
@@ -175,6 +272,12 @@ pub struct ReplayReport {
     pub model: Option<String>,
     /// Why the agent run failed, if it did.
     pub error: Option<String>,
+    /// What the prompt was built from; absent in reports from clients before 0.6.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub context: Option<ReplayContext>,
+    /// Tests found in the pull request's diff and how they ran.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub acceptance: Vec<AcceptanceTest>,
 }
 
 impl ReplayReport {
@@ -212,7 +315,28 @@ impl ReplayReport {
         if self.result.is_some() && self.checks.is_none() {
             return fail("a result needs checks");
         }
+        if self.acceptance.len() > MAX_ACCEPTANCE_CANDIDATES {
+            return fail("too many acceptance tests");
+        }
+        if self.acceptance.iter().any(|t| {
+            t.name.is_empty()
+                || t.name.len() > limits::MAX_TEST_NAME
+                || t.name.chars().any(char::is_control)
+        }) {
+            return fail("invalid acceptance test name");
+        }
+        if self.context.as_ref().is_some_and(|c| {
+            c.commits > 10_000 || c.issue.is_some_and(|i| i == 0 || i > u64::from(u32::MAX))
+        }) {
+            return fail("invalid context");
+        }
         Ok(())
+    }
+
+    /// The tests the replay was checked against: kept fail-to-pass tests. Tests listed in an
+    /// intent block are not in this list; [`ReplayChecks::acceptance_passed`] covers both.
+    pub fn acceptance_tests(&self) -> impl Iterator<Item = &AcceptanceTest> {
+        self.acceptance.iter().filter(|t| t.kept())
     }
 
     /// Whether every check passed (scope, acceptance) and a result exists. Similarity is
@@ -303,6 +427,60 @@ mod tests {
         }
         let long = format!(r#","model":"{}""#, "m".repeat(101));
         assert!(report(&long).validate().is_err());
+    }
+
+    #[test]
+    fn reports_from_older_clients_have_no_context_or_tests() {
+        let r = report("");
+        assert_eq!(r.context, None);
+        assert!(r.acceptance.is_empty());
+        let json = serde_json::to_string(&r).unwrap();
+        assert!(!json.contains("context") && !json.contains("acceptance\""));
+    }
+
+    fn test(name: &str, head: TestOutcome, base: TestOutcome) -> AcceptanceTest {
+        AcceptanceTest {
+            name: name.into(),
+            language: TestLanguage::Rust,
+            head,
+            base,
+            result: TestOutcome::NotRun,
+        }
+    }
+
+    #[test]
+    fn a_test_is_kept_when_it_fails_without_the_change() {
+        use TestOutcome::*;
+        assert!(test("a", Passed, Failed).kept());
+        assert!(test("a", Passed, Missing).kept());
+        assert!(!test("a", Passed, Passed).kept());
+        assert!(!test("a", Passed, TimedOut).kept());
+        assert!(!test("a", Failed, Failed).kept());
+        assert!(!test("a", TimedOut, Missing).kept());
+    }
+
+    #[test]
+    fn context_and_tests_are_bounded() {
+        let mut r = report(
+            r#","context":{"intent_block":false,"description":true,"issue":12,"commits":3},
+               "acceptance":[{"name":"retries works","language":"javascript","head":"passed","base":"missing","result":"passed"}]"#,
+        );
+        r.validate().unwrap();
+        assert_eq!(r.context.as_ref().unwrap().issue, Some(12));
+        assert_eq!(r.acceptance_tests().count(), 1);
+        r.acceptance[0].name = "a\nb".into();
+        assert!(r.validate().is_err());
+        r.acceptance = vec![
+            test("a", TestOutcome::Passed, TestOutcome::Failed);
+            MAX_ACCEPTANCE_CANDIDATES + 1
+        ];
+        assert!(r.validate().is_err());
+        r.acceptance.clear();
+        r.context = Some(ReplayContext {
+            issue: Some(0),
+            ..ReplayContext::default()
+        });
+        assert!(r.validate().is_err());
     }
 
     #[test]

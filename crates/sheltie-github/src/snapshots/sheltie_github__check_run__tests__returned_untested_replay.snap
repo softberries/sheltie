@@ -1,0 +1,30 @@
+---
+source: crates/sheltie-github/src/check_run.rs
+expression: render(&ctx)
+---
+status: Completed(Failure)
+title: Needs attention
+---
+## ⚠️ Needs attention
+
+Sheltie could not land this change: it was rebuilt on the new head, but no test shows the rebuilt change still works.
+
+**What to do:** fix it and push a new commit; Sheltie picks it up again.
+
+**Replay** · built from the diff, title and description, issue #12, 2 commit messages
+
+No acceptance tests: this pull request adds no test that fails without it.
+
+<details>
+<summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>
+
+**Writes** `shop::cart` `shop::pricing`
+
+**Affects** `shop::cart` `shop::checkout` `shop::pricing`
+
+**Tests** `shop`
+
+Two changes conflict only when one writes what the other writes or affects.
+</details>
+
+<sub>Merge mode · commit `0123456` · [How Sheltie decides](https://sheltie.dev/docs/introduction.html)</sub>

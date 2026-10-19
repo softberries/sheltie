@@ -409,19 +409,19 @@ fn tokens(n: u64) -> String {
     }
 }
 
-/// The "Agent spend" panel of a repository page: what intent replays cost.
+/// The "Agent spend" panel of a repository page: what replays cost.
 fn spend_panel(sp: &AgentSpend, sv: &Savings, now: DateTime<Utc>) -> String {
     let days = sheltie_store::DETAIL_DAYS;
     let head = format!(
-        r#"<section class="panel spend"><div class="panel-head"><h2>Agent spend</h2><span class="fine">Intent replays, last {days} days · estimated by the agent</span></div>"#
+        r#"<section class="panel spend"><div class="panel-head"><h2>Agent spend</h2><span class="fine">Replays, last {days} days · estimated by the agent</span></div>"#
     );
     if sp.replays == 0 {
         let text = match sp.daily_budget_usd {
             Some(b) => format!(
-                "<b>No replays in the last {days} days</b>Intent replay is on, with a daily budget of {}. Only replays use a model; the other merge tiers cost nothing.",
+                "<b>No replays in the last {days} days</b>Replay is on, with a daily budget of {}. Only replays use a model; the other merge tiers cost nothing.",
                 usd(b)
             ),
-            None => "<b>No agent spend</b>Intent replay is off. Only replays use a model; the other merge tiers cost nothing.".to_owned(),
+            None => "<b>No agent spend</b>Replay is off. Only replays use a model; the other merge tiers cost nothing.".to_owned(),
         };
         return format!("{head}{}</section>", empty(&text));
     }
@@ -667,7 +667,7 @@ pub fn render_overview(cards: &[RepoCard], now: DateTime<Utc>) -> String {
     let spent: f64 = cards.iter().map(|c| c.spend.cost_usd).sum();
     let _ = write!(
         s,
-        r#"<div class="totals"><div><span>Waiting saved</span><b>{}</b></div><div><span>Author time saved</span><b>{}</b></div><div><span>Landed</span><b>{landed}</b></div><div><span>Conflicts resolved</span><b>{conflicts}</b></div><div><span>Agent spend</span><b>{}</b></div><p class="fine">Last {} days, all repositories. Agent spend is the agent's own estimate for intent replays.</p></div><div class="cards">"#,
+        r#"<div class="totals"><div><span>Waiting saved</span><b>{}</b></div><div><span>Author time saved</span><b>{}</b></div><div><span>Landed</span><b>{landed}</b></div><div><span>Conflicts resolved</span><b>{conflicts}</b></div><div><span>Agent spend</span><b>{}</b></div><p class="fine">Last {} days, all repositories. Agent spend is the agent's own estimate for replays.</p></div><div class="cards">"#,
         if waited > 0 {
             duration(waited)
         } else {
@@ -1417,7 +1417,7 @@ mod tests {
             daily_usd: vec![0.0; 7],
             ..AgentSpend::default()
         };
-        assert!(spend_panel(&idle, &sv, now()).contains("Intent replay is off"));
+        assert!(spend_panel(&idle, &sv, now()).contains("Replay is off"));
         let on = AgentSpend {
             daily_budget_usd: Some(5.0),
             ..idle

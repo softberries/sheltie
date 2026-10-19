@@ -16,9 +16,10 @@
 //! paths = ["migrations/*.sql"]
 //! key = "^(\\d+)_"
 //!
-//! [replay]             # tier 4: re-derive a change from its intent (off by default)
+//! [replay]             # tier 4: re-derive a change with an agent (off by default)
 //! enabled = true
 //! test_command = "cargo test --workspace -- {tests}"
+//! test_commands = { python = "pytest {tests}" }   # per language, overrides test_command
 //! model = "sonnet"
 //! max_turns = 30
 //! max_budget_usd = 3.0
@@ -29,7 +30,10 @@
 
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use regex::Regex;
+use std::collections::BTreeMap;
+
 use serde::Deserialize;
+use sheltie_core::TestLanguage;
 use sheltie_core::agents::{AgentRule, validate_rules};
 
 /// Largest accepted rules file.
@@ -92,8 +96,11 @@ impl Estimates {
 pub struct ReplayConfig {
     /// Whether Sheltie may replay changes in this repository.
     pub enabled: bool,
-    /// Runs acceptance tests; `{tests}` is replaced by the intent's test names, each quoted.
+    /// Runs acceptance tests; `{tests}` is replaced by test names, each quoted.
     pub test_command: Option<String>,
+    /// Test commands per language, for tests found in a pull request's diff; a language
+    /// without one uses `test_command`.
+    pub test_commands: BTreeMap<TestLanguage, String>,
     /// Model for the agent.
     pub model: String,
     /// Most agent turns per run.
@@ -113,6 +120,7 @@ impl Default for ReplayConfig {
         Self {
             enabled: false,
             test_command: None,
+            test_commands: BTreeMap::new(),
             model: "sonnet".into(),
             max_turns: 30,
             max_budget_usd: 3.0,
@@ -124,17 +132,40 @@ impl Default for ReplayConfig {
 }
 
 impl ReplayConfig {
+    /// The command for tests in `language`: its own entry, else `test_command`.
+    pub fn command_for(&self, language: TestLanguage) -> Option<&str> {
+        self.test_commands
+            .get(&language)
+            .or(self.test_command.as_ref())
+            .map(String::as_str)
+    }
+
+    /// Every configured test command.
+    pub fn commands(&self) -> impl Iterator<Item = &str> {
+        self.test_command
+            .iter()
+            .chain(self.test_commands.values())
+            .map(String::as_str)
+    }
+
     fn validate(&self) -> Result<(), RulesError> {
         let fail = |m: &str| Err(RulesError(format!("[replay] {m}")));
-        if let Some(cmd) = &self.test_command
-            && (cmd.trim().is_empty()
+        let bad = |cmd: &str| {
+            cmd.trim().is_empty()
                 || cmd.len() > 500
                 || cmd.chars().any(char::is_control)
-                || !cmd.contains("{tests}"))
-        {
+                || !cmd.contains("{tests}")
+        };
+        if self.test_command.as_deref().is_some_and(bad) {
             return fail(
                 "`test_command` must be one line of at most 500 characters containing {tests}",
             );
+        }
+        if let Some((language, _)) = self.test_commands.iter().find(|(_, c)| bad(c)) {
+            return fail(&format!(
+                "`test_commands.{}` must be one line of at most 500 characters containing {{tests}}",
+                language.as_str()
+            ));
         }
         if self.model.is_empty()
             || self.model.len() > 100
@@ -416,7 +447,26 @@ label = "agent: claude"
                 .unwrap();
         assert!(r.replay.enabled);
         assert_eq!((r.replay.max_turns, r.replay.max_attempts), (30, 2));
+        let r = Rules::parse(
+            "[replay]\ntest_command = \"cargo test -- {tests}\"\ntest_commands = { python = \"pytest {tests}\" }\n",
+        )
+        .unwrap();
+        assert_eq!(
+            r.replay.command_for(TestLanguage::Python),
+            Some("pytest {tests}")
+        );
+        assert_eq!(
+            r.replay.command_for(TestLanguage::Go),
+            Some("cargo test -- {tests}")
+        );
+        assert_eq!(r.replay.commands().count(), 2);
+        let only =
+            Rules::parse("[replay]\ntest_commands = { go = \"go test ./... -run {tests}\" }\n")
+                .unwrap();
+        assert_eq!(only.replay.command_for(TestLanguage::Rust), None);
         for bad in [
+            "[replay]\ntest_commands = { cobol = \"x {tests}\" }",
+            "[replay]\ntest_commands = { go = \"go test\" }",
             "[replay]\ntest_command = \"cargo test\"",
             "[replay]\nmax_turns = 0",
             "[replay]\nsimilarity_threshold = 1.5",

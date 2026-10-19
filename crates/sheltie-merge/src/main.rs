@@ -1,7 +1,7 @@
 //! `sheltie-merge`: Sheltie's merge engine on the runner.
 //!
 //! - `sheltie-merge merge`: tiers 1–3 (structural merge, regenerated files, declared rules).
-//! - `sheltie-merge replay`: tier 4, re-derive the change from its intent with Claude Code.
+//! - `sheltie-merge replay`: tier 4, re-derive the change with Claude Code.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -10,7 +10,7 @@ use anyhow::Context as _;
 use clap::{Parser, Subcommand, ValueEnum};
 use sheltie_core::{CommitSha, Intent, PrNumber};
 use sheltie_merge::engine::{MergeRequest, merge};
-use sheltie_merge::replay::{Mode, ReplayRequest, claude_command, replay};
+use sheltie_merge::replay::{LinkedIssue, Mode, ReplayRequest, claude_command, replay};
 use sheltie_merge::rules::Rules;
 
 #[derive(Parser)]
@@ -63,16 +63,23 @@ enum Cmd {
         #[arg(long)]
         no_mergiraf: bool,
     },
-    /// Re-derives the change from its intent (tier 4).
+    /// Re-derives the change with an agent (tier 4).
     Replay {
         #[command(flatten)]
         common: Common,
         /// 4a (hunks) or 4b (full).
         #[arg(long, value_enum)]
         mode: ReplayMode,
-        /// File with the pull request description, which holds the intent block.
+        /// File with the pull request description; a `sheltie-intent` block in it is used when
+        /// valid.
         #[arg(long)]
         pr_body_file: PathBuf,
+        /// File with the pull request title.
+        #[arg(long)]
+        pr_title_file: Option<PathBuf>,
+        /// JSON file with the linked issue (`number`, `title`, `body`), as GitHub returns it.
+        #[arg(long)]
+        issue_file: Option<PathBuf>,
         /// Agent command as a JSON array, `{prompt}` replaced by the prompt. Defaults to Claude
         /// Code with the limits from `[replay]` in `.sheltie/merge.toml`.
         #[arg(long)]
@@ -106,6 +113,8 @@ fn main() -> anyhow::Result<()> {
             common,
             mode,
             pr_body_file,
+            pr_title_file,
+            issue_file,
             agent_command,
         } => {
             let onto = CommitSha::parse(&common.onto)?;
@@ -125,8 +134,28 @@ fn main() -> anyhow::Result<()> {
                 rules.replay.enabled,
                 "replay is not enabled in .sheltie/merge.toml"
             );
-            let intent = Intent::from_description(&read(&pr_body_file)?)?
-                .context("the pull request has no sheltie-intent block")?;
+            let description = read(&pr_body_file)?;
+            let intent = match Intent::from_description(&description) {
+                Ok(intent) => intent,
+                Err(e) => {
+                    eprintln!("ignoring the intent block: {e}");
+                    None
+                }
+            };
+            let title = match &pr_title_file {
+                Some(path) => read(path)?.trim().to_owned(),
+                None => String::new(),
+            };
+            let issue: Option<LinkedIssue> = match &issue_file {
+                Some(path) => {
+                    let text = read(path)?;
+                    (!text.trim().is_empty())
+                        .then(|| serde_json::from_str(&text))
+                        .transpose()
+                        .context("--issue-file must hold an issue as JSON")?
+                }
+                None => None,
+            };
             let agent = match agent_command {
                 Some(json) => serde_json::from_str(&json)
                     .context("--agent-command must be a JSON array of strings")?,
@@ -141,10 +170,13 @@ fn main() -> anyhow::Result<()> {
                     ReplayMode::Hunks => Mode::Hunks,
                     ReplayMode::Full => Mode::Full,
                 },
+                title,
+                description,
                 intent,
+                issue,
                 message: read(&common.message_file)?,
                 agent,
-                test_command: rules.replay.test_command.clone(),
+                config: rules.replay.clone(),
             };
             let report = replay(&request).context("replaying")?;
             write(&common.out, &serde_json::to_string_pretty(&report)?)

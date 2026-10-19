@@ -3,13 +3,13 @@ source: crates/sheltie-github/src/check_run.rs
 expression: render(&ctx)
 ---
 status: InProgress
-title: Re-deriving from its intent
+title: Re-deriving with an agent
 ---
-## 🤖 Re-deriving from intent
+## 🤖 Re-deriving with an agent
 
-This change conflicts with what landed, and the merge engine could not combine them. An agent is now re-deriving it from the intent in the description, on your CI runner (re-implementing the change on the new head, tier 4b).
+This change conflicts with what landed, and the merge engine could not combine them. An agent is now re-deriving it on your CI runner (re-implementing the change on the new head, tier 4b), from this pull request's diff, description, commits and linked issue.
 
-The result lands only if it passes the acceptance tests, stays inside this change's files, and is close to the reviewed diff.
+The result lands only if it stays inside this change's files, passes the tests this pull request adds that fail without it, and is close to the reviewed diff.
 
 <details>
 <summary><b>Footprint</b> · writes 2 targets · affects 3 · 1 test group</summary>

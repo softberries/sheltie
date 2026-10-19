@@ -845,8 +845,14 @@ impl Env {
         self.replay_dispatches()[n - 1].clone()
     }
 
-    /// A passing runner report for `payload` with `similarity`; the result's CI is green.
+    /// A passing runner report for `payload` with `similarity`, checked by an acceptance test
+    /// found in the pull request; the result's CI is green.
     async fn passing_replay(&self, payload: &Value, similarity: f64) -> String {
+        self.replay_result(payload, similarity, true).await
+    }
+
+    /// A runner report with a result; `tested` says whether an acceptance test checked it.
+    async fn replay_result(&self, payload: &Value, similarity: f64, tested: bool) -> String {
         let (onto, head) = (
             payload["onto"].as_str().unwrap(),
             payload["head"].as_str().unwrap(),
@@ -860,10 +866,21 @@ impl Env {
         let status = self
             .replay_report(json!({
                 "pr": 1, "head": head, "onto": onto, "tier": "replay_full", "result": result,
-                "checks": { "outside_scope": [], "acceptance_passed": true, "similarity": similarity },
+                "checks": {
+                    "outside_scope": [],
+                    "acceptance_passed": if tested { json!(true) } else { Value::Null },
+                    "similarity": similarity
+                },
                 "cost_usd": 0.4, "turns": 7, "error": null,
                 "tokens": { "input": 1200, "output": 800, "cache_read": 50000, "cache_write": 3000 },
-                "model": "claude-sonnet-5-5"
+                "model": "claude-sonnet-5-5",
+                "context": { "intent_block": false, "description": true, "issue": null, "commits": 1 },
+                "acceptance": if tested {
+                    json!([{ "name": "doubled_is_forty", "language": "rust",
+                             "head": "passed", "base": "missing", "result": "passed" }])
+                } else {
+                    json!([])
+                }
             }))
             .await;
         assert_eq!(status, reqwest::StatusCode::ACCEPTED);
@@ -871,7 +888,7 @@ impl Env {
     }
 }
 
-/// M6 "done when": a seeded semantic conflict is re-derived from its intent and lands.
+/// M6 "done when": a seeded semantic conflict is re-derived and lands.
 #[sqlx::test(migrations = false)]
 async fn a_semantic_conflict_is_replayed_and_lands(_: PgPoolOptions, db: PgConnectOptions) {
     let mut env = Env::start(db).await;
@@ -957,14 +974,56 @@ async fn a_dissimilar_replay_needs_re_approval(_: PgPoolOptions, db: PgConnectOp
     env.stop().await;
 }
 
+/// No intent block is needed; the issue the description closes goes to the runner.
 #[sqlx::test(migrations = false)]
-async fn without_an_intent_the_change_is_returned(_: PgPoolOptions, db: PgConnectOptions) {
+async fn without_an_intent_the_change_is_replayed(_: PgPoolOptions, db: PgConnectOptions) {
+    let mut env = Env::start(db).await;
+    env.enable_replay("");
+    env.webhook(
+        "issues",
+        json!({
+            "action": "opened",
+            "issue": { "number": 12, "title": "Yearly report needs double rate",
+                       "body": "Finance asked.", "updated_at": "2026-10-18T09:00:00Z" },
+            "repository": Env::repository(), "installation": { "id": 77 }
+        }),
+    )
+    .await;
+    let h1 = env.semantic_conflict(Some("Fixes #12")).await;
+    let payload = env.wait_replays(1).await;
+    assert_eq!(payload["head"], h1);
+    assert_eq!(
+        payload["issue"],
+        json!({ "number": 12, "title": "Yearly report needs double rate", "body": "Finance asked." })
+    );
+    let result = env.passing_replay(&payload, 0.8).await;
+    env.wait_state(1, &h1, ChangeState::Landed).await;
+    assert_eq!(env.main_head(), result);
+    env.stop().await;
+}
+
+/// A full rebuild no acceptance test checked needs a human, however similar it is.
+#[sqlx::test(migrations = false)]
+async fn an_untested_rebuild_needs_re_approval(_: PgPoolOptions, db: PgConnectOptions) {
     let mut env = Env::start(db).await;
     env.enable_replay("");
     let h1 = env.semantic_conflict(None).await;
+    let payload = env.wait_replays(1).await;
+    assert_eq!(payload["issue"], Value::Null);
+    let result = env.replay_result(&payload, 0.95, false).await;
     env.wait_state(1, &h1, ChangeState::Returned).await;
-    env.wait_comment(1, "sheltie-intent").await;
-    assert!(env.replay_dispatches().is_empty());
+    env.wait_comment(1, "adds no test that fails without it")
+        .await;
+    {
+        let st = env.fake.state();
+        assert_eq!(st.first_parents("main").len(), 1, "nothing landed");
+        let branch = format!("sheltie/replay/1-{}", &h1[..12]);
+        assert_eq!(st.refs.get(&branch), Some(&result), "kept for review");
+        assert!(
+            st.labels
+                .contains(&(1, sheltie_server::REAPPROVAL_LABEL.into()))
+        );
+    }
     env.stop().await;
 }
 
@@ -988,14 +1047,15 @@ async fn a_failed_merge_workflow_returns_the_change(_: PgPoolOptions, db: PgConn
     env.stop().await;
 }
 
-/// The returned comment asks for an intent; adding one to the description retries the change.
+/// Adding an intent block to a returned change (here, an untested rebuild) retries it.
 #[sqlx::test(migrations = false)]
 async fn adding_an_intent_retries_a_returned_change(_: PgPoolOptions, db: PgConnectOptions) {
     let mut env = Env::start(db).await;
     env.enable_replay("");
     let h1 = env.semantic_conflict(None).await;
+    let first = env.wait_replays(1).await;
+    env.replay_result(&first, 0.9, false).await;
     env.wait_state(1, &h1, ChangeState::Returned).await;
-    env.wait_comment(1, "sheltie-intent").await;
 
     let root = env.root.clone();
     let edited = |updated_at: &str| {
@@ -1011,14 +1071,14 @@ async fn adding_an_intent_retries_a_returned_change(_: PgPoolOptions, db: PgConn
     };
     env.webhook("pull_request", edited("2026-10-18T11:00:00Z"))
         .await;
-    let payload = env.wait_replays(1).await;
+    let payload = env.wait_replays(2).await;
     assert_eq!(payload["head"], h1);
 
     // Editing again with the same intent does not start another attempt.
     env.webhook("pull_request", edited("2026-10-18T11:05:00Z"))
         .await;
     tokio::time::sleep(Duration::from_millis(600)).await;
-    assert_eq!(env.replay_dispatches().len(), 1);
+    assert_eq!(env.replay_dispatches().len(), 2);
     env.stop().await;
 }
 
@@ -1029,17 +1089,6 @@ async fn failed_replays_escalate_then_stop(_: PgPoolOptions, db: PgConnectOption
     let mut env = Env::start(db).await;
     env.enable_replay("");
     let (_, h2) = env.conflicting_pair().await;
-    // PR 2 needs an intent: the description is edited to add one.
-    env.webhook("pull_request", json!({
-        "action": "edited", "number": 2,
-        "pull_request": {
-            "number": 2, "merged": false, "updated_at": "2026-10-18T11:00:00Z",
-            "head": { "sha": h2, "ref": "agent/2" }, "base": { "sha": env.root, "ref": "main" },
-            "body": INTENT_BODY
-        },
-        "repository": Env::repository(), "installation": { "id": 77 }, "sender": { "login": "agent" }
-    }))
-    .await;
     let onto = env.fake.state().dispatches[0].1["onto"]
         .as_str()
         .unwrap()

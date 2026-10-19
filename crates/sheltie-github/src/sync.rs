@@ -70,6 +70,7 @@ impl CheckRunSync {
             landing: job.landing.as_ref(),
             resolution: job.resolution,
             replaying: job.replaying,
+            replay: job.replay.as_ref(),
         });
         let result = match job.github_id {
             Some(id) => self

@@ -296,6 +296,26 @@ impl Store {
         row.as_ref().map(issue_row).transpose()
     }
 
+    /// The lowest-numbered issue a pull request's description closes, as Sheltie last saw it
+    /// (only issues Sheltie has received events for).
+    pub async fn closed_issue(
+        &self,
+        repo: RepoId,
+        pr: sheltie_core::PrNumber,
+    ) -> Result<Option<IssueRow>, StoreError> {
+        let row = sqlx::query(
+            "SELECT i.number, i.title, i.body, i.open FROM pr_closes p
+             JOIN issues i ON i.repo_id = p.repo_id AND i.number = p.issue_number
+             WHERE p.repo_id = $1 AND p.pr_number = $2
+             ORDER BY p.issue_number LIMIT 1",
+        )
+        .bind(to_db_id(repo.0, "repository id")?)
+        .bind(to_db_id(pr.0, "pull request number")?)
+        .fetch_optional(&self.pool)
+        .await?;
+        row.as_ref().map(issue_row).transpose()
+    }
+
     /// Open issues, oldest first.
     pub async fn open_issues(&self, repo: RepoId, limit: i64) -> Result<Vec<IssueRow>, StoreError> {
         let rows = sqlx::query(

@@ -1,9 +1,11 @@
-# Reusable workflow: Sheltie's intent replay (tier 4) on your runner, with Claude Code.
+# Reusable workflow: Sheltie's replay (tier 4) on your runner, with Claude Code.
 #
-# Sheltie fires a `repository_dispatch` event of type `sheltie-replay` when a pull request that
-# has a `sheltie-intent` block cannot be merged or breaks CI once merged, and `[replay]` is
-# enabled in .sheltie/merge.toml on the default branch. Add this to the repository Sheltie
-# manages (on the default branch, where repository_dispatch workflows run):
+# Sheltie fires a `repository_dispatch` event of type `sheltie-replay` when a pull request
+# cannot be merged or breaks CI once merged, and `[replay]` is enabled in .sheltie/merge.toml on
+# the default branch. The agent works from the pull request's diff, title, description, commits
+# and linked issue; tests the pull request adds that fail without it become acceptance tests.
+# Add this to the repository Sheltie manages (on the default branch, where repository_dispatch
+# workflows run):
 #
 #   on:
 #     repository_dispatch:
@@ -82,7 +84,8 @@ permissions:
 jobs:
   replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The agent, plus up to 30 minutes of fail-to-pass test runs and the acceptance run.
+    timeout-minutes: 90
     permissions:
       contents: read
       pull-requests: read
@@ -170,17 +173,28 @@ jobs:
           HEAD: ${{ inputs.head }}
           ONTO: ${{ inputs.onto }}
           MODE: ${{ inputs.mode }}
+          # Reusable workflows see the caller's event: the dispatch payload Sheltie sent.
+          ISSUE: ${{ toJSON(github.event.client_payload.issue) }}
         run: |
           case "$MODE" in hunks) tier=4a ;; full) tier=4b ;; *) echo "bad mode"; exit 1 ;; esac
           gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}" -q '.body // ""' > "$RUNNER_TEMP/body"
           title=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}" -q .title)
+          printf '%s\n' "$title" > "$RUNNER_TEMP/title"
           printf 'Merge #%s: %s\n\nSheltie-Replay: %s\nSheltie-Change: #%s\n' \
             "$PR" "$title" "$tier" "$PR" > "$RUNNER_TEMP/message"
+          # The issue the pull request closes, as Sheltie last saw it; untrusted, so it goes
+          # through a file, never into the script.
+          if [ -n "$ISSUE" ] && [ "$ISSUE" != "null" ]; then
+            printf '%s' "$ISSUE" > "$RUNNER_TEMP/issue.json"
+          else
+            : > "$RUNNER_TEMP/issue.json"
+          fi
           unset GH_TOKEN
           sheltie-merge replay --mode "$MODE" --pr "$PR" --onto "$ONTO" --head "$HEAD" \
-            --pr-body-file "$RUNNER_TEMP/body" \
+            --pr-body-file "$RUNNER_TEMP/body" --pr-title-file "$RUNNER_TEMP/title" \
+            --issue-file "$RUNNER_TEMP/issue.json" \
             --message-file "$RUNNER_TEMP/message" --out "$RUNNER_TEMP/report.json"
-          jq '{tier, result, checks, cost_usd, turns, tokens, model, error}' "$RUNNER_TEMP/report.json"
+          jq '{tier, result, checks, context, acceptance, cost_usd, turns, tokens, model, error}' "$RUNNER_TEMP/report.json"
           mkdir -p "$RUNNER_TEMP/out"
           cp "$RUNNER_TEMP/report.json" "$RUNNER_TEMP/out/"
           result=$(jq -r '.result // empty' "$RUNNER_TEMP/report.json")

@@ -15,7 +15,7 @@ pub struct Label {
 pub const REPLAYED: Label = Label {
     name: "sheltie: replayed",
     color: "8250df",
-    description: "Sheltie re-derived this change from its intent and landed it",
+    description: "Sheltie re-derived this change with an agent and landed it",
 };
 
 /// A replayed change that differs too much from the reviewed one.
