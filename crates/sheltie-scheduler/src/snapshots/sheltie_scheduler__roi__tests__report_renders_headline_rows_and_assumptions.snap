@@ -27,6 +27,7 @@ Parallelism
 
 Assumptions
   · 30 landings on main from 2027-01-15 to 2027-01-15, each ready when it landed.
+  · Base known for 0 of 30 changes (the merge base of the pull request head). The other 30 count as tested on the branch as it was when they landed, which leaves out rebuilds and favours Sheltie; fetch pull request heads with git fetch origin '+refs/pull/*/head:refs/pull/*/head' to find more.
   · CI takes 15 min per run, and every run passes.
   · Footprints predicted from changed files.
   · Waiting is wall-clock time from ready to landed; the pull requests' own CI is the same in both queues and not counted.

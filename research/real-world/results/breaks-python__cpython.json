@@ -1,0 +1,2466 @@
+{
+ "repo": "python/cpython",
+ "tool": "python",
+ "landings": 1214,
+ "pr_landings": 1211,
+ "direct_pushes": 3,
+ "tested": 1211,
+ "ci_workflows": [
+  "JIT",
+  "Lint",
+  "Tail calling interpreter",
+  "Tests",
+  "Verify bundled libexpat",
+  "Verify bundled wheels",
+  "mypy"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 1932.0,
+ "flaky_reruns_on_main": 3,
+ "stale": 919,
+ "median_between": 4,
+ "sheltie_rebuilds": 691,
+ "sheltie_merge_engine": 415,
+ "sheltie_extra_ci_seconds": 1335012.0,
+ "leaky": 914,
+ "missing_footprints": 0,
+ "red_episodes": 130,
+ "persistent_red": 22,
+ "persistent_red_seconds": 292265.0,
+ "verdicts": {
+  "stale base, overlapping landing: Sheltie rebuilds before landing": 11,
+  "stale base, no overlap: Sheltie lands it too": 7,
+  "tested on the current main: not an interaction": 4
+ },
+ "overlap_base_rate": 0.5706028075970272,
+ "overlap_by_chance": 12.553261767134599,
+ "episodes": [
+  {
+   "first_red": "70f7c6c0f2ddfd3b447946f1b926776b2a344703",
+   "first_red_index": 1,
+   "range": [
+    1,
+    1
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2664.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    103926
+   ]
+  },
+  {
+   "first_red": "daf09e17bf99c544e8ab7a72b11f10f2e382a381",
+   "first_red_index": 5,
+   "range": [
+    5,
+    5
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 756.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    150160
+   ]
+  },
+  {
+   "first_red": "dc72be1923a37042aee60354059e43d472de7803",
+   "first_red_index": 9,
+   "range": [
+    9,
+    9
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1598.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    154321
+   ]
+  },
+  {
+   "first_red": "d333e5aa59f6cc20198502f4ff50b14eabde9b8b",
+   "first_red_index": 13,
+   "range": [
+    13,
+    13
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3290.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    154155
+   ]
+  },
+  {
+   "first_red": "6f8f97fe5246837b93e6c2f3525aa9f623ecd30b",
+   "first_red_index": 26,
+   "range": [
+    26,
+    26
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4072.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    154428
+   ]
+  },
+  {
+   "first_red": "d1174a48ea8fda8bd0057f10e9776ec148276100",
+   "first_red_index": 32,
+   "range": [
+    32,
+    32
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4675.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154142
+   ]
+  },
+  {
+   "first_red": "ae72d0c92bf57448e256cdf8cfac7d4fd345b1a4",
+   "first_red_index": 56,
+   "range": [
+    56,
+    56
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 334.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    153786
+   ]
+  },
+  {
+   "first_red": "6cb93bd039ec1c5e0909d2d75cfc4fb3641c693b",
+   "first_red_index": 68,
+   "range": [
+    68,
+    68
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2566.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154581
+   ]
+  },
+  {
+   "first_red": "f717b25712064b88e6dac5a919dbc717e69ebb9c",
+   "first_red_index": 71,
+   "range": [
+    71,
+    71
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3521.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    154639
+   ]
+  },
+  {
+   "first_red": "bff005123119d5a010774f5dc9a181029024c2ac",
+   "first_red_index": 79,
+   "range": [
+    79,
+    79
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 16713.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    153368
+   ]
+  },
+  {
+   "first_red": "2db8ca79e0d10f134768250ac530bad45ce2758b",
+   "first_red_index": 90,
+   "range": [
+    90,
+    90
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1571.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154071
+   ]
+  },
+  {
+   "first_red": "ae18daedc75f40fdca7921bee3ce61dd1192c475",
+   "first_red_index": 116,
+   "range": [
+    116,
+    116
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3105.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    136871
+   ]
+  },
+  {
+   "first_red": "405daf5328a1f9f8355ba76b0174b236364c2646",
+   "first_red_index": 127,
+   "range": [
+    127,
+    127
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1121.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    154100
+   ]
+  },
+  {
+   "first_red": "6489af6f5731874a48042fa445c4e94fca41ff30",
+   "first_red_index": 132,
+   "range": [
+    132,
+    132
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 106.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    154881
+   ]
+  },
+  {
+   "first_red": "ac8ba0ca5a04cd7b27b44822d31df640e817fd78",
+   "first_red_index": 139,
+   "range": [
+    139,
+    139
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 26920.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    153720
+   ]
+  },
+  {
+   "first_red": "6a139d6e5481d2b5124b84cef9885674256c9d54",
+   "first_red_index": 146,
+   "range": [
+    146,
+    146
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4436.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154992
+   ]
+  },
+  {
+   "first_red": "a646c99ee12fbf421394a74955d42fd3fe850b7e",
+   "first_red_index": 148,
+   "range": [
+    148,
+    148
+   ],
+   "workflows": [
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 63505.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    154978
+   ]
+  },
+  {
+   "first_red": "afd10f0e28476f5ca0eaeac34ebf85dda2cdc6e5",
+   "first_red_index": 151,
+   "range": [
+    151,
+    151
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 20131.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154898
+   ]
+  },
+  {
+   "first_red": "1617cbe1dc16db302d708c321b7b0a1579a382c9",
+   "first_red_index": 164,
+   "range": [
+    164,
+    164
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8685.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155086
+   ]
+  },
+  {
+   "first_red": "089b713e01665c5fec8865a16716d1e4bce7c1d9",
+   "first_red_index": 170,
+   "range": [
+    170,
+    170
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 884.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    155142
+   ]
+  },
+  {
+   "first_red": "2b91da7cd4114e7b264ab4a7b7a1c42b79663a6c",
+   "first_red_index": 172,
+   "range": [
+    172,
+    172
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1186.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154691
+   ]
+  },
+  {
+   "first_red": "1d90627f1660253b30e5efc2ca092a6231737993",
+   "first_red_index": 186,
+   "range": [
+    186,
+    186
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1888.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155163
+   ]
+  },
+  {
+   "first_red": "c5d49463f1a41f0812902f3834cb2aad0adfd0a1",
+   "first_red_index": 188,
+   "range": [
+    188,
+    188
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 5733.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    155122
+   ]
+  },
+  {
+   "first_red": "d2f464959287c91dd4365d69ab99022f20e3b64a",
+   "first_red_index": 194,
+   "range": [
+    194,
+    194
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 25949.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155243
+   ]
+  },
+  {
+   "first_red": "c3aefdb9eff0734058376b96fc86d89b1a345d75",
+   "first_red_index": 200,
+   "range": [
+    200,
+    200
+   ],
+   "workflows": [
+    "Tests",
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 38628.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155262
+   ]
+  },
+  {
+   "first_red": "7c653e2540cbe4180efb3bd83b63865a1f675650",
+   "first_red_index": 205,
+   "range": [
+    205,
+    205
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 6989.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    153971
+   ]
+  },
+  {
+   "first_red": "e45d4560d11a83022af72dcf7f52a7d2cb704860",
+   "first_red_index": 222,
+   "range": [
+    222,
+    222
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 206.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    155448
+   ]
+  },
+  {
+   "first_red": "8a4ee5ca681a198df89960d0071d1ee74d9c0dcb",
+   "first_red_index": 227,
+   "range": [
+    227,
+    227
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8587.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    152664
+   ]
+  },
+  {
+   "first_red": "ee68f5f46a14e2bbf22d72796e45e5f467951792",
+   "first_red_index": 257,
+   "range": [
+    257,
+    257
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 29819.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    154036
+   ]
+  },
+  {
+   "first_red": "4603523ea1cba1ffc47f7704dc5ffe3ed9bf709e",
+   "first_red_index": 267,
+   "range": [
+    267,
+    267
+   ],
+   "workflows": [
+    "Lint"
+   ],
+   "persistent": false,
+   "red_seconds": 5336.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155190
+   ]
+  },
+  {
+   "first_red": "5dfa606af39d1e21d130205ce0efbb7a10e124f7",
+   "first_red_index": 269,
+   "range": [
+    269,
+    269
+   ],
+   "workflows": [
+    "Lint",
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1747.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    155570
+   ]
+  },
+  {
+   "first_red": "b4af851f6b5e1cf4dcc2e0397321d7c761f227c6",
+   "first_red_index": 288,
+   "range": [
+    288,
+    288
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 49.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155035
+   ]
+  },
+  {
+   "first_red": "7385f48f2257b6328925d89c709b72a2875c7c51",
+   "first_red_index": 315,
+   "range": [
+    315,
+    315
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4012.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155383
+   ]
+  },
+  {
+   "first_red": "c1447994a42004a81a8caca026218daf69d451c8",
+   "first_red_index": 345,
+   "range": [
+    345,
+    345
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 5129.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155827
+   ]
+  },
+  {
+   "first_red": "07a9427992a7c5132397bfc7b8fec08a185a4bcc",
+   "first_red_index": 356,
+   "range": [
+    356,
+    356
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 563.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    155922
+   ]
+  },
+  {
+   "first_red": "f2eaf174b2505be1b3dfbe817db243adf7fd5d6b",
+   "first_red_index": 369,
+   "range": [
+    369,
+    369
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 13026.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155318
+   ]
+  },
+  {
+   "first_red": "915970ce9d031388a2bcf3e9f6199fa3e0eb9ebd",
+   "first_red_index": 373,
+   "range": [
+    373,
+    373
+   ],
+   "workflows": [
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 512.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155778
+   ]
+  },
+  {
+   "first_red": "c612fd4cf363cf1af28bb67f11b4a11dca57507f",
+   "first_red_index": 377,
+   "range": [
+    377,
+    377
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 10063.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155995
+   ]
+  },
+  {
+   "first_red": "af49df919dafc3767ae956767dce0482f9cd6d4e",
+   "first_red_index": 379,
+   "range": [
+    379,
+    379
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 49293.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152604
+   ]
+  },
+  {
+   "first_red": "a2c9a3b0aad0aca332197ac5eed41eb41442fb0c",
+   "first_red_index": 386,
+   "range": [
+    386,
+    386
+   ],
+   "workflows": [
+    "Tests",
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 103.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    156061
+   ]
+  },
+  {
+   "first_red": "7f6389f48ee46df91e562d33564d02747b3f7ca3",
+   "first_red_index": 389,
+   "range": [
+    389,
+    389
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2165.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152410
+   ]
+  },
+  {
+   "first_red": "b062727097e997bcb900e11503d3248daac903da",
+   "first_red_index": 420,
+   "range": [
+    420,
+    420
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 39144.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    156181
+   ]
+  },
+  {
+   "first_red": "9cbd578e38a5ef59f9462b61d1e03338b208cba6",
+   "first_red_index": 435,
+   "range": [
+    435,
+    435
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 15686.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    151210
+   ]
+  },
+  {
+   "first_red": "05eac890c2f2846870daf2a1bfe726547856abe3",
+   "first_red_index": 450,
+   "range": [
+    450,
+    450
+   ],
+   "workflows": [
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 2528.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156335
+   ]
+  },
+  {
+   "first_red": "cf7e9108bdb18f52507909f2f9d659f951a4a1fe",
+   "first_red_index": 453,
+   "range": [
+    453,
+    453
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1121.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154092
+   ]
+  },
+  {
+   "first_red": "e2118b0ac21191bfeecdc97758a87d88ffdda154",
+   "first_red_index": 456,
+   "range": [
+    456,
+    456
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 34506.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    149992
+   ]
+  },
+  {
+   "first_red": "de2ea9aaefebd1b06e5302c1858d70e00cd63639",
+   "first_red_index": 478,
+   "range": [
+    478,
+    478
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 739.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156534
+   ]
+  },
+  {
+   "first_red": "b0da7c72691d9a165f7849099aee1a9cc7299fc1",
+   "first_red_index": 491,
+   "range": [
+    491,
+    491
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4777.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156329
+   ]
+  },
+  {
+   "first_red": "e50e41f7d6f944d224aedf29064cba9c04ecdc3f",
+   "first_red_index": 521,
+   "range": [
+    521,
+    521
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3597.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    156678
+   ]
+  },
+  {
+   "first_red": "5ef7fa169fecf37031e4fe31b9c52ab048c9c2e5",
+   "first_red_index": 525,
+   "range": [
+    525,
+    525
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1692.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155795
+   ]
+  },
+  {
+   "first_red": "1620e0f1b59c2078e33d82bef75df3db3c651d1c",
+   "first_red_index": 535,
+   "range": [
+    535,
+    535
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1284.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156298
+   ]
+  },
+  {
+   "first_red": "9259e8ba4de8e2f534d97233b8e0f9c2537691d3",
+   "first_red_index": 537,
+   "range": [
+    537,
+    537
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 679.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156746
+   ]
+  },
+  {
+   "first_red": "374851f3dbfbce3faf1f7a1875454aa67cf6ae4b",
+   "first_red_index": 539,
+   "range": [
+    539,
+    539
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 14112.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155746
+   ]
+  },
+  {
+   "first_red": "3c7e975001f0a96b63b33346fb1faab75d0035ee",
+   "first_red_index": 551,
+   "range": [
+    551,
+    551
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 575.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    156415
+   ]
+  },
+  {
+   "first_red": "050fd7dd32df87e8f9b39a3e2fb643ce1e4c4e3a",
+   "first_red_index": 565,
+   "range": [
+    565,
+    565
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 199.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156783
+   ]
+  },
+  {
+   "first_red": "4dd225e940001eb96071e56d258e4e6b74b07f8b",
+   "first_red_index": 568,
+   "range": [
+    568,
+    568
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 5485.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    156893
+   ]
+  },
+  {
+   "first_red": "57594aae5e6155d30b9192a4cd85333584339445",
+   "first_red_index": 594,
+   "range": [
+    594,
+    594
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 15343.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156974
+   ]
+  },
+  {
+   "first_red": "90ac5398e49a80d3c2976621f5a8e449ec0db7d5",
+   "first_red_index": 598,
+   "range": [
+    598,
+    598
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 7318.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155838
+   ]
+  },
+  {
+   "first_red": "7a1d2c462bb544eb3de7f04d1fc5d09a327f301c",
+   "first_red_index": 602,
+   "range": [
+    602,
+    602
+   ],
+   "workflows": [
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 656.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157027
+   ]
+  },
+  {
+   "first_red": "1f25c333a280561e86cc0af69af307b53ddbaaac",
+   "first_red_index": 604,
+   "range": [
+    604,
+    604
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 16121.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156506
+   ]
+  },
+  {
+   "first_red": "7a562c474c6885b1d6f3ac74962bb920483bfbe1",
+   "first_red_index": 614,
+   "range": [
+    614,
+    614
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1170.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152984
+   ]
+  },
+  {
+   "first_red": "adea841addefe2161afa817c90470f66904149ee",
+   "first_red_index": 616,
+   "range": [
+    616,
+    616
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1049.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152977
+   ]
+  },
+  {
+   "first_red": "36c7440c480da622735788af656c728af28cd9eb",
+   "first_red_index": 620,
+   "range": [
+    620,
+    620
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3026.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157067
+   ]
+  },
+  {
+   "first_red": "da461eacea5f30da8c3977679b8ca4cced005958",
+   "first_red_index": 622,
+   "range": [
+    622,
+    622
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 25.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157188
+   ]
+  },
+  {
+   "first_red": "c42790b34f634051750e5da340d17c7da19e4784",
+   "first_red_index": 631,
+   "range": [
+    631,
+    631
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 4555.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157066
+   ]
+  },
+  {
+   "first_red": "b38be2e6cf9d989075ab73412c63e003ebad4ff3",
+   "first_red_index": 640,
+   "range": [
+    640,
+    640
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8253.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157191
+   ]
+  },
+  {
+   "first_red": "47029802a6feb532461dc9a0907d6123fe04429b",
+   "first_red_index": 678,
+   "range": [
+    678,
+    678
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 6672.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    132590
+   ]
+  },
+  {
+   "first_red": "23eda007f8d543495ba4935df75d243d76f9ef7f",
+   "first_red_index": 685,
+   "range": [
+    685,
+    685
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 11742.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157344
+   ]
+  },
+  {
+   "first_red": "1a703ab9e6a050b40c469788ec7758713c6bf62b",
+   "first_red_index": 690,
+   "range": [
+    690,
+    690
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 28426.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    154762
+   ]
+  },
+  {
+   "first_red": "64740410909891331eb4e4cbdb14837ff4f8ec64",
+   "first_red_index": 697,
+   "range": [
+    697,
+    697
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 3630.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    156987
+   ]
+  },
+  {
+   "first_red": "a60343ed17785ebbcd43de9080cadd8e2541db6f",
+   "first_red_index": 700,
+   "range": [
+    700,
+    700
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8488.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157298
+   ]
+  },
+  {
+   "first_red": "e7a393797a0df47a001673f4510c51aa272bc002",
+   "first_red_index": 702,
+   "range": [
+    702,
+    702
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 2819.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    156763
+   ]
+  },
+  {
+   "first_red": "0fc5ebc7a1b7475e746e34204dbc9ad386a3b030",
+   "first_red_index": 740,
+   "range": [
+    740,
+    740
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 3042.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    155914
+   ]
+  },
+  {
+   "first_red": "2d1007f931963ef907460ddaa110bac4e635eebd",
+   "first_red_index": 745,
+   "range": [
+    745,
+    745
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2150.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157529
+   ]
+  },
+  {
+   "first_red": "9a1733d5712545db0703c712b158ae5e2a19e1d0",
+   "first_red_index": 752,
+   "range": [
+    752,
+    752
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 15772.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157431
+   ]
+  },
+  {
+   "first_red": "b215552a32666d38db5e85e1a6da91374610dd73",
+   "first_red_index": 766,
+   "range": [
+    766,
+    766
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 21106.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157622
+   ]
+  },
+  {
+   "first_red": "1e03154546c5c1af5c0c746a2bdedc758acdec93",
+   "first_red_index": 771,
+   "range": [
+    771,
+    771
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 6770.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157587
+   ]
+  },
+  {
+   "first_red": "86c17926b7c97024f162cde6a6e8f72424b3dd8a",
+   "first_red_index": 774,
+   "range": [
+    774,
+    774
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 143.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154140
+   ]
+  },
+  {
+   "first_red": "c7dbdb5f6be5c6eba382a0aabe66a2e36c884fa1",
+   "first_red_index": 788,
+   "range": [
+    788,
+    788
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 7575.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    157731
+   ]
+  },
+  {
+   "first_red": "6dad8b88cc39d8f9f41c22502a0b52304b326dd9",
+   "first_red_index": 795,
+   "range": [
+    795,
+    795
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 48766.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    156300
+   ]
+  },
+  {
+   "first_red": "da72cc70ca00f9677d219631ec397d5f47c926df",
+   "first_red_index": 802,
+   "range": [
+    802,
+    802
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1038.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157488
+   ]
+  },
+  {
+   "first_red": "6b974528366e5452300c1f3de27f5062b1160039",
+   "first_red_index": 818,
+   "range": [
+    818,
+    818
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8620.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    157853
+   ]
+  },
+  {
+   "first_red": "40edefa348a06b25b9a794b0670b403d6c935071",
+   "first_red_index": 862,
+   "range": [
+    862,
+    862
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 913.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157713
+   ]
+  },
+  {
+   "first_red": "2f5791df35c66cf5f300d82d86dd6854c71d12bc",
+   "first_red_index": 867,
+   "range": [
+    867,
+    867
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 619.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158014
+   ]
+  },
+  {
+   "first_red": "7884f48af47f3e33640a964e55f3391698726a26",
+   "first_red_index": 875,
+   "range": [
+    875,
+    875
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 511.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152712
+   ]
+  },
+  {
+   "first_red": "a5a4659548ed112692c7617a295577f0e6eee6df",
+   "first_red_index": 884,
+   "range": [
+    884,
+    884
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 13703.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    158024
+   ]
+  },
+  {
+   "first_red": "a6fa91cab267ea634a3cc2f3f7eeb22697b1358f",
+   "first_red_index": 891,
+   "range": [
+    891,
+    891
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 621.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157648
+   ]
+  },
+  {
+   "first_red": "16292fcf9088c8fb4c771cc86fe51e7279577e79",
+   "first_red_index": 897,
+   "range": [
+    897,
+    897
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 23.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155511
+   ]
+  },
+  {
+   "first_red": "a5b03fa1d71925576892a82f1f12a86f11f69f35",
+   "first_red_index": 899,
+   "range": [
+    899,
+    899
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 17605.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    155514
+   ]
+  },
+  {
+   "first_red": "80f9aa0b18d96509eec3950a8db4324d5f6dc3a5",
+   "first_red_index": 902,
+   "range": [
+    902,
+    902
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 6974.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    157817
+   ]
+  },
+  {
+   "first_red": "c04387348eb8223977e46f4972c08833c11c6617",
+   "first_red_index": 905,
+   "range": [
+    905,
+    905
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 1370.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157333
+   ]
+  },
+  {
+   "first_red": "5eb4ab5a91d5ded26ab6c2e58667bfb2f5ade249",
+   "first_red_index": 920,
+   "range": [
+    920,
+    920
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4128.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158105
+   ]
+  },
+  {
+   "first_red": "dc590064bdfe45a937cab40a1fd34a25352e8c77",
+   "first_red_index": 931,
+   "range": [
+    931,
+    931
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 173.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158134
+   ]
+  },
+  {
+   "first_red": "4c3cb33db7a9eb037334c77d07d498aefe0ad282",
+   "first_red_index": 940,
+   "range": [
+    940,
+    940
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2491.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    157868
+   ]
+  },
+  {
+   "first_red": "dd410a9e187611e5f65548fb236967fcebd8a6af",
+   "first_red_index": 952,
+   "range": [
+    911,
+    952
+   ],
+   "workflows": [
+    "JIT"
+   ],
+   "persistent": false,
+   "red_seconds": 162445.0,
+   "candidates": 42,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    154854,
+    158176,
+    158193,
+    157566,
+    157982,
+    158177,
+    158227,
+    158238,
+    154846,
+    158105,
+    144820,
+    158092,
+    153481,
+    158258,
+    158255,
+    135526,
+    158279,
+    156422,
+    158132,
+    158133,
+    158134,
+    158088,
+    156294,
+    158082,
+    157045,
+    157898,
+    157732,
+    157483,
+    153890,
+    157868,
+    158281,
+    158214,
+    158332,
+    158311,
+    158331,
+    158323,
+    158347,
+    139133,
+    158266,
+    157444,
+    158155,
+    158342
+   ]
+  },
+  {
+   "first_red": "969af80daf09fcd2ce8f358e5f9d54e75f8ef330",
+   "first_red_index": 958,
+   "range": [
+    958,
+    958
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2723.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158329
+   ]
+  },
+  {
+   "first_red": "aa287d7f443c2e219b43f7b804b209971964d206",
+   "first_red_index": 960,
+   "range": [
+    960,
+    960
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4071.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158242
+   ]
+  },
+  {
+   "first_red": "5d1ab456ba3475fc1392b1fa7085fd6205ada562",
+   "first_red_index": 964,
+   "range": [
+    964,
+    964
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 87.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157471
+   ]
+  },
+  {
+   "first_red": "568dd3dfe581d21e311a6fb429d74c3d638eaaa8",
+   "first_red_index": 975,
+   "range": [
+    975,
+    975
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 2234.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    158013
+   ]
+  },
+  {
+   "first_red": "540274c649e29a88f56cf55d5634a41f68ead430",
+   "first_red_index": 981,
+   "range": [
+    981,
+    981
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 5298.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158415
+   ]
+  },
+  {
+   "first_red": "26d3f5dd6a9c6699f430138db0e92d224f958747",
+   "first_red_index": 983,
+   "range": [
+    983,
+    983
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1846.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    158464
+   ]
+  },
+  {
+   "first_red": "c57c8772b0b133c5580e94006e8b084f78753f49",
+   "first_red_index": 993,
+   "range": [
+    993,
+    993
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 2054.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157958
+   ]
+  },
+  {
+   "first_red": "1697ea386c707142555d98a1263176bbbc014a96",
+   "first_red_index": 995,
+   "range": [
+    995,
+    995
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 1002.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158503
+   ]
+  },
+  {
+   "first_red": "eb30e3d9d4b523e3f8de2cd1485c9ae9a996ab03",
+   "first_red_index": 1001,
+   "range": [
+    1001,
+    1001
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 14028.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    158483
+   ]
+  },
+  {
+   "first_red": "1b015e66f058f29de4d97031b465587ec15cace9",
+   "first_red_index": 1028,
+   "range": [
+    1028,
+    1028
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 10785.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157907
+   ]
+  },
+  {
+   "first_red": "9d22a5334bd5273962adceeb697a1337e9a0ca21",
+   "first_red_index": 1031,
+   "range": [
+    1031,
+    1031
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 76194.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    158584
+   ]
+  },
+  {
+   "first_red": "a7b5fc50e98c1abf38f246b0802f6c9a44779e80",
+   "first_red_index": 1033,
+   "range": [
+    1033,
+    1033
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 766.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    158624
+   ]
+  },
+  {
+   "first_red": "d19febb00c5a5ff20fee4b251a9656d088cf6965",
+   "first_red_index": 1034,
+   "range": [
+    1001,
+    1034
+   ],
+   "workflows": [
+    "JIT"
+   ],
+   "persistent": false,
+   "red_seconds": 13764.0,
+   "candidates": 34,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158483,
+    158362,
+    158568,
+    158282,
+    158040,
+    158485,
+    158586,
+    158167,
+    158590,
+    157682,
+    158405,
+    158603,
+    158604,
+    158582,
+    157714,
+    158564,
+    158521,
+    156205,
+    157463,
+    155171,
+    158621,
+    158608,
+    158626,
+    158651,
+    158644,
+    158240,
+    158620,
+    157907,
+    158589,
+    158615,
+    158584,
+    158664,
+    158624,
+    158680
+   ]
+  },
+  {
+   "first_red": "f839c061d383bc87c3456d19bbdcbc1c30ed399b",
+   "first_red_index": 1040,
+   "range": [
+    1040,
+    1040
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 6164.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    152892
+   ]
+  },
+  {
+   "first_red": "9133d5c2cb4ace240306f151b54c52a47136af81",
+   "first_red_index": 1047,
+   "range": [
+    1047,
+    1047
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8402.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    152110
+   ]
+  },
+  {
+   "first_red": "fc3cd8e3f59fcae208bc2b53014dcb90fdc038cb",
+   "first_red_index": 1049,
+   "range": [
+    1049,
+    1049
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 5818.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158689
+   ]
+  },
+  {
+   "first_red": "0b8aa89a05e6b0dee93213dae21f230ce688f1ae",
+   "first_red_index": 1051,
+   "range": [
+    1042,
+    1051
+   ],
+   "workflows": [
+    "JIT"
+   ],
+   "persistent": false,
+   "red_seconds": 0,
+   "candidates": 10,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    155828,
+    158808,
+    158822,
+    158823,
+    157711,
+    152110,
+    158812,
+    158689,
+    158645,
+    158124
+   ]
+  },
+  {
+   "first_red": "3f02aab9faa338853425da23541e44e4bd24d478",
+   "first_red_index": 1052,
+   "range": [
+    1052,
+    1052
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 6.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158548
+   ]
+  },
+  {
+   "first_red": "e4a24732eb5829302461069f7b005b2e1cb6f76b",
+   "first_red_index": 1055,
+   "range": [
+    1055,
+    1055
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 5.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    152722
+   ]
+  },
+  {
+   "first_red": "3f9118f1d17ae2ff0e25bd07fce9940ba13afdff",
+   "first_red_index": 1064,
+   "range": [
+    1064,
+    1064
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 15889.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    151158
+   ]
+  },
+  {
+   "first_red": "114de198c0a05d8169cdbbd8f1e0976dc1319284",
+   "first_red_index": 1066,
+   "range": [
+    1066,
+    1066
+   ],
+   "workflows": [
+    "Lint",
+    "mypy"
+   ],
+   "persistent": false,
+   "red_seconds": 11573.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    158874
+   ]
+  },
+  {
+   "first_red": "37cc8dd0b9a86c1fd87c4b08360ef3dc6a2c306b",
+   "first_red_index": 1083,
+   "range": [
+    1083,
+    1083
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 5390.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    158171
+   ]
+  },
+  {
+   "first_red": "2791c35cae1fa274198bb2d3b3dccb378dfe40f3",
+   "first_red_index": 1088,
+   "range": [
+    1088,
+    1088
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 7397.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    157934
+   ]
+  },
+  {
+   "first_red": "e2c3c7e4dd8624315b1b263cfc50c1b3201c249a",
+   "first_red_index": 1102,
+   "range": [
+    1102,
+    1102
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 8108.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    158969
+   ]
+  },
+  {
+   "first_red": "4b8dff4b072ca053cb9e57a035314b52decef359",
+   "first_red_index": 1107,
+   "range": [
+    1107,
+    1107
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 792.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    158672
+   ]
+  },
+  {
+   "first_red": "224b4b0ab1640db514da8639924265bac9d83134",
+   "first_red_index": 1118,
+   "range": [
+    1118,
+    1118
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4472.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    159000
+   ]
+  },
+  {
+   "first_red": "fd671619e7054706fd62c187749c806f18f068e1",
+   "first_red_index": 1142,
+   "range": [
+    1142,
+    1142
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 676.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    139358
+   ]
+  },
+  {
+   "first_red": "ce5c012a8acf29b111db42eba342d72885f3e8be",
+   "first_red_index": 1145,
+   "range": [
+    1145,
+    1145
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 297.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    159256
+   ]
+  },
+  {
+   "first_red": "084aff869c4aa2f2cbdf302987210e71b0e38934",
+   "first_red_index": 1165,
+   "range": [
+    1165,
+    1165
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 13386.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    159039
+   ]
+  },
+  {
+   "first_red": "d6f2129abdf14c2d653b8fc03a40d4a61674ec54",
+   "first_red_index": 1168,
+   "range": [
+    1168,
+    1168
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": true,
+   "red_seconds": 14823.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    159386
+   ]
+  },
+  {
+   "first_red": "c7a1716296446386c77d405d1f34b43bc2367016",
+   "first_red_index": 1187,
+   "range": [
+    1187,
+    1187
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 11454.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    159403
+   ]
+  },
+  {
+   "first_red": "49fc7ed70ac480838c08e19e4ea7408a74d3fdb6",
+   "first_red_index": 1189,
+   "range": [
+    1189,
+    1189
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 216.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    159297
+   ]
+  },
+  {
+   "first_red": "e5ef47e94f7c9d970ad98e2c33870ccc3b04dc5c",
+   "first_red_index": 1200,
+   "range": [
+    1200,
+    1200
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 20490.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    159527
+   ]
+  },
+  {
+   "first_red": "97a713566be44590121f9e5410e9fbb124107da7",
+   "first_red_index": 1205,
+   "range": [
+    1205,
+    1205
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 4400.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    159523
+   ]
+  },
+  {
+   "first_red": "0f2eb5a36280fc88cb031ebaa441e5b717660eb8",
+   "first_red_index": 1211,
+   "range": [
+    1211,
+    1211
+   ],
+   "workflows": [
+    "Tests"
+   ],
+   "persistent": false,
+   "red_seconds": 0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    159665
+   ]
+  }
+ ]
+}

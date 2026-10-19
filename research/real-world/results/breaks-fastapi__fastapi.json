@@ -1,0 +1,109 @@
+{
+ "repo": "fastapi/fastapi",
+ "tool": "python",
+ "landings": 326,
+ "pr_landings": 178,
+ "direct_pushes": 148,
+ "tested": 178,
+ "ci_workflows": [
+  "Build Docs",
+  "Test",
+  "Test Redistribute"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 344.0,
+ "flaky_reruns_on_main": 1,
+ "stale": 57,
+ "median_between": 0.0,
+ "sheltie_rebuilds": 11,
+ "sheltie_merge_engine": 10,
+ "sheltie_extra_ci_seconds": 3784.0,
+ "leaky": 10,
+ "missing_footprints": 0,
+ "red_episodes": 4,
+ "persistent_red": 1,
+ "persistent_red_seconds": 55533.0,
+ "verdicts": {
+  "direct push or untested change in range": 1
+ },
+ "overlap_base_rate": 0.06179775280898876,
+ "overlap_by_chance": 0.11977654336573673,
+ "episodes": [
+  {
+   "first_red": "5f255058f448419ac5e175ecc597b2fc154e4ae8",
+   "first_red_index": 66,
+   "range": [
+    65,
+    66
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 657.0,
+   "candidates": 2,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    16095
+   ]
+  },
+  {
+   "first_red": "b5e1562a1e81f0d74a6207f9de8de1c04f55d9a0",
+   "first_red_index": 100,
+   "range": [
+    99,
+    100
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 55533.0,
+   "candidates": 2,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    16161
+   ]
+  },
+  {
+   "first_red": "39c9a473f9450fc0834ad4ce24d176f3f4a4bb4a",
+   "first_red_index": 190,
+   "range": [
+    189,
+    190
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 50976.0,
+   "candidates": 2,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    16406
+   ]
+  },
+  {
+   "first_red": "78c4324f0c56bc5282a459978779a9e532d19709",
+   "first_red_index": 202,
+   "range": [
+    201,
+    202
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 16903.0,
+   "candidates": 2,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    16419
+   ]
+  }
+ ]
+}

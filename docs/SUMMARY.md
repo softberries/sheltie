@@ -18,3 +18,4 @@
 - [Coordinating agents](agents.md)
 - [Dashboard](dashboard.md)
 - [ROI report](roi.md)
+- [Sheltie on real repositories](real-world.md)

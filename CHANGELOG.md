@@ -6,10 +6,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- [Sheltie on real repositories](docs/real-world.md): what Sheltie would have done on 23
+  open-source projects over 90 days, with what it could not prove, a PDF, and the scripts and
+  data to reproduce it (`research/real-world`).
+
+### Changed
+
+- ROI report: each change is replayed against the branch it was tested on (the merge base of
+  its pull request head, from merge commits or fetched `refs/pull/*/head`), so Sheltie's
+  rebuilds after overlapping landings are counted. The report says how many changes had no
+  known base; those still count as tested when they landed, which favours Sheltie.
+- `sheltie-go`: files a package embeds with `//go:embed` are resolved from the tree (the go
+  command's pattern rules) and belong to the package, which stays hermetic. Only a pattern
+  that cannot be resolved makes it leaky.
+
 ### Fixed
 
 - `sheltie-cargo`: modules declared with a raw identifier (`mod r#type;`) or with a
   `#[path]` in a file that is not `mod.rs` are found, instead of making footprints leaky.
+- Adapters: two checkouts of the same commit in one process no longer collide on the
+  worktree directory name.
+- `sheltie-cargo`: modules declared inside a macro invocation (`cfg_rt! { mod pool; }`, as
+  tokio does) are followed, instead of their files counting as outside the module graph.
+- `sheltie-node`: a `package.json` starting with a UTF-8 byte order mark is read, as Node
+  reads it.
+- `.circleci/**` is a plain file for every adapter, like `.github/**` and `.gitlab-ci.yml`.
 
 ## [0.4.0] - 2026-10-19
 

@@ -1,0 +1,140 @@
+{
+ "rust-lang/rust-analyzer": {
+  "kind": "mq",
+  "tool": "cargo",
+  "branch": "master",
+  "queue_ci": "same",
+  "queue_ci_evidence": "same workflows on pull_request and merge_group, no merge_group-only jobs"
+ },
+ "bevyengine/bevy": {
+  "kind": "mq",
+  "tool": "cargo",
+  "branch": "main",
+  "queue_ci": "heavier",
+  "queue_ci_evidence": "validation-jobs.yml: jobs with if: github.event_name == merge_group (iOS, Android, wasm, examples)"
+ },
+ "trinodb/trino": {
+  "kind": "mq",
+  "tool": "maven",
+  "branch": "master",
+  "rebase": true,
+  "queue_ci": "same",
+  "queue_ci_evidence": "ci.yml: merge_group differs only by a checkout step for path filtering"
+ },
+ "junit-team/junit-framework": {
+  "kind": "mq",
+  "tool": "gradle",
+  "branch": "main",
+  "queue_ci": "same",
+  "queue_ci_evidence": "same workflows on pull_request and merge_group, no merge_group-only jobs"
+ },
+ "gradle/gradle": {
+  "kind": "mq",
+  "tool": "gradle",
+  "branch": "master",
+  "actions": false,
+  "gate": "GitHub Merge Queue Check Pass (Check)",
+  "queue_ci": "heavier",
+  "queue_ci_evidence": "PR commits get Quick Feedback (Linux) and unit tests; queue commits get the full TeamCity pipeline (integration, distribution, performance tests)"
+ },
+ "rust-lang/rust": {
+  "kind": "bors",
+  "tool": "cargo",
+  "branch": "main",
+  "actions": false,
+  "queue_ci": "heavier",
+  "queue_ci_evidence": "src/ci/github-actions/jobs.yml: 11 pr jobs, 82 auto (bors) jobs"
+ },
+ "kubernetes/kubernetes": {
+  "kind": "tide",
+  "tool": "go",
+  "branch": "master",
+  "actions": false,
+  "queue_ci": "unknown",
+  "queue_ci_evidence": "Prow; not visible on GitHub"
+ },
+ "traefik/traefik": {
+  "kind": "label",
+  "tool": "go",
+  "branch": "master",
+  "label": "status/3-needs-merge",
+  "queue_ci": "same",
+  "queue_ci_evidence": "the bot rebases and waits for the same PR CI"
+ },
+ "astral-sh/ruff": {
+  "kind": "plain",
+  "tool": "cargo",
+  "branch": "main"
+ },
+ "tokio-rs/tokio": {
+  "kind": "plain",
+  "tool": "cargo",
+  "branch": "master"
+ },
+ "nushell/nushell": {
+  "kind": "plain",
+  "tool": "cargo",
+  "branch": "main"
+ },
+ "prometheus/prometheus": {
+  "kind": "plain",
+  "tool": "go",
+  "branch": "main"
+ },
+ "gohugoio/hugo": {
+  "kind": "plain",
+  "tool": "go",
+  "branch": "master"
+ },
+ "vitejs/vite": {
+  "kind": "plain",
+  "tool": "node",
+  "branch": "main"
+ },
+ "vitest-dev/vitest": {
+  "kind": "plain",
+  "tool": "node",
+  "branch": "main"
+ },
+ "storybookjs/storybook": {
+  "kind": "plain",
+  "tool": "node",
+  "branch": "next"
+ },
+ "microsoft/vscode": {
+  "kind": "plain",
+  "tool": "node",
+  "branch": "main"
+ },
+ "home-assistant/core": {
+  "kind": "plain",
+  "tool": "python",
+  "branch": "dev"
+ },
+ "fastapi/fastapi": {
+  "kind": "plain",
+  "tool": "python",
+  "branch": "master"
+ },
+ "pydantic/pydantic": {
+  "kind": "plain",
+  "tool": "python",
+  "branch": "main"
+ },
+ "python/cpython": {
+  "kind": "plain",
+  "tool": "python",
+  "branch": "main"
+ },
+ "keycloak/keycloak": {
+  "kind": "plain",
+  "tool": "maven",
+  "branch": "main",
+  "rebase": true
+ },
+ "square/okhttp": {
+  "kind": "plain",
+  "tool": "gradle",
+  "branch": "master"
+ }
+}

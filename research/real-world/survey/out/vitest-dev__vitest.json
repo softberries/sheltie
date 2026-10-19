@@ -1,0 +1,397 @@
+{
+ "repo": "vitest-dev/vitest",
+ "branch": "main",
+ "language": "TypeScript",
+ "stars": 17262,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": [
+  "squash"
+ ],
+ "classic_checks_enforcement": "off",
+ "workflows": 15,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 369,
+ "bors_merges": 0,
+ "reverts": 0,
+ "fix_build": 8,
+ "committers": {
+  "web-flow": 369
+ },
+ "runs_push_main": 1483,
+ "runs_push_main_failed": 146,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 4697,
+ "sample": [
+  {
+   "n": 11634,
+   "merged": "2026-10-19T02:01:18Z",
+   "by": "hi-ogawa",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 11632,
+   "merged": "2026-10-18T13:27:46Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11618,
+   "merged": "2026-10-16T16:17:51Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 11613,
+   "merged": "2026-10-16T16:17:38Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 11619,
+   "merged": "2026-10-16T16:16:27Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11623,
+   "merged": "2026-10-16T16:16:09Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 11622,
+   "merged": "2026-10-16T16:15:42Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11621,
+   "merged": "2026-10-16T16:12:04Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11610,
+   "merged": "2026-10-15T14:30:49Z",
+   "by": "macarie",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11609,
+   "merged": "2026-10-15T14:17:33Z",
+   "by": "macarie",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11608,
+   "merged": "2026-10-15T14:04:50Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 13
+  },
+  {
+   "n": 11606,
+   "merged": "2026-10-15T13:46:12Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11607,
+   "merged": "2026-10-15T13:45:57Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 11449,
+   "merged": "2026-10-02T16:10:50Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 8
+  },
+  {
+   "n": 11451,
+   "merged": "2026-10-02T16:10:31Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 11453,
+   "merged": "2026-10-02T16:07:04Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11238,
+   "merged": "2026-10-02T13:56:34Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11421,
+   "merged": "2026-10-02T13:25:00Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 18,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 11262,
+   "merged": "2026-10-02T13:23:32Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 40,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11432,
+   "merged": "2026-10-02T12:56:44Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 15,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11446,
+   "merged": "2026-10-02T12:00:45Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11407,
+   "merged": "2026-10-02T01:30:20Z",
+   "by": "hi-ogawa",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 20
+  },
+  {
+   "n": 11435,
+   "merged": "2026-10-01T16:06:19Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11430,
+   "merged": "2026-10-01T11:22:34Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 11425,
+   "merged": "2026-10-01T11:07:26Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11428,
+   "merged": "2026-10-01T10:25:59Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 11083,
+   "merged": "2026-10-01T10:23:05Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 10,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 11424,
+   "merged": "2026-10-01T09:50:34Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11167,
+   "merged": "2026-10-01T08:33:59Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 8,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 11258,
+   "merged": "2026-10-01T08:06:21Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 11318,
+   "merged": "2026-10-01T08:05:54Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 9
+  },
+  {
+   "n": 11373,
+   "merged": "2026-10-01T08:05:29Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 8
+  },
+  {
+   "n": 11420,
+   "merged": "2026-10-01T08:05:00Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 11374,
+   "merged": "2026-10-01T07:03:24Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 11255,
+   "merged": "2026-10-01T06:59:31Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 11256,
+   "merged": "2026-10-01T06:58:42Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 11259,
+   "merged": "2026-10-01T06:57:57Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 11416,
+   "merged": "2026-10-01T06:53:23Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 11323,
+   "merged": "2026-10-01T06:33:06Z",
+   "by": "sheremet-va",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 11358,
+   "merged": "2026-10-01T05:49:13Z",
+   "by": "hi-ogawa",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 27
+  }
+ ],
+ "sample_up_to_date": "11/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "hi-ogawa": 3,
+  "sheremet-va": 35,
+  "macarie": 2
+ }
+}

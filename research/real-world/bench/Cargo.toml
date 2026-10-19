@@ -1,0 +1,22 @@
+[package]
+name = "bench"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+sheltie-adapter = { path = "../../../crates/sheltie-adapter" }
+sheltie-core = { path = "../../../crates/sheltie-core" }
+sheltie-scheduler = { path = "../../../crates/sheltie-scheduler" }
+sheltie-cargo = { path = "../../../crates/sheltie-cargo" }
+sheltie-go = { path = "../../../crates/sheltie-go" }
+sheltie-node = { path = "../../../crates/sheltie-node" }
+sheltie-python = { path = "../../../crates/sheltie-python" }
+sheltie-maven = { path = "../../../crates/sheltie-maven" }
+sheltie-gradle = { path = "../../../crates/sheltie-gradle" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["std", "serde"] }
+anyhow = "1"
+
+[workspace]

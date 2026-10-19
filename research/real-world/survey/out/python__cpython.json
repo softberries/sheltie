@@ -1,0 +1,403 @@
+{
+ "repo": "python/cpython",
+ "branch": "main",
+ "language": "Python",
+ "stars": 77740,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "everyone",
+ "workflows": 25,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 1213,
+ "bors_merges": 0,
+ "reverts": 1,
+ "fix_build": 6,
+ "committers": {
+  "web-flow": 1210,
+  "savannahostrowski": 3
+ },
+ "runs_push_main": 2500,
+ "runs_push_main_failed": 170,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 64666,
+ "sample": [
+  {
+   "n": 158656,
+   "merged": "2026-10-19T07:16:29Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 97
+  },
+  {
+   "n": 158655,
+   "merged": "2026-10-19T07:16:12Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 287
+  },
+  {
+   "n": 159695,
+   "merged": "2026-10-19T06:39:36Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159694,
+   "merged": "2026-10-19T06:05:09Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159073,
+   "merged": "2026-10-19T04:46:36Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 9,
+   "method": "squash",
+   "behind": 20
+  },
+  {
+   "n": 159683,
+   "merged": "2026-10-19T04:42:23Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159682,
+   "merged": "2026-10-19T04:42:10Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159140,
+   "merged": "2026-10-18T16:25:25Z",
+   "by": "kumaraditya303",
+   "queued": false,
+   "commits": 7,
+   "method": "squash",
+   "behind": 134
+  },
+  {
+   "n": 159665,
+   "merged": "2026-10-18T15:51:35Z",
+   "by": "serhiy-storchaka",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 158819,
+   "merged": "2026-10-18T14:36:03Z",
+   "by": "methane",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 82
+  },
+  {
+   "n": 159671,
+   "merged": "2026-10-18T11:48:45Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159670,
+   "merged": "2026-10-18T11:46:26Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159668,
+   "merged": "2026-10-18T11:39:51Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159466,
+   "merged": "2026-10-18T10:54:19Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 45
+  },
+  {
+   "n": 159667,
+   "merged": "2026-10-18T10:53:25Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159666,
+   "merged": "2026-10-18T10:52:36Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 149295,
+   "merged": "2026-10-18T10:44:25Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 155994,
+   "merged": "2026-10-18T09:09:26Z",
+   "by": "serhiy-storchaka",
+   "queued": false,
+   "commits": 8,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159523,
+   "merged": "2026-10-18T07:56:05Z",
+   "by": "encukou",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 17
+  },
+  {
+   "n": 159610,
+   "merged": "2026-10-18T04:12:51Z",
+   "by": "benjaminp",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 159655,
+   "merged": "2026-10-18T00:04:12Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159654,
+   "merged": "2026-10-17T23:37:58Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159623,
+   "merged": "2026-10-17T23:07:04Z",
+   "by": "pablogsal",
+   "queued": false,
+   "commits": 5,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 137972,
+   "merged": "2026-10-17T19:39:40Z",
+   "by": "eendebakpt",
+   "queued": false,
+   "commits": 14,
+   "method": "squash",
+   "behind": 48
+  },
+  {
+   "n": 159367,
+   "merged": "2026-10-17T19:17:34Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 61
+  },
+  {
+   "n": 159624,
+   "merged": "2026-10-17T14:07:45Z",
+   "by": "serhiy-storchaka",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159625,
+   "merged": "2026-10-17T14:04:04Z",
+   "by": "serhiy-storchaka",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159527,
+   "merged": "2026-10-17T13:36:03Z",
+   "by": "serhiy-storchaka",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 159568,
+   "merged": "2026-10-17T09:39:15Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 159569,
+   "merged": "2026-10-17T09:39:03Z",
+   "by": "StanFromIreland",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 159269,
+   "merged": "2026-10-17T03:24:12Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 5,
+   "method": "squash",
+   "behind": 22
+  },
+  {
+   "n": 158974,
+   "merged": "2026-10-17T03:11:10Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 112
+  },
+  {
+   "n": 159426,
+   "merged": "2026-10-17T03:10:10Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 25
+  },
+  {
+   "n": 159427,
+   "merged": "2026-10-17T03:09:47Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 21
+  },
+  {
+   "n": 159609,
+   "merged": "2026-10-17T02:16:03Z",
+   "by": "vstinner",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159605,
+   "merged": "2026-10-17T01:27:40Z",
+   "by": "vstinner",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 159576,
+   "merged": "2026-10-17T00:05:23Z",
+   "by": "vstinner",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 158000,
+   "merged": "2026-10-16T04:16:12Z",
+   "by": "methane",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 330
+  },
+  {
+   "n": 159433,
+   "merged": "2026-10-14T21:11:49Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 150247,
+   "merged": "2026-10-12T18:33:37Z",
+   "by": "nascheme",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 1289
+  }
+ ],
+ "sample_up_to_date": "18/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "kumaraditya303": 8,
+  "serhiy-storchaka": 5,
+  "methane": 2,
+  "pablogsal": 7,
+  "StanFromIreland": 6,
+  "encukou": 1,
+  "benjaminp": 1,
+  "eendebakpt": 1,
+  "nascheme": 6,
+  "vstinner": 3
+ }
+}

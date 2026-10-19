@@ -86,6 +86,7 @@ The documentation is at [sheltie.dev/docs](https://sheltie.dev/docs/):
 - [Merge rules](https://sheltie.dev/docs/merge-rules.html) and [intent replay](https://sheltie.dev/docs/intent-replay.html)
 - [Coordinating agents](https://sheltie.dev/docs/agents.html) (MCP server, issue leases)
 - [Dashboard](https://sheltie.dev/docs/dashboard.html), including the time-saved estimate
+- [Sheltie on real repositories](https://sheltie.dev/docs/real-world.html): what it would have done on 23 open-source projects, including where it does not help and what could not be proven ([PDF](https://sheltie.dev/assets/sheltie-on-real-repositories.pdf))
 - [Changelog](CHANGELOG.md)
 
 Its source is in [`docs/`](docs/); build it locally with `mdbook build docs` (output in `target/book`).

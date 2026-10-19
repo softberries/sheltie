@@ -36,6 +36,7 @@ pub const CARGO_PLAIN: &[&str] = &[
 pub const DEFAULT_PLAIN: &[&str] = &[
     ".github/**",
     ".gitlab-ci.yml",
+    ".circleci/**",
     ".pre-commit-config.yaml",
     "rustfmt.toml",
     ".rustfmt.toml",

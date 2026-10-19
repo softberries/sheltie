@@ -13,8 +13,12 @@
 //!   for the group, after which the whole group lands. A change that conflicts with a group
 //!   in flight waits for it.
 //!
-//! Each change is assumed to be based on the default branch as it was when it became ready
-//! in the replay, and every CI run to pass. See `docs/roi.md`.
+//! Each change was tested on the branch as it was at its base (`based_at`, the commit its
+//! pull request was based on). Whatever landed after that and touches what it reads makes
+//! Sheltie rebuild it. Without a known base, the change is assumed to have been tested on the
+//! branch as it was when it became ready, which leaves out those rebuilds and favours Sheltie;
+//! the report says how many changes that applies to. Every CI run is assumed to pass. See
+//! `docs/roi.md`.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -35,6 +39,10 @@ pub const MIN_CHANGES: usize = 10;
 pub struct HistoricalChange {
     /// When it became ready; for history read from git, when it landed.
     pub ready_at: DateTime<Utc>,
+    /// When the branch it was tested on was current: the time of the commit its pull
+    /// request was based on. `None` if unknown; it then counts as tested on the branch at
+    /// `ready_at`, which favours Sheltie.
+    pub based_at: Option<DateTime<Utc>>,
     /// Its footprint.
     pub footprint: Footprint,
 }
@@ -78,6 +86,8 @@ pub struct Replay {
     pub sheltie: QueueOutcome,
     /// Sheltie's decisions.
     pub decisions: Decisions,
+    /// Changes whose base is known (the rest count as tested at their ready time).
+    pub known_base: usize,
 }
 
 impl Replay {
@@ -176,7 +186,9 @@ pub fn replay(changes: &[HistoricalChange], ci_seconds: i64) -> Option<Replay> {
         let candidates: Vec<Candidate<usize>> = plannable
             .iter()
             .map(|&p| {
-                let since = changes[p].ready_at;
+                let since = changes[p]
+                    .based_at
+                    .map_or(changes[p].ready_at, |b| b.min(changes[p].ready_at));
                 let landed_writes: BTreeSet<TargetId> = landed_log
                     .iter()
                     .filter(|(at, _)| *at > since)
@@ -185,7 +197,7 @@ pub fn replay(changes: &[HistoricalChange], ci_seconds: i64) -> Option<Replay> {
                 Candidate {
                     key: p,
                     priority: 0,
-                    waited_minutes: (now - since).num_minutes(),
+                    waited_minutes: (now - changes[p].ready_at).num_minutes(),
                     footprint: changes[p].footprint.clone(),
                     landed_writes: Some(landed_writes),
                 }
@@ -265,6 +277,7 @@ pub fn replay(changes: &[HistoricalChange], ci_seconds: i64) -> Option<Replay> {
         serial,
         sheltie: outcome(waits, ci_runs),
         decisions,
+        known_base: changes.iter().filter(|c| c.based_at.is_some()).count(),
     })
 }
 
@@ -382,6 +395,19 @@ impl RoiReport {
         })
     }
 
+    /// What each change was tested against, and how many changes that is known for.
+    fn base_line(&self) -> String {
+        let (n, k) = (self.replay.changes, self.replay.known_base);
+        if k == n {
+            "Each change was tested on the branch as it was at its pull request's base (the merge base of its head); Sheltie rebuilds it if anything landed since touches what it reads.".to_owned()
+        } else {
+            format!(
+                "Base known for {k} of {n} changes (the merge base of the pull request head). The other {} count as tested on the branch as it was when they landed, which leaves out rebuilds and favours Sheltie; fetch pull request heads with `git fetch origin '+refs/pull/*/head:refs/pull/*/head'` to find more.",
+                n - k
+            )
+        }
+    }
+
     fn assumptions(&self) -> Vec<String> {
         vec![
             format!(
@@ -391,6 +417,7 @@ impl RoiReport {
                 self.from.format("%Y-%m-%d"),
                 self.to.format("%Y-%m-%d")
             ),
+            self.base_line(),
             format!(
                 "CI takes {} per run, and every run passes.",
                 duration_words(self.replay.ci_seconds)
@@ -533,6 +560,7 @@ mod tests {
         reads.extend(writes.iter().cloned());
         HistoricalChange {
             ready_at: at(minute),
+            based_at: None,
             footprint: Footprint {
                 writes,
                 reads,
@@ -571,6 +599,33 @@ mod tests {
         );
         assert_eq!(r.ci_runs_saved(), 10);
         assert!(r.wait_saved_seconds() > 0);
+    }
+
+    #[test]
+    fn a_change_tested_before_an_overlapping_landing_is_rebuilt() {
+        // Changes far apart; the last reads `api`, which a change 100 minutes earlier wrote.
+        let mut all: Vec<_> = (0..9)
+            .map(|i| change(i * 100, &[&format!("t{i}")], &[]))
+            .collect();
+        all[8] = change(800, &["api"], &[]);
+        all.push(change(900, &["web"], &["api"]));
+        // Without a base it counts as tested at 900, after `api` landed: it lands at once.
+        let r = replay(&all, 600).unwrap();
+        assert_eq!(
+            (r.decisions.landed_at_once, r.sheltie.ci_runs, r.known_base),
+            (10, 0, 0)
+        );
+        // Based at 700, before `api` landed: rebuilt on the new head.
+        all[9].based_at = Some(at(700));
+        let r = replay(&all, 600).unwrap();
+        assert_eq!(
+            (r.decisions.reverified, r.sheltie.ci_runs, r.known_base),
+            (1, 1, 1)
+        );
+        assert_eq!(r.sheltie.total_wait_seconds, 600);
+        // Based after it: nothing to rebuild.
+        all[9].based_at = Some(at(850));
+        assert_eq!(replay(&all, 600).unwrap().sheltie.ci_runs, 0);
     }
 
     #[test]

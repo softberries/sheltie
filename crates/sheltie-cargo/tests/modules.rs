@@ -1,5 +1,6 @@
-//! Module files declared with a raw identifier (`mod r#type;`) or a `#[path]` in a
-//! non-`mod.rs` file are found, so changing them does not make the footprint leaky.
+//! Module files declared with a raw identifier (`mod r#type;`), a `#[path]` in a non-`mod.rs`
+//! file, or inside a macro invocation (`cfg_x! { mod inner; }`) are found, so changing them
+//! does not make the footprint leaky.
 //!
 //! Needs `git` on PATH.
 
@@ -55,9 +56,10 @@ fn repo() -> PathBuf {
     write(
         &work,
         "src/lib.rs",
-        "pub mod r#type;\n#[cfg(test)]\nmod tests;\n",
+        "pub mod r#type;\n#[cfg(test)]\nmod tests;\n\nmacro_rules! cfg_x {\n    ($($i:item)*) => { $($i)* };\n}\n\ncfg_x! {\n    pub mod inner;\n}\n",
     );
     write(&work, "src/type.rs", "pub fn kind() -> u32 { 1 }\n");
+    write(&work, "src/inner.rs", "pub fn depth() -> u32 { 1 }\n");
     write(
         &work,
         "src/tests.rs",
@@ -77,6 +79,7 @@ fn raw_identifiers_and_relative_paths_resolve() {
     let scratch = Path::new(env!("CARGO_TARGET_TMPDIR"));
     for (path, text) in [
         ("src/type.rs", "pub fn kind() -> u32 { 2 }\n"),
+        ("src/inner.rs", "pub fn depth() -> u32 { 2 }\n"),
         (
             "test_data/runner.rs",
             "#[test]\nfn runs() { assert!(true) }\n",

@@ -102,9 +102,25 @@ impl ModuleTree {
     ) -> Result<(), Error> {
         let parent_is_test = self.modules[idx].is_test;
         let mut own_items = Vec::new();
-        for item in items {
+        // Module declarations inside macro invocations (`cfg_rt! { mod pool; }`) are followed
+        // too; the invocation itself stays in the signature as written.
+        let mut work: Vec<(Item, bool)> = items.into_iter().map(|i| (i, false)).collect();
+        work.reverse();
+        while let Some((item, in_macro)) = work.pop() {
+            if let Item::Macro(mac) = &item
+                && mac.ident.is_none()
+                && let Some(inner) = macro_items(&mac.mac)
+            {
+                if !in_macro {
+                    own_items.push(item.clone());
+                }
+                work.extend(inner.into_iter().rev().map(|i| (i, true)));
+                continue;
+            }
             let Item::Mod(m) = item else {
-                own_items.push(item);
+                if !in_macro {
+                    own_items.push(item);
+                }
                 continue;
             };
             let name = m.ident.to_string();
@@ -123,11 +139,13 @@ impl ModuleTree {
                 .children
                 .insert(name.clone(), (child_idx, is_pub));
             // Keep the declaration (`pub mod x;`) in the parent's signature.
-            own_items.push(Item::Mod(syn::ItemMod {
-                content: None,
-                semi: Some(Default::default()),
-                ..m.clone()
-            }));
+            if !in_macro {
+                own_items.push(Item::Mod(syn::ItemMod {
+                    content: None,
+                    semi: Some(Default::default()),
+                    ..m.clone()
+                }));
+            }
 
             let path_attr = path_attr(&m.attrs);
             match m.content {
@@ -486,6 +504,27 @@ pub(crate) fn has_test_cfg(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|a| {
         a.path().is_ident("cfg") && a.parse_args::<Meta>().is_ok_and(|m| requires_test(&m))
     })
+}
+
+/// The items in a macro invocation's body, if it parses as items and declares modules
+/// (directly or in a nested invocation). Bodies that are not plain items, or declare no
+/// module, are left alone.
+fn macro_items(mac: &syn::Macro) -> Option<Vec<Item>> {
+    use syn::parse::Parser as _;
+    let parse = |input: syn::parse::ParseStream<'_>| {
+        let mut items = Vec::new();
+        while !input.is_empty() {
+            items.push(input.parse::<Item>()?);
+        }
+        Ok(items)
+    };
+    let items = parse.parse2(mac.tokens.clone()).ok()?;
+    let declares = |i: &Item| match i {
+        Item::Mod(_) => true,
+        Item::Macro(m) => m.ident.is_none() && macro_items(&m.mac).is_some(),
+        _ => false,
+    };
+    items.iter().any(declares).then_some(items)
 }
 
 fn path_attr(attrs: &[Attribute]) -> Option<String> {

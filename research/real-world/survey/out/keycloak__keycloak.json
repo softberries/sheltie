@@ -1,0 +1,404 @@
+{
+ "repo": "keycloak/keycloak",
+ "branch": "main",
+ "language": "Java",
+ "stars": 37425,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "non_admins",
+ "workflows": 20,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 974,
+ "bors_merges": 0,
+ "reverts": 1,
+ "fix_build": 16,
+ "committers": {
+  "web-flow": 543,
+  "pedroigor": 308,
+  "rmartinc": 28,
+  "mposolda": 93,
+  "Pepo48": 1,
+  "ryanemerson": 1
+ },
+ "runs_push_main": 466,
+ "runs_push_main_failed": 29,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 22021,
+ "sample": [
+  {
+   "n": 53479,
+   "merged": "2026-10-17T14:28:05Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 15,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54031,
+   "merged": "2026-10-16T19:15:12Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54038,
+   "merged": "2026-10-16T18:24:40Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 2,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 53761,
+   "merged": "2026-10-16T17:30:02Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 7,
+   "method": "squash",
+   "behind": 86
+  },
+  {
+   "n": 54069,
+   "merged": "2026-10-16T16:24:06Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54064,
+   "merged": "2026-10-16T12:04:46Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54059,
+   "merged": "2026-10-16T11:12:22Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 52793,
+   "merged": "2026-10-16T08:35:33Z",
+   "by": "rmartinc",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 54037,
+   "merged": "2026-10-16T06:43:39Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 54011,
+   "merged": "2026-10-16T06:43:37Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 8
+  },
+  {
+   "n": 54039,
+   "merged": "2026-10-15T20:02:59Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 16
+  },
+  {
+   "n": 54003,
+   "merged": "2026-10-15T17:53:15Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 54007,
+   "merged": "2026-10-15T17:52:47Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 53958,
+   "merged": "2026-10-15T17:52:08Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 54032,
+   "merged": "2026-10-15T17:51:25Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 54030,
+   "merged": "2026-10-15T17:51:22Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 54023,
+   "merged": "2026-10-15T15:57:19Z",
+   "by": "vmuzikar",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 53960,
+   "merged": "2026-10-15T15:56:48Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 54027,
+   "merged": "2026-10-15T15:31:59Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 53914,
+   "merged": "2026-10-15T15:12:38Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 41
+  },
+  {
+   "n": 53313,
+   "merged": "2026-10-15T14:42:11Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 53763,
+   "merged": "2026-10-15T14:29:55Z",
+   "by": "mposolda",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 67
+  },
+  {
+   "n": 53995,
+   "merged": "2026-10-15T14:10:16Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 7
+  },
+  {
+   "n": 53966,
+   "merged": "2026-10-15T13:43:35Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 18
+  },
+  {
+   "n": 54019,
+   "merged": "2026-10-15T13:29:23Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54012,
+   "merged": "2026-10-15T13:29:06Z",
+   "by": "ahus1",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 54009,
+   "merged": "2026-10-15T11:22:24Z",
+   "by": "rmartinc",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 54000,
+   "merged": "2026-10-15T10:34:36Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 53239,
+   "merged": "2026-10-15T10:26:25Z",
+   "by": "rmartinc",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 69
+  },
+  {
+   "n": 54001,
+   "merged": "2026-10-15T10:17:15Z",
+   "by": "mposolda",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 53997,
+   "merged": "2026-10-15T08:27:42Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 53998,
+   "merged": "2026-10-15T08:26:27Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 53925,
+   "merged": "2026-10-15T05:45:00Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 51322,
+   "merged": "2026-10-09T18:28:17Z",
+   "by": "pedroigor",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 15
+  },
+  {
+   "n": 52877,
+   "merged": "2026-09-17T08:00:59Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 41672,
+   "merged": "2025-09-09T08:48:54Z",
+   "by": "mposolda",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 293
+  },
+  {
+   "n": 37504,
+   "merged": "2025-03-17T11:48:51Z",
+   "by": "mabartos",
+   "queued": false,
+   "commits": 5,
+   "method": "squash",
+   "behind": 25
+  },
+  {
+   "n": 37465,
+   "merged": "2025-03-12T10:21:34Z",
+   "by": "vmuzikar",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 31
+  },
+  {
+   "n": 36457,
+   "merged": "2025-02-05T14:13:53Z",
+   "by": "vmuzikar",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 218
+  },
+  {
+   "n": 35645,
+   "merged": "2024-12-05T13:50:32Z",
+   "by": "stianst",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  }
+ ],
+ "sample_up_to_date": "11/39",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "ahus1": 6,
+  "pedroigor": 14,
+  "stianst": 10,
+  "rmartinc": 3,
+  "vmuzikar": 3,
+  "mposolda": 3,
+  "mabartos": 1
+ }
+}

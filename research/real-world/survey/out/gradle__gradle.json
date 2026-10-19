@@ -1,0 +1,451 @@
+{
+ "repo": "gradle/gradle",
+ "branch": "master",
+ "language": "Groovy",
+ "stars": 18897,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "everyone",
+ "workflows": 23,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 1739,
+ "bors_merges": 0,
+ "reverts": 23,
+ "fix_build": 13,
+ "committers": {
+  "web-flow": 602,
+  "blindpirate": 92,
+  "bot-gradle": 50,
+  "alllex": 49,
+  "jvandort": 102,
+  "big-guy": 33,
+  "lkasso": 160,
+  "reinsch82": 124,
+  "jbartok": 90,
+  "octylFractal": 48,
+  "Herudaio": 1,
+  "pbielicki": 1,
+  "ov7a": 46,
+  "tresat": 32,
+  "cobexer": 42,
+  "Wanbinyu": 3,
+  "ljacomet": 13,
+  "6hundreds": 13,
+  "liutikas": 3,
+  "asodja": 37,
+  "eskatos": 20,
+  "namest504": 2,
+  "DragonFSKY": 12,
+  "fru1tworld": 1,
+  "bot-teamcity": 57,
+  "sorin-florea": 1,
+  "runningcode": 1,
+  "mlopatkin": 29,
+  "bamboo": 10,
+  "ghale": 23,
+  "donat": 1,
+  "abstratt": 12,
+  "itsCodeTide": 7,
+  "pshevche": 2,
+  "Develop-KIM": 2,
+  "exijn": 2,
+  "ikxeno": 1,
+  "jkrannich": 2,
+  "seanxuu": 1,
+  "wakingrufus": 1,
+  "Hashim1999164": 1,
+  "Juneezee": 2,
+  "kroune": 1,
+  "qiu-tiandev": 4,
+  "Goooler": 1,
+  "youdie006": 2
+ },
+ "runs_push_main": 1466,
+ "runs_push_main_failed": 23,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 18979,
+ "sample": [
+  {
+   "n": 39491,
+   "merged": "2026-10-19T07:23:03Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 5,
+   "method": "merge",
+   "behind": 6
+  },
+  {
+   "n": 39492,
+   "merged": "2026-10-19T07:01:54Z",
+   "by": "cobexer",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39361,
+   "merged": "2026-10-19T03:44:03Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 240
+  },
+  {
+   "n": 39360,
+   "merged": "2026-10-19T03:39:00Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 238
+  },
+  {
+   "n": 39475,
+   "merged": "2026-10-19T03:14:47Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 435
+  },
+  {
+   "n": 39479,
+   "merged": "2026-10-18T16:05:37Z",
+   "by": "jvandort",
+   "queued": true,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39489,
+   "merged": "2026-10-18T00:44:05Z",
+   "by": "bot-gradle",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39379,
+   "merged": "2026-10-17T15:53:20Z",
+   "by": "alllex",
+   "queued": true,
+   "commits": 5,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39092,
+   "merged": "2026-10-16T10:23:22Z",
+   "by": "alllex",
+   "queued": true,
+   "commits": 4,
+   "method": "merge",
+   "behind": 223
+  },
+  {
+   "n": 39398,
+   "merged": "2026-10-15T12:05:40Z",
+   "by": "6hundreds",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 178
+  },
+  {
+   "n": 39440,
+   "merged": "2026-10-15T08:40:17Z",
+   "by": "ov7a",
+   "queued": true,
+   "commits": 2,
+   "method": "merge",
+   "behind": 298
+  },
+  {
+   "n": 39309,
+   "merged": "2026-10-15T00:53:20Z",
+   "by": "lkasso",
+   "queued": true,
+   "commits": 7,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39452,
+   "merged": "2026-10-14T23:22:52Z",
+   "by": "big-guy",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 17
+  },
+  {
+   "n": 39465,
+   "merged": "2026-10-14T14:09:43Z",
+   "by": "bot-gradle",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 9
+  },
+  {
+   "n": 39356,
+   "merged": "2026-10-14T10:56:54Z",
+   "by": "jbartok",
+   "queued": true,
+   "commits": 8,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39445,
+   "merged": "2026-10-13T07:20:37Z",
+   "by": "eskatos",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 8
+  },
+  {
+   "n": 39455,
+   "merged": "2026-10-12T16:59:33Z",
+   "by": "cobexer",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39453,
+   "merged": "2026-10-12T15:32:25Z",
+   "by": "bot-gradle",
+   "queued": true,
+   "commits": 3,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39451,
+   "merged": "2026-10-12T14:58:58Z",
+   "by": "cobexer",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39436,
+   "merged": "2026-10-12T03:06:39Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 20
+  },
+  {
+   "n": 39446,
+   "merged": "2026-10-11T00:30:47Z",
+   "by": "bot-gradle",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39391,
+   "merged": "2026-10-09T15:05:10Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 9,
+   "method": "merge",
+   "behind": 2
+  },
+  {
+   "n": 39438,
+   "merged": "2026-10-09T10:19:02Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39437,
+   "merged": "2026-10-09T05:02:52Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 5,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39368,
+   "merged": "2026-10-08T20:58:44Z",
+   "by": "tresat",
+   "queued": true,
+   "commits": 3,
+   "method": "merge",
+   "behind": 165
+  },
+  {
+   "n": 39427,
+   "merged": "2026-10-08T17:44:52Z",
+   "by": "cobexer",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39378,
+   "merged": "2026-10-08T16:57:34Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 7,
+   "method": "merge",
+   "behind": 39
+  },
+  {
+   "n": 39430,
+   "merged": "2026-10-08T16:11:50Z",
+   "by": "ov7a",
+   "queued": true,
+   "commits": 2,
+   "method": "merge",
+   "behind": 42
+  },
+  {
+   "n": 39394,
+   "merged": "2026-10-08T16:11:50Z",
+   "by": "tresat",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 7
+  },
+  {
+   "n": 39384,
+   "merged": "2026-10-08T14:48:25Z",
+   "by": "tresat",
+   "queued": true,
+   "commits": 3,
+   "method": "merge",
+   "behind": 116
+  },
+  {
+   "n": 39428,
+   "merged": "2026-10-08T14:00:55Z",
+   "by": "cobexer",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 38445,
+   "merged": "2026-10-08T13:32:51Z",
+   "by": "tresat",
+   "queued": true,
+   "commits": 21,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39422,
+   "merged": "2026-10-08T12:13:24Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 2,
+   "method": "merge",
+   "behind": 5
+  },
+  {
+   "n": 39425,
+   "merged": "2026-10-08T12:13:24Z",
+   "by": "bot-gradle",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 8
+  },
+  {
+   "n": 39348,
+   "merged": "2026-10-08T12:01:51Z",
+   "by": "alllex",
+   "queued": true,
+   "commits": 4,
+   "method": "merge",
+   "behind": 123
+  },
+  {
+   "n": 39397,
+   "merged": "2026-10-08T08:13:36Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 5,
+   "method": "merge",
+   "behind": 85
+  },
+  {
+   "n": 39421,
+   "merged": "2026-10-08T07:49:51Z",
+   "by": "ljacomet",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 39304,
+   "merged": "2026-10-08T04:28:23Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 36
+  },
+  {
+   "n": 39311,
+   "merged": "2026-10-08T03:44:44Z",
+   "by": "blindpirate",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 211
+  },
+  {
+   "n": 28501,
+   "merged": "2025-09-12T11:57:38Z",
+   "by": "reinsch82",
+   "queued": true,
+   "commits": 1,
+   "method": "merge",
+   "behind": 28
+  }
+ ],
+ "sample_up_to_date": "16/40",
+ "sample_queued": 40,
+ "sample_merged_by": {
+  "blindpirate": 8,
+  "cobexer": 5,
+  "jvandort": 1,
+  "bot-gradle": 5,
+  "alllex": 3,
+  "6hundreds": 1,
+  "ov7a": 2,
+  "lkasso": 1,
+  "big-guy": 1,
+  "jbartok": 1,
+  "eskatos": 1,
+  "reinsch82": 6,
+  "tresat": 4,
+  "ljacomet": 1
+ }
+}

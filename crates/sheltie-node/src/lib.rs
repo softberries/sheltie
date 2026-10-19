@@ -139,7 +139,7 @@ fn build(
         if !files.contains(path) {
             return Ok(None);
         }
-        serde_json::from_str(&read(path)?)
+        serde_json::from_str(strip_bom(&read(path)?))
             .map(Some)
             .map_err(|e| Error::Tool(format!("{path}: {e}")))
     };
@@ -197,7 +197,8 @@ fn build(
         let pkg_path = at("package.json");
         if files.contains(&pkg_path) {
             let text = read(&pkg_path)?;
-            found.pkg = Some(serde_json::from_str(&text).map_err(|_| text));
+            let parsed = serde_json::from_str(strip_bom(&text));
+            found.pkg = Some(parsed.map_err(|_| text));
         }
         let project_path = at("project.json");
         if files.contains(&project_path) {
@@ -408,6 +409,11 @@ fn resolve(
     None
 }
 
+/// The text without a leading UTF-8 byte order mark, which Node accepts in `package.json`.
+fn strip_bom(text: &str) -> &str {
+    text.strip_prefix('\u{feff}').unwrap_or(text)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -442,6 +448,20 @@ mod tests {
 
     fn unit<'a>(w: &'a Workspace, id: &str) -> &'a Unit {
         w.units.iter().find(|u| u.id.as_str() == id).unwrap()
+    }
+
+    #[test]
+    fn package_json_with_a_byte_order_mark_is_read() {
+        let w = ws(&[
+            (
+                "package.json",
+                "\u{feff}{ \"workspaces\": [\"packages/*\"] }",
+            ),
+            ("packages/a/package.json", "\u{feff}{ \"name\": \"a\" }"),
+            ("packages/a/index.js", ""),
+        ]);
+        assert_eq!(units(&w), [("a", "packages/a", vec![])]);
+        assert!(unit(&w, "a").leaks.is_empty());
     }
 
     #[test]

@@ -1,0 +1,9 @@
+# Inputs and intermediate files; regenerate with the scripts (see README.md).
+/repos/
+/data/
+/fp/
+/fp-folded/
+/pairs-*.json
+/tmp-*.json
+/bench/target/
+/stale/

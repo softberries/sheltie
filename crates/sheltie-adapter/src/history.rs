@@ -3,6 +3,10 @@
 //! The landings are the first-parent commits of the branch: each merged pull request (merge
 //! or squash commit) and each direct push. A landing's change is its diff against its first
 //! parent, and it became ready when it landed (its committer time).
+//!
+//! Its base, the branch it was tested on, is the merge base of its pull request head with the
+//! branch: the second parent of a merge commit, or `refs/pull/<n>/head` for a squash commit
+//! whose subject ends in `(#<n>)`, when that ref has been fetched. Otherwise it is unknown.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -45,6 +49,8 @@ pub struct Landing {
     pub parent: CommitSha,
     /// Committer time.
     pub at: DateTime<Utc>,
+    /// Committer time of the commit its pull request was based on, if known.
+    pub based_at: Option<DateTime<Utc>>,
 }
 
 /// The history, ready to replay.
@@ -65,18 +71,21 @@ pub fn landings(git: &Git, branch: &str, days: u32) -> Result<Vec<Landing>, Erro
         "log",
         "--first-parent",
         &since,
-        "--format=%H %P%x1f%ct",
+        "--format=%H %P%x1f%ct%x1f%s",
         tip.as_str(),
     ])?;
     let mut landings = Vec::new();
     for line in out.lines() {
-        let Some((shas, time)) = line.split_once('\x1f') else {
+        let mut fields = line.splitn(3, '\x1f');
+        let (Some(shas), Some(time)) = (fields.next(), fields.next()) else {
             continue;
         };
+        let subject = fields.next().unwrap_or_default();
         let mut shas = shas.split(' ');
         let (Some(sha), Some(parent)) = (shas.next(), shas.next().filter(|p| !p.is_empty())) else {
             continue; // a root commit
         };
+        let second = shas.next().filter(|p| !p.is_empty());
         let parse = |s: &str| CommitSha::parse(s).map_err(|e| Error::Io(e.to_string()));
         let secs: i64 = time
             .trim()
@@ -84,14 +93,50 @@ pub fn landings(git: &Git, branch: &str, days: u32) -> Result<Vec<Landing>, Erro
             .map_err(|_| Error::Io(format!("unexpected commit time {time:?}")))?;
         let at = DateTime::from_timestamp(secs, 0)
             .ok_or_else(|| Error::Io(format!("commit time {secs} out of range")))?;
+        let parent = parse(parent)?;
+        let head = match second {
+            Some(p) => Some(parse(p)?),
+            None => {
+                pull_number(subject).and_then(|n| git.commit(&format!("refs/pull/{n}/head")).ok())
+            }
+        };
+        let based_at = match head {
+            Some(head) => base_time(git, &head, &parent)?,
+            None => None,
+        };
         landings.push(Landing {
             sha: parse(sha)?,
-            parent: parse(parent)?,
+            parent,
             at,
+            based_at,
         });
     }
     landings.reverse();
     Ok(landings)
+}
+
+/// The pull request number at the end of a squash commit's subject: `Fix it (#123)`.
+fn pull_number(subject: &str) -> Option<u64> {
+    let rest = subject.trim_end().strip_suffix(')')?;
+    let (_, n) = rest.rsplit_once("(#")?;
+    n.parse().ok()
+}
+
+/// Committer time of the merge base of a pull request head with the branch before it landed.
+fn base_time(
+    git: &Git,
+    head: &CommitSha,
+    parent: &CommitSha,
+) -> Result<Option<DateTime<Utc>>, Error> {
+    let Ok(base) = git.merge_base(head, parent) else {
+        return Ok(None); // unrelated histories, or a head not fetched in full
+    };
+    let secs: i64 = git
+        .run(&["log", "-1", "--format=%ct", base.as_str()])?
+        .trim()
+        .parse()
+        .map_err(|_| Error::Io(format!("unexpected commit time for {base}")))?;
+    Ok(DateTime::from_timestamp(secs, 0))
 }
 
 /// What computing footprints needs: the adapter, the repository, the path policy and a
@@ -155,6 +200,7 @@ pub fn history(
         match footprint {
             Some(footprint) => changes.push(HistoricalChange {
                 ready_at: l.at,
+                based_at: l.based_at,
                 footprint,
             }),
             None => skipped += 1,

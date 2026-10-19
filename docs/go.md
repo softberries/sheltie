@@ -66,7 +66,13 @@ count as that package's data, and make footprints leaky.
 A package is not hermetic, and footprints that read it are marked leaky, when:
 
 - it uses cgo (`import "C"`): C sources and headers are outside the package graph;
-- it has a `//go:embed` directive: the embedded files are read at build time.
+- it has a `//go:embed` pattern that cannot be resolved (malformed, or matching no file in
+  the tree): the build would fail, so Sheltie claims nothing about it.
+
+Files a package embeds are resolved from the tree with the go command's rules (globs relative
+to the package directory, directories embedded recursively without `.` and `_` names unless
+the pattern starts with `all:`, never files of another module). They belong to the package:
+changing one is a change to that package, and the package stays hermetic.
 
 A changed file that no package owns is also leaky: inside a package's directory (data files,
 `testdata/`, assembly or C files) it becomes `<package>/files`, which the package reads;

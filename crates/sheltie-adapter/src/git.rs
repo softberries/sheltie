@@ -261,8 +261,11 @@ pub struct Worktree<'a> {
 impl<'a> Worktree<'a> {
     /// Checks `commit` out under `scratch`.
     pub fn add(git: &'a Git, commit: &CommitSha, scratch: &Path) -> Result<Self, Error> {
+        // Unique per call, so two checkouts of one commit in one process do not collide.
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let path = scratch.join(format!(
-            "sheltie-worktree-{}-{}",
+            "sheltie-worktree-{}-{n}-{}",
             std::process::id(),
             &commit.as_str()[..12]
         ));

@@ -25,7 +25,12 @@ pub const DEFAULT_IGNORE: &[&str] = &[
 
 /// Files outside the build that are still worth tracking (two PRs editing one conflict),
 /// but do not affect any target, whatever the build tool. Adapters add their own.
-pub const COMMON_PLAIN: &[&str] = &[".github/**", ".gitlab-ci.yml", ".pre-commit-config.yaml"];
+pub const COMMON_PLAIN: &[&str] = &[
+    ".github/**",
+    ".gitlab-ci.yml",
+    ".circleci/**",
+    ".pre-commit-config.yaml",
+];
 
 /// Classifies files that no module owns. Anything neither ignored nor plain is assumed to
 /// be read at build or test time and makes the footprint leaky.

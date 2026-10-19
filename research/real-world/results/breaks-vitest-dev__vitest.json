@@ -1,0 +1,903 @@
+{
+ "repo": "vitest-dev/vitest",
+ "tool": "node",
+ "landings": 370,
+ "pr_landings": 370,
+ "direct_pushes": 0,
+ "tested": 367,
+ "ci_workflows": [
+  "CI",
+  "Knip"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 905.0,
+ "flaky_reruns_on_main": 0,
+ "stale": 76,
+ "median_between": 0,
+ "sheltie_rebuilds": 57,
+ "sheltie_merge_engine": 49,
+ "sheltie_extra_ci_seconds": 51585.0,
+ "leaky": 19,
+ "missing_footprints": 0,
+ "red_episodes": 47,
+ "persistent_red": 30,
+ "persistent_red_seconds": 3640079.0,
+ "verdicts": {
+  "tested on the current main: not an interaction": 26,
+  "stale base, overlapping landing: Sheltie rebuilds before landing": 2,
+  "stale base, no overlap: Sheltie lands it too": 1,
+  "direct push or untested change in range": 1
+ },
+ "overlap_base_rate": 0.1553133514986376,
+ "overlap_by_chance": 6.020999876130019,
+ "episodes": [
+  {
+   "first_red": "0f8e63f54759c10bdc17c33aea9af32da6ddda87",
+   "first_red_index": 3,
+   "range": [
+    3,
+    3
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 8299.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10808
+   ]
+  },
+  {
+   "first_red": "b19e5ece98aba23953149a3e3e0a7cc1238f6cab",
+   "first_red_index": 6,
+   "range": [
+    6,
+    6
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 72278.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10814
+   ]
+  },
+  {
+   "first_red": "e0fadbaf87818a07f026e6b92c01c02e263e6cef",
+   "first_red_index": 12,
+   "range": [
+    12,
+    12
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 423244.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10818
+   ]
+  },
+  {
+   "first_red": "eb16ab80330c7f33cc894eede76633191358d7b4",
+   "first_red_index": 22,
+   "range": [
+    22,
+    22
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 13863.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10786
+   ]
+  },
+  {
+   "first_red": "9615d4482277454027317f5602a8af9acf345bab",
+   "first_red_index": 30,
+   "range": [
+    29,
+    30
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 601869.0,
+   "candidates": 2,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10642,
+    10764
+   ]
+  },
+  {
+   "first_red": "86d4a9da9d34603a21963d11d1b03ec9f5397854",
+   "first_red_index": 48,
+   "range": [
+    46,
+    48
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 423046.0,
+   "candidates": 3,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    10874,
+    10875,
+    10868
+   ]
+  },
+  {
+   "first_red": "37c24015846c98abab4529a17e924cb4a476635f",
+   "first_red_index": 63,
+   "range": [
+    63,
+    63
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 66876.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10856
+   ]
+  },
+  {
+   "first_red": "61c4b8024cbd6e7ca9e3dc3bb16f000fd4198bed",
+   "first_red_index": 68,
+   "range": [
+    68,
+    68
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 16894.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10898
+   ]
+  },
+  {
+   "first_red": "99e596d33c76eb2bfa3dc0d8ce1531f0fcd4160a",
+   "first_red_index": 72,
+   "range": [
+    72,
+    72
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 2206.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10811
+   ]
+  },
+  {
+   "first_red": "6a99eac1bf83043622d1bff6766cf52eb78c07b2",
+   "first_red_index": 76,
+   "range": [
+    76,
+    76
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 58026.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10919
+   ]
+  },
+  {
+   "first_red": "032d3189217a74b366f9702b16c55a0bbc75927b",
+   "first_red_index": 82,
+   "range": [
+    82,
+    82
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 54607.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10912
+   ]
+  },
+  {
+   "first_red": "76096c769153f183d7a8554bc392b41ebb5493bd",
+   "first_red_index": 89,
+   "range": [
+    89,
+    89
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 329595.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10932
+   ]
+  },
+  {
+   "first_red": "65263d74e6783cf052e1eff2f2a4e371bbd40635",
+   "first_red_index": 99,
+   "range": [
+    98,
+    99
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 4298.0,
+   "candidates": 2,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    10967,
+    10966
+   ]
+  },
+  {
+   "first_red": "67e8485645a5e272ab0044497b57212cc3486646",
+   "first_red_index": 104,
+   "range": [
+    103,
+    104
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 78656.0,
+   "candidates": 2,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    10956,
+    10962
+   ]
+  },
+  {
+   "first_red": "fad263fe8b4b77076dad08637ef4fc1d6352a0bc",
+   "first_red_index": 118,
+   "range": [
+    118,
+    118
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 1850.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    10984
+   ]
+  },
+  {
+   "first_red": "c6174a6cf2847b23075ee35ba5151c2184a70594",
+   "first_red_index": 134,
+   "range": [
+    134,
+    134
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 149086.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11023
+   ]
+  },
+  {
+   "first_red": "1e9f80ec18c06be06211c93536d90a81955e661a",
+   "first_red_index": 139,
+   "range": [
+    139,
+    139
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 171194.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11033
+   ]
+  },
+  {
+   "first_red": "a6d5ea2d81f459b9dbd42199cd2c35efa415f580",
+   "first_red_index": 148,
+   "range": [
+    148,
+    148
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 120200.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    11078
+   ]
+  },
+  {
+   "first_red": "602d215ae50d8b8f93ddbaacac1f9f139cfe4f20",
+   "first_red_index": 161,
+   "range": [
+    161,
+    161
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 251687.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11038
+   ]
+  },
+  {
+   "first_red": "d46a7472266d5bb43595ea51dcdd64ab0f560f12",
+   "first_red_index": 175,
+   "range": [
+    175,
+    175
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 6082.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11128
+   ]
+  },
+  {
+   "first_red": "7c818153add03b0bca54453a54e76961dd5be18d",
+   "first_red_index": 185,
+   "range": [
+    185,
+    185
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 172631.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11151
+   ]
+  },
+  {
+   "first_red": "99fc5259175cf09671a0ed75ec476f06507a2605",
+   "first_red_index": 188,
+   "range": [
+    188,
+    188
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 13645.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11195
+   ]
+  },
+  {
+   "first_red": "07670364b45e61f2c542d332a232fe81e4f88d82",
+   "first_red_index": 200,
+   "range": [
+    200,
+    200
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 135395.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11206
+   ]
+  },
+  {
+   "first_red": "ccd6d057b6e4ca29a5e6b753a2b8e16b0afd8cda",
+   "first_red_index": 206,
+   "range": [
+    206,
+    206
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 33933.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11223
+   ]
+  },
+  {
+   "first_red": "2ce29d5fa758046e5453bd92b8ed6c9da9709bb5",
+   "first_red_index": 208,
+   "range": [
+    208,
+    208
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 249646.0,
+   "candidates": 1,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    11214
+   ]
+  },
+  {
+   "first_red": "f88195e168b70e92059b0908c1e4c2f4049819df",
+   "first_red_index": 215,
+   "range": [
+    215,
+    215
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 22582.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11066
+   ]
+  },
+  {
+   "first_red": "e8e556ff7c97fb2ea881868667564028dc824cf4",
+   "first_red_index": 218,
+   "range": [
+    218,
+    218
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 838.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11278
+   ]
+  },
+  {
+   "first_red": "5b95efb6dfe378dc6fc8380f5b1e96832f019a5d",
+   "first_red_index": 222,
+   "range": [
+    222,
+    222
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 42385.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11271
+   ]
+  },
+  {
+   "first_red": "4e91e56687de43427fbb664d86a63438ca73b681",
+   "first_red_index": 226,
+   "range": [
+    225,
+    226
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 62788.0,
+   "candidates": 2,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11338,
+    11316
+   ]
+  },
+  {
+   "first_red": "ea1c44fb581978421f9f0901ce8c635970ea72fb",
+   "first_red_index": 228,
+   "range": [
+    228,
+    228
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 14952.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11351
+   ]
+  },
+  {
+   "first_red": "428e2e5043c64635b6b157358bde2fdeaa7b6b3a",
+   "first_red_index": 233,
+   "range": [
+    233,
+    233
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 180280.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11357
+   ]
+  },
+  {
+   "first_red": "a029e76a9e72ebdd468452ee1bb788bbe5dc635e",
+   "first_red_index": 236,
+   "range": [
+    236,
+    236
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 6745.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11367
+   ]
+  },
+  {
+   "first_red": "5dbebe9e3b8758fe97d233eb9718a3664cd0b9c3",
+   "first_red_index": 239,
+   "range": [
+    239,
+    239
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 3336.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11218
+   ]
+  },
+  {
+   "first_red": "6c49b71978c23ef1dc04c2ef5fa73af8f9bc5ec0",
+   "first_red_index": 243,
+   "range": [
+    242,
+    243
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 80056.0,
+   "candidates": 2,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11378,
+    11379
+   ]
+  },
+  {
+   "first_red": "caf2887dee8987a60118d53933f6e9cabd6b3e2a",
+   "first_red_index": 254,
+   "range": [
+    252,
+    254
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 63635.0,
+   "candidates": 3,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11393,
+    11388,
+    11360
+   ]
+  },
+  {
+   "first_red": "33cadea62e8763c455c7fca38d9ab1dda87c5f75",
+   "first_red_index": 261,
+   "range": [
+    261,
+    261
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 1311.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11409
+   ]
+  },
+  {
+   "first_red": "c74e099a9d17e24e9816878165af4818df84a631",
+   "first_red_index": 274,
+   "range": [
+    274,
+    274
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 4595.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11167
+   ]
+  },
+  {
+   "first_red": "17ea3e9a9cfed808b1cc279376e19b9cea68149a",
+   "first_red_index": 291,
+   "range": [
+    291,
+    291
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 19614.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11479
+   ]
+  },
+  {
+   "first_red": "ad055837bef86845312d62cb92e2c6e8dea5f187",
+   "first_red_index": 305,
+   "range": [
+    303,
+    305
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 54398.0,
+   "candidates": 3,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11197,
+    11461,
+    10852
+   ]
+  },
+  {
+   "first_red": "b618afd5cce6a903ca16e0dd9c8f00b58bb0b474",
+   "first_red_index": 310,
+   "range": [
+    310,
+    310
+   ],
+   "workflows": [
+    "Knip"
+   ],
+   "persistent": false,
+   "red_seconds": 33670.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11504
+   ]
+  },
+  {
+   "first_red": "b61d1ced3a11fea09e02a95a8b8fbcecbf0944ac",
+   "first_red_index": 323,
+   "range": [
+    320,
+    323
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 57189.0,
+   "candidates": 4,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11513,
+    11517,
+    11506,
+    11520
+   ]
+  },
+  {
+   "first_red": "9f61dcca2812269494d12f632eb3d59c68b208ae",
+   "first_red_index": 331,
+   "range": [
+    329,
+    331
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 16868.0,
+   "candidates": 3,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11525,
+    11531,
+    11529
+   ]
+  },
+  {
+   "first_red": "6a11cf66f99fa610b7364363d5ca42b66d994f40",
+   "first_red_index": 337,
+   "range": [
+    337,
+    337
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 875.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11554
+   ]
+  },
+  {
+   "first_red": "f15bdac4f05d2838855d4bd4f47e4076036ea18b",
+   "first_red_index": 340,
+   "range": [
+    340,
+    340
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 92491.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11551
+   ]
+  },
+  {
+   "first_red": "2899eb3e97931aaaba561013f483cb671506eea4",
+   "first_red_index": 342,
+   "range": [
+    342,
+    342
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 99995.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11570
+   ]
+  },
+  {
+   "first_red": "8dd67c2625943d824e257b87ae57a14094e90eed",
+   "first_red_index": 357,
+   "range": [
+    356,
+    357
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 1332.0,
+   "candidates": 2,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11605,
+    11596
+   ]
+  },
+  {
+   "first_red": "fb150158b3499ae9e2bd52defd90b0a09b860424",
+   "first_red_index": 367,
+   "range": [
+    362,
+    367
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": false,
+   "red_seconds": 162595.0,
+   "candidates": 6,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    11621,
+    11622,
+    11623,
+    11619,
+    11613,
+    11618
+   ]
+  }
+ ]
+}

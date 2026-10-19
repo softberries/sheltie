@@ -118,13 +118,20 @@ replace = ""
 
 [[scenarios]]
 name = "search-embed"
-description = "search starts embedding a file: the package is no longer hermetic."
+description = "search starts embedding a file: the file becomes part of the package, which stays hermetic."
 [[scenarios.write]]
 path = "search/stopwords.go"
 content = "package search\n\nimport _ \"embed\"\n\n//go:embed stopwords.txt\nvar stopwords string\n"
 [[scenarios.write]]
 path = "search/stopwords.txt"
 content = "the\na\nan\n"
+
+[[scenarios]]
+name = "search-embed-missing"
+description = "search embeds a file that is not in the tree: the pattern cannot be resolved, so the package is not hermetic."
+[[scenarios.write]]
+path = "search/stopwords.go"
+content = "package search\n\nimport _ \"embed\"\n\n//go:embed stopwords/*.txt\nvar stopwords string\n"
 
 [[scenarios]]
 name = "util-cgo"
