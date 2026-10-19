@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use proc_macro2::{TokenStream, TokenTree};
 use quote::ToTokens;
 use sheltie_core::RepoPath;
+use syn::ext::IdentExt as _;
 use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 use syn::{Attribute, Item, Meta, Visibility};
@@ -70,7 +71,7 @@ impl ModuleTree {
         tree.modules.push(root_module);
         match read_source(git, files, root.as_str())? {
             Some(source) => match syn::parse_file(&source) {
-                Ok(file) => tree.add_items(git, files, 0, file.items, &dir, root.as_str())?,
+                Ok(file) => tree.add_items(git, files, 0, file.items, &dir, root.as_str(), true)?,
                 Err(e) => tree.modules[0]
                     .leaks
                     .push(format!("cannot parse {root}: {e}")),
@@ -83,7 +84,12 @@ impl ModuleTree {
     }
 
     /// Records `items` as the contents of module `idx`. `dir` is where `mod x;` looks for
-    /// `x.rs` / `x/mod.rs`; `file` is the file the items come from.
+    /// `x.rs` / `x/mod.rs`; `file` is the file the items come from. `top` is true for a
+    /// file's own items, false inside an inline `mod x { .. }`.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one recursive helper; the arguments are the walk's state"
+    )]
     fn add_items(
         &mut self,
         git: &Git,
@@ -92,6 +98,7 @@ impl ModuleTree {
         items: Vec<Item>,
         dir: &str,
         file: &str,
+        top: bool,
     ) -> Result<(), Error> {
         let parent_is_test = self.modules[idx].is_test;
         let mut own_items = Vec::new();
@@ -101,6 +108,8 @@ impl ModuleTree {
                 continue;
             };
             let name = m.ident.to_string();
+            // `mod r#type;` lives in `type.rs`.
+            let file_name = m.ident.unraw().to_string();
             let is_pub = matches!(m.vis, Visibility::Public(_));
             let child = Module {
                 path: [self.modules[idx].path.clone(), vec![name.clone()]].concat(),
@@ -126,17 +135,20 @@ impl ModuleTree {
                     // Inline module: shares the file; `mod y;` inside looks in `dir/name/`.
                     let child_dir = match &path_attr {
                         Some(p) => join(dir, p),
-                        None => join(dir, &name),
+                        None => join(dir, &file_name),
                     };
                     self.modules[child_idx].files.insert(RepoPath::new(file));
-                    self.add_items(git, files, child_idx, inner, &child_dir, file)?;
+                    self.add_items(git, files, child_idx, inner, &child_dir, file, false)?;
                 }
                 None => {
                     let candidates = match &path_attr {
+                        // A file's own `#[path]` is relative to the file's directory, even
+                        // in a non-`mod.rs` file; inside an inline module, to `dir`.
+                        Some(p) if top => vec![(join(&parent_dir(file), p), true)],
                         Some(p) => vec![(join(dir, p), true)],
                         None => vec![
-                            (join(dir, &format!("{name}.rs")), false),
-                            (join(dir, &format!("{name}/mod.rs")), true),
+                            (join(dir, &format!("{file_name}.rs")), false),
+                            (join(dir, &format!("{file_name}/mod.rs")), true),
                         ],
                     };
                     let Some((child_file, mod_rs)) =
@@ -153,7 +165,7 @@ impl ModuleTree {
                     let child_dir = if mod_rs || path_attr.is_some() {
                         parent_dir(&child_file)
                     } else {
-                        join(dir, &name)
+                        join(dir, &file_name)
                     };
                     match read_source(git, files, &child_file)? {
                         Some(source) => match syn::parse_file(&source) {
@@ -164,6 +176,7 @@ impl ModuleTree {
                                 parsed.items,
                                 &child_dir,
                                 &child_file,
+                                true,
                             )?,
                             Err(e) => self.modules[child_idx]
                                 .leaks

@@ -6,6 +6,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `sheltie-cargo`: modules declared with a raw identifier (`mod r#type;`) or with a
+  `#[path]` in a file that is not `mod.rs` are found, instead of making footprints leaky.
+
 ## [0.4.0] - 2026-10-19
 
 ### Added
