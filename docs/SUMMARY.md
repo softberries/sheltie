@@ -14,7 +14,7 @@
   - [Maven](maven.md)
   - [Gradle](gradle.md)
 - [Merge rules](merge-rules.md)
-- [Intent replay](intent-replay.md)
+- [Replay](intent-replay.md)
 - [Coordinating agents](agents.md)
 - [Dashboard](dashboard.md)
 - [ROI report](roi.md)

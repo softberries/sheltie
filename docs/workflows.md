@@ -93,11 +93,11 @@ jobs:
 
 Then turn it on: `sheltie-server repo set-merge-engine --repo owner/name --state on`.
 
-## Intent replay (optional)
+## Replay (optional)
 
-Re-derives a change with Claude Code when it cannot be merged otherwise. Needs your
-`ANTHROPIC_API_KEY` as a repository secret; see [Intent replay](intent-replay.md) for the
-workflow and its settings.
+Re-derives a change with Claude Code when it cannot be merged otherwise, from the pull request
+itself; nothing has to be added to it. Needs your `ANTHROPIC_API_KEY` as a repository secret;
+see [Replay](intent-replay.md) for the workflow and its settings.
 
 ## Your CI
 

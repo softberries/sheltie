@@ -8,7 +8,7 @@ have access on GitHub:
 - **Parallelism**: how many agents the repository can take at once before their changes
   start colliding (below).
 - **Agents**: a scorecard per agent that opens pull requests (below).
-- **Agent spend**: what intent replays cost, in estimated dollars and tokens (below).
+- **Agent spend**: what replays cost, in estimated dollars and tokens (below).
 - **Queue**: open pull requests, their state, footprint and what Sheltie will do next.
 - **Recently landed**: each landing's commit, how it was proven safe, and which tier resolved a
   conflict.
@@ -35,8 +35,8 @@ The headline is the difference summed over the period; the panel also compares t
 time from ready to landed. If Sheltie was slower, the panel says so.
 
 **Author time.** Conflicts Sheltie resolved without the author: merge-engine resolutions
-(structural merges, regenerated files, declared rules) and changes re-derived from their
-intent. Each counts at an assumed number of minutes an author would have spent instead,
+(structural merges, regenerated files, declared rules) and changes re-derived by an agent.
+Each counts at an assumed number of minutes an author would have spent instead,
 15 per conflict and 30 per re-derived change by default. Set your own in
 [`[estimates]`](merge-rules.md#estimates) in `.sheltie/merge.toml`. The dashboard always
 shows the assumption next to the number.
@@ -91,7 +91,7 @@ One row per agent, for the pull requests opened in the last 30 days:
   could not resolve, or CI failing on the combined state), out of all pull requests.
 - **Reverted**: a sweep found it broke the default branch and Sheltie reverted it, out of the
   merged ones. Reverts done by hand are not counted.
-- **Replayed**: merged after Sheltie [re-derived it from its intent](intent-replay.md), out
+- **Replayed**: merged after Sheltie [re-derived it](intent-replay.md), out
   of the merged ones.
 - **Review rounds**: reviews requesting changes, per merged pull request.
 - **Time to merge**: median time from Sheltie first seeing the pull request to its merge.
@@ -111,7 +111,7 @@ sheltie-server scorecard --repo acme/widgets --days 30
 
 ## Agent spend
 
-Only [intent replay](intent-replay.md) uses a model. Structural merges, regenerated files,
+Only [replay](intent-replay.md) uses a model. Structural merges, regenerated files,
 declared rules, footprints and scheduling cost nothing. The panel shows, for the last 30 days:
 
 - **Estimated spend**, per day and in total, with the number of replays, how many passed

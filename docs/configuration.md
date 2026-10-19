@@ -43,7 +43,7 @@ sheltie-server shadow-report --repo owner/name --days 7
 sheltie-server stats --days 30
 ```
 
-Merge rules and intent replay are configured in the repository itself, in
+Merge rules and replay are configured in the repository itself, in
 `.sheltie/merge.toml` on the default branch: see [Merge rules](merge-rules.md).
 
 ## GitHub App permissions
