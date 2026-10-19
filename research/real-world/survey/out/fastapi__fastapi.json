@@ -1,0 +1,397 @@
+{
+ "repo": "fastapi/fastapi",
+ "branch": "master",
+ "language": "Python",
+ "stars": 103231,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": false,
+ "ruleset_required_checks": 5,
+ "allowed_merge_methods": [
+  "squash"
+ ],
+ "classic_checks_enforcement": "off",
+ "workflows": 20,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 322,
+ "bors_merges": 0,
+ "reverts": 0,
+ "fix_build": 1,
+ "committers": {
+  "web-flow": 283,
+  "github-actions[bot]": 39
+ },
+ "runs_push_main": 813,
+ "runs_push_main_failed": 7,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 3655,
+ "sample": [
+  {
+   "n": 16521,
+   "merged": "2026-10-18T15:17:22Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16520,
+   "merged": "2026-10-18T15:07:44Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16519,
+   "merged": "2026-10-18T14:31:27Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16518,
+   "merged": "2026-10-18T14:22:43Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16517,
+   "merged": "2026-10-18T12:58:55Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 16516,
+   "merged": "2026-10-18T11:18:24Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 10147,
+   "merged": "2026-10-18T11:09:16Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 14,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 16515,
+   "merged": "2026-10-18T09:10:33Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 9383,
+   "merged": "2026-10-18T09:01:43Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 6,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16513,
+   "merged": "2026-10-17T18:19:19Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16512,
+   "merged": "2026-10-17T18:10:31Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16510,
+   "merged": "2026-10-16T14:12:17Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16509,
+   "merged": "2026-10-16T14:03:23Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16505,
+   "merged": "2026-10-15T14:24:53Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 5,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16504,
+   "merged": "2026-10-15T13:32:45Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16503,
+   "merged": "2026-10-15T13:22:30Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16500,
+   "merged": "2026-10-15T08:29:44Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 24
+  },
+  {
+   "n": 16499,
+   "merged": "2026-10-15T08:29:14Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 22
+  },
+  {
+   "n": 16501,
+   "merged": "2026-10-15T08:15:54Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 20
+  },
+  {
+   "n": 16498,
+   "merged": "2026-10-15T08:14:55Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 18
+  },
+  {
+   "n": 16497,
+   "merged": "2026-10-15T08:08:21Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 16
+  },
+  {
+   "n": 16495,
+   "merged": "2026-10-15T08:07:38Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 16496,
+   "merged": "2026-10-15T08:06:58Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 16493,
+   "merged": "2026-10-15T08:06:34Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 16494,
+   "merged": "2026-10-15T08:05:12Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 8
+  },
+  {
+   "n": 16490,
+   "merged": "2026-10-15T08:04:06Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 16491,
+   "merged": "2026-10-15T08:01:07Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 16492,
+   "merged": "2026-10-15T08:00:33Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 16487,
+   "merged": "2026-10-15T07:56:39Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16464,
+   "merged": "2026-10-14T19:37:59Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 16485,
+   "merged": "2026-10-14T12:51:03Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16484,
+   "merged": "2026-10-14T12:41:51Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16477,
+   "merged": "2026-10-08T12:25:54Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16476,
+   "merged": "2026-10-08T11:51:40Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16471,
+   "merged": "2026-10-07T21:18:14Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16470,
+   "merged": "2026-10-07T21:02:50Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16469,
+   "merged": "2026-10-07T19:20:25Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16468,
+   "merged": "2026-10-07T19:04:20Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16463,
+   "merged": "2026-10-06T17:29:38Z",
+   "by": "YuriiMotov",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 16049,
+   "merged": "2026-07-24T21:07:52Z",
+   "by": "tiangolo",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 1
+  }
+ ],
+ "sample_up_to_date": "24/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "tiangolo": 25,
+  "YuriiMotov": 15
+ }
+}

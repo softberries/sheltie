@@ -1,0 +1,399 @@
+{
+ "repo": "traefik/traefik",
+ "branch": "master",
+ "language": "Go",
+ "stars": 65276,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "everyone",
+ "workflows": 16,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 263,
+ "bors_merges": 0,
+ "reverts": 0,
+ "fix_build": 3,
+ "committers": {
+  "kevinpollet": 21,
+  "web-flow": 209,
+  "juliens": 2,
+  "rtribotte": 12,
+  "youkoulayley": 2,
+  "mmatur": 15,
+  "sdelicata": 2
+ },
+ "runs_push_main": 185,
+ "runs_push_main_failed": 5,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 5705,
+ "sample": [
+  {
+   "n": 14070,
+   "merged": "2026-10-15T12:42:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14081,
+   "merged": "2026-10-15T09:22:25Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 11,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 14080,
+   "merged": "2026-10-15T09:02:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14079,
+   "merged": "2026-10-15T08:34:26Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 14078,
+   "merged": "2026-10-15T08:16:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14072,
+   "merged": "2026-10-15T00:14:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14066,
+   "merged": "2026-10-14T08:10:33Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14068,
+   "merged": "2026-10-14T07:00:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13768,
+   "merged": "2026-10-13T19:22:09Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 5,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14023,
+   "merged": "2026-10-13T15:38:17Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14061,
+   "merged": "2026-10-13T15:14:09Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14057,
+   "merged": "2026-10-13T12:22:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14060,
+   "merged": "2026-10-13T12:20:25Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 12,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 13935,
+   "merged": "2026-10-12T15:36:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14056,
+   "merged": "2026-10-12T14:16:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13962,
+   "merged": "2026-10-12T13:54:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 19,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13642,
+   "merged": "2026-10-12T13:52:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14018,
+   "merged": "2026-10-12T13:34:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14055,
+   "merged": "2026-10-12T13:14:27Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 4,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 14050,
+   "merged": "2026-10-12T12:08:17Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14048,
+   "merged": "2026-10-12T09:06:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14031,
+   "merged": "2026-10-12T08:42:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14047,
+   "merged": "2026-10-12T08:14:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14036,
+   "merged": "2026-10-12T04:38:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14020,
+   "merged": "2026-10-08T07:58:27Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 14017,
+   "merged": "2026-10-07T14:08:14Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14012,
+   "merged": "2026-10-06T07:48:31Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 10,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 14001,
+   "merged": "2026-10-05T13:10:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 14009,
+   "merged": "2026-10-05T09:40:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13631,
+   "merged": "2026-09-28T15:08:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 12909,
+   "merged": "2026-09-28T13:04:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 38,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13924,
+   "merged": "2026-09-21T13:40:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13926,
+   "merged": "2026-09-21T13:02:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13912,
+   "merged": "2026-09-16T14:28:06Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13895,
+   "merged": "2026-09-14T14:50:09Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13894,
+   "merged": "2026-09-14T14:24:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 12985,
+   "merged": "2026-09-08T12:28:09Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 6,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13794,
+   "merged": "2026-09-04T13:20:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 7,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 13769,
+   "merged": "2026-08-26T07:26:07Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 12497,
+   "merged": "2026-01-02T09:33:08Z",
+   "by": "traefiker",
+   "queued": false,
+   "commits": 2,
+   "method": "fast-forward",
+   "behind": 0
+  }
+ ],
+ "sample_up_to_date": "40/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "traefiker": 40
+ }
+}

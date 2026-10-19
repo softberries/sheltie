@@ -1,0 +1,398 @@
+{
+ "repo": "bevyengine/bevy",
+ "branch": "main",
+ "language": "Rust",
+ "stars": 49124,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "everyone",
+ "workflows": 14,
+ "merge_group_workflows": [
+  "ci.yml",
+  "example-run.yml",
+  "validation-jobs.yml"
+ ],
+ "queue_bot_config": [],
+ "commits_90d": 584,
+ "bors_merges": 0,
+ "reverts": 0,
+ "fix_build": 1,
+ "committers": {
+  "web-flow": 584
+ },
+ "runs_push_main": 2002,
+ "runs_push_main_failed": 486,
+ "runs_merge_group": 2310,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 9033,
+ "sample": [
+  {
+   "n": 26194,
+   "merged": "2026-10-19T06:29:56Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 26193,
+   "merged": "2026-10-19T00:05:50Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 26191,
+   "merged": "2026-10-18T23:54:23Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 26198,
+   "merged": "2026-10-18T23:53:32Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 26192,
+   "merged": "2026-10-18T23:53:31Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 26226,
+   "merged": "2026-10-18T23:48:15Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 25419,
+   "merged": "2026-10-18T23:32:41Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 26164,
+   "merged": "2026-10-16T00:38:04Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 5,
+   "method": "squash",
+   "behind": 27
+  },
+  {
+   "n": 26159,
+   "merged": "2026-10-15T23:32:50Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 16
+  },
+  {
+   "n": 26158,
+   "merged": "2026-10-15T23:29:43Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 6,
+   "method": "squash",
+   "behind": 15
+  },
+  {
+   "n": 26163,
+   "merged": "2026-10-15T22:15:07Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 26141,
+   "merged": "2026-10-15T20:38:53Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 28
+  },
+  {
+   "n": 26171,
+   "merged": "2026-10-15T20:34:17Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 26173,
+   "merged": "2026-10-15T20:26:53Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 21
+  },
+  {
+   "n": 26140,
+   "merged": "2026-10-15T20:12:49Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 25
+  },
+  {
+   "n": 26063,
+   "merged": "2026-10-15T03:52:59Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 6,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 26004,
+   "merged": "2026-10-15T03:20:45Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 67
+  },
+  {
+   "n": 25953,
+   "merged": "2026-10-15T03:20:45Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 5,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 25954,
+   "merged": "2026-10-15T01:46:14Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 58
+  },
+  {
+   "n": 26043,
+   "merged": "2026-10-15T00:28:41Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 5,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 26034,
+   "merged": "2026-10-15T00:28:41Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 8,
+   "method": "squash",
+   "behind": 22
+  },
+  {
+   "n": 26160,
+   "merged": "2026-10-14T23:45:34Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 5,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 26099,
+   "merged": "2026-10-14T23:40:05Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 3,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 26155,
+   "merged": "2026-10-14T23:40:05Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 4,
+   "method": "squash",
+   "behind": 13
+  },
+  {
+   "n": 26106,
+   "merged": "2026-10-14T23:40:05Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 9
+  },
+  {
+   "n": 26150,
+   "merged": "2026-10-14T23:37:28Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 26096,
+   "merged": "2026-10-14T23:07:46Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 26172,
+   "merged": "2026-10-14T23:07:46Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 7
+  },
+  {
+   "n": 26148,
+   "merged": "2026-10-14T23:07:46Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 9
+  },
+  {
+   "n": 26084,
+   "merged": "2026-10-14T23:07:46Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 26075,
+   "merged": "2026-10-14T23:05:34Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 12
+  },
+  {
+   "n": 25809,
+   "merged": "2026-10-14T22:31:25Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 12,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 26162,
+   "merged": "2026-10-14T21:56:20Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 25653,
+   "merged": "2026-10-14T20:57:14Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 396,
+   "method": "squash",
+   "behind": 22
+  },
+  {
+   "n": 26109,
+   "merged": "2026-10-14T20:23:37Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 2,
+   "method": "squash",
+   "behind": 8
+  },
+  {
+   "n": 26138,
+   "merged": "2026-10-13T19:38:07Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 26050,
+   "merged": "2026-10-12T18:20:09Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 4,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 26108,
+   "merged": "2026-10-12T17:24:50Z",
+   "by": "mockersf",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 26060,
+   "merged": "2026-10-08T20:01:29Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 25776,
+   "merged": "2026-09-15T21:37:28Z",
+   "by": "alice-i-cecile",
+   "queued": true,
+   "commits": 6,
+   "method": "squash",
+   "behind": 35
+  }
+ ],
+ "sample_up_to_date": "3/40",
+ "sample_queued": 40,
+ "sample_merged_by": {
+  "mockersf": 9,
+  "alice-i-cecile": 31
+ }
+}

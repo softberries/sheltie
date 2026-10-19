@@ -1,0 +1,1618 @@
+[
+ {
+  "repo": "trinodb/trino",
+  "pr": 31414,
+  "title": "Update Maven distribution to 3.10.0",
+  "ejections": [
+   "2026-10-02T18:38:28Z",
+   "2026-10-02T21:44:49Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-02T22:02:22Z",
+    "msg": "Update Maven distribution to 3.10.0"
+   }
+  ],
+  "before_head": "396390a66b018bd762173ea4259e185c7dc470f7",
+  "final_head": "1630c890b8a8ec2485fbb1096ddb6ad872c26069",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 29974,
+  "title": "Add object store layout for Delta Lake data files",
+  "ejections": [
+   "2026-10-01T06:15:29Z",
+   "2026-10-01T07:01:31Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-01T08:42:55Z",
+    "msg": "Add object store layout for Delta Lake data files"
+   }
+  ],
+  "before_head": "313dad7889c15a6654ae2e855ece1fbc9b5910b2",
+  "final_head": "5ebdb07103d3af8d5c248ecf558597599e22843e",
+  "diff_changed": true,
+  "changed_files": [
+   "plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/MetadataEntry.java",
+   "plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeAlluxioCacheFileOperations.java",
+   "plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeConnectorTest.java",
+   "plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeObjectStoreLayout.java",
+   "plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeSystemTables.java",
+   "plugin/trino-lakehouse/src/test/java/io/trino/plugin/lakehouse/TestLakehouseDeltaConnectorSmokeTest.java"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 31332,
+  "title": "Fix stale ambiguous BigQuery name resolution",
+  "ejections": [
+   "2026-09-25T10:05:30Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-25T10:44:54Z",
+    "msg": "Fix stale ambiguous BigQuery name resolution"
+   }
+  ],
+  "before_head": "30fc3b84fa27c7b2982b71d66156b8109849c6bf",
+  "final_head": "d5d4d751149c80c38a8678b68a1802f7096f0ea1",
+  "diff_changed": true,
+  "changed_files": [
+   "plugin/trino-bigquery/src/main/java/io/trino/plugin/bigquery/BigQueryClientFactory.java",
+   "plugin/trino-bigquery/src/main/java/io/trino/plugin/bigquery/BigQueryConnector.java"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30926,
+  "title": "Fix truncated columns/comments listing with Iceberg Glue",
+  "ejections": [
+   "2026-09-24T21:32:17Z",
+   "2026-09-25T00:48:33Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-24T23:45:52Z",
+    "msg": "Fix truncated columns/comments listing with Iceberg Glue"
+   }
+  ],
+  "before_head": "f71f5546d4ccd3c5b6c8574a9b06183de56e925c",
+  "final_head": "66cf48afbb30a1c58b859a8e0b8065cc47621206",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30693,
+  "title": "Fix ORC checkpoint seek at stream end",
+  "ejections": [
+   "2026-09-21T12:20:07Z",
+   "2026-09-21T20:27:56Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-21T17:16:14Z",
+    "msg": "Fix ORC checkpoint seek at stream end"
+   }
+  ],
+  "before_head": "7191639be1202dc65b66a940477332001105b7c5",
+  "final_head": "d6c391218fc0ec914275cbbdedfd8ef839f753e8",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 31148,
+  "title": "Convert a bunch of helper classes to records",
+  "ejections": [
+   "2026-09-16T12:01:07Z",
+   "2026-09-16T21:39:52Z",
+   "2026-09-17T00:43:04Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-17T06:00:43Z",
+    "msg": "Convert DomainTranslator.ExtractionResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:40Z",
+    "msg": "Convert NormalizedSimpleComparison to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert SplitExpression to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert UnwrapRowSubscript.Coercion to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Add null checks to Coercion"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert UnwrapSingleColumnRowInApply.Unwrapping to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert Decorrelated to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert DynamicFilters.ExtractResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert PredicatePushDown.DynamicFiltersResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert OuterJoinPushDownResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Add null checks to OuterJoinPushDownResult"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert InnerJoinPushDownResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Add null checks to InnerJoinPushDownResult"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert TranslationResult to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert PlanNodeDecorrelator.DecorrelatedNode to a record"
+   },
+   {
+    "date": "2026-09-17T06:02:41Z",
+    "msg": "Convert EqualityInference.EqualityPartition to a record"
+   }
+  ],
+  "before_head": "63f46ace14367883aa121f053bddaba8efe3b430",
+  "final_head": "3c97118e13c61cbe19e2dad0946bca48e1be0e7f",
+  "diff_changed": true,
+  "changed_files": [
+   "core/trino-main/src/main/java/io/trino/sql/planner/DomainTranslator.java"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 31153,
+  "title": "Use Floci for Iceberg S3 query runner examples",
+  "ejections": [
+   "2026-09-16T02:27:40Z",
+   "2026-09-16T06:00:30Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-16T17:27:52Z",
+    "msg": "Use Floci for Iceberg S3 query runner examples"
+   }
+  ],
+  "before_head": "96d59d4b72d71c691f49588f3a445c6c91e26764",
+  "final_head": "852406390d1aaacb097f758eb8d48dee92046e98",
+  "diff_changed": true,
+  "changed_files": [
+   "plugin/trino-iceberg/src/test/java/io/trino/plugin/iceberg/IcebergQueryRunner.java"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30935,
+  "title": "Document 18 LTS support in Delta Lake",
+  "ejections": [
+   "2026-09-01T06:16:15Z",
+   "2026-09-01T06:27:54Z",
+   "2026-09-01T07:11:20Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-01T06:26:39Z",
+    "msg": "Document 18 LTS support in Delta Lake"
+   }
+  ],
+  "before_head": "8b0dfdd6f3dd98fd9814ceec6fdffcfc5a5852c4",
+  "final_head": "2ab2d8c96f314c68c099afb2be6ca57586df6772",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30871,
+  "title": "Add Databricks 18 LTS product test environment",
+  "ejections": [
+   "2026-08-27T02:19:03Z",
+   "2026-08-27T03:31:06Z",
+   "2026-08-27T04:26:39Z",
+   "2026-08-27T05:37:58Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-27T08:09:48Z",
+    "msg": "Add Databricks 18 LTS product test environment"
+   }
+  ],
+  "before_head": "a995c163d44e3af8f5dabfed64e1efa27ba0e4c4",
+  "final_head": "bfd0d19582fb1816b3a4d1b3c0dbb123ced4d469",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/trino-product-tests/src/test/java/io/trino/tests/product/deltalake/TestDeltaLakeDatabricksCreateTableCompatibility.java",
+   "testing/trino-product-tests/src/test/java/io/trino/tests/product/deltalake/util/DatabricksVersion.java"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30846,
+  "title": "Reduce product test bundle from 5 GB to 250 MB",
+  "ejections": [
+   "2026-08-21T05:43:55Z",
+   "2026-08-21T18:12:22Z",
+   "2026-08-21T19:05:01Z",
+   "2026-08-21T20:15:14Z",
+   "2026-08-21T21:26:42Z",
+   "2026-08-21T21:51:40Z",
+   "2026-08-21T22:44:19Z",
+   "2026-08-21T23:09:20Z",
+   "2026-08-21T23:34:09Z",
+   "2026-08-22T00:05:18Z",
+   "2026-08-22T00:32:38Z",
+   "2026-08-22T02:42:14Z"
+  ],
+  "failed_jobs": [
+   "ci / build-success",
+   "ci / pt (jdbc-core)"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-22T02:41:08Z",
+    "msg": "Reduce product test bundle from 5 GB to 250 MB"
+   }
+  ],
+  "before_head": "22ab1c1f60c2c152f5c8152ad5c7daab475dc3e2",
+  "final_head": "fc4f2db683a0c9e59ddc979a93cb7fe0add55b56",
+  "diff_changed": true,
+  "changed_files": [
+   ".github/workflows/ci.yml"
+  ],
+  "class": "change to CI workflow, only exercised in the queue"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 30830,
+  "title": "Add PR description check workflow",
+  "ejections": [
+   "2026-08-20T18:14:05Z",
+   "2026-08-21T11:49:28Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-21T09:04:03Z",
+    "msg": "Add PR description check workflow"
+   }
+  ],
+  "before_head": "d1f673ade36cc1cccbcb0d44c1c4e376871074d3",
+  "final_head": "c7a95705b30f07174e1932adf030e64f8d832d17",
+  "diff_changed": true,
+  "changed_files": [
+   ".github/workflows/pr-description-check.yml"
+  ],
+  "class": "change to CI workflow, only exercised in the queue"
+ },
+ {
+  "repo": "trinodb/trino",
+  "pr": 29751,
+  "title": "Parallelize and bulk-resolve getViews in the Iceberg JDBC catalog",
+  "ejections": [
+   "2026-08-13T10:03:56Z",
+   "2026-08-13T14:31:23Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-13T12:18:51Z",
+    "msg": "Parallelize getViews in Iceberg JDBC catalog"
+   },
+   {
+    "date": "2026-08-13T12:21:07Z",
+    "msg": "Bulk-resolve view metadata pointers in Iceberg JDBC getViews"
+   },
+   {
+    "date": "2026-08-13T12:21:09Z",
+    "msg": "Use text blocks for SQL in IcebergJdbcClient"
+   }
+  ],
+  "before_head": "f2bc81eae8b8c62fdf2d6afb73063fa16b6522ac",
+  "final_head": "13457747fecd148be702603b14957b55a9087a24",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 26194,
+  "title": "Bump actions/download-artifact from 8.0.1 to 8.0.2",
+  "ejections": [
+   "2026-10-19T00:05:50Z"
+  ],
+  "failed_jobs": [
+   "Example Run / run-examples-on-windows-dx12",
+   "validation jobs / check-unused-dependencies"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-10-19T05:21:52Z",
+    "msg": "Merge branch 'main' into dependabot/github_actions/actions/download-artifact-8.0.2"
+   }
+  ],
+  "before_head": "aa40472b7a8464c56efefcd12adf2f258513b77b",
+  "final_head": "5360e48a0abe81f2d99a251cd37ad57207189aa9",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 26048,
+  "title": "Fix `replace_related` allowing duplicate entities",
+  "ejections": [
+   "2026-10-08T04:36:34Z"
+  ],
+  "failed_jobs": [
+   "validation jobs / check-unused-dependencies",
+   "validation jobs / run-examples-on-wasm"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-10-08T05:56:40Z",
+    "msg": "Merge branch 'main' into fix-replace-related-unique-entities"
+   },
+   {
+    "date": "2026-10-08T05:59:44Z",
+    "msg": "YOLO fix from Github mobile UI"
+   }
+  ],
+  "before_head": "b38a3ad32fbd7dfe274b4f3687644bfcfc07425b",
+  "final_head": "83cba04d488d973d19304c27aaf228790cd8a068",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/bevy_ecs/src/relationship/related_methods.rs"
+  ],
+  "class": "failing jobs run only in the queue (wasm, iOS/Android, examples, unused deps)"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25883,
+  "title": "Add world.inspect methods to the Bevy Remote Protocol",
+  "ejections": [
+   "2026-09-25T03:46:03Z"
+  ],
+  "failed_jobs": [
+   "CI / build (ubuntu-latest)",
+   "validation jobs / check-unused-dependencies"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-09-25T06:27:28Z",
+    "msg": "address feedback"
+   },
+   {
+    "date": "2026-09-25T07:45:55Z",
+    "msg": "Fix inspection tests for string entity serialization"
+   }
+  ],
+  "before_head": "4b1593025ae28eb73f01e2f642dc8f96e914fee9",
+  "final_head": "adf18475d43a53d45c72c8526384caa564223471",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/bevy_dev_tools/src/inspection/component_inspection.rs",
+   "crates/bevy_dev_tools/src/inspection/entity_inspection.rs",
+   "crates/bevy_dev_tools/src/inspection/resource_inspection.rs",
+   "crates/bevy_dev_tools/src/inspection/world_summary.rs",
+   "crates/bevy_remote/src/inspection_methods.rs",
+   "crates/bevy_remote/tests/inspection_methods.rs"
+  ],
+  "class": "test fix after a PR-CI job failed in the queue; cause not determined"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25371,
+  "title": "Add the Zero-Day large-scene example",
+  "ejections": [
+   "2026-09-17T19:06:03Z"
+  ],
+  "failed_jobs": [
+   "Example Run / Compare Windows screenshots / Send screenshots to Pixel Eagle",
+   "validation jobs / check-unused-dependencies"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-09-17T19:08:49Z",
+    "msg": "Merge branch 'main' into zero-day-example"
+   }
+  ],
+  "before_head": "46201f731006b29946a2e8461e9257a2ad371cfe",
+  "final_head": "871e91b66083bcfb28baf5fc6f1cd23dc4cd7b13",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25529,
+  "title": "fixes for action cache",
+  "ejections": [
+   "2026-08-26T01:16:34Z",
+   "2026-09-02T22:59:49Z",
+   "2026-09-04T11:13:37Z"
+  ],
+  "failed_jobs": [
+   "Example Run / Compare Linux screenshots / Send screenshots to Pixel Eagle",
+   "Example Run / Compare Windows screenshots / Send screenshots to Pixel Eagle",
+   "validation jobs / build-android",
+   "validation jobs / check-example-showcase-patches-still-work",
+   "validation jobs / check-unused-dependencies"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-09-02T17:38:56Z",
+    "msg": "don't stop all on first failure"
+   },
+   {
+    "date": "2026-09-02T17:38:56Z",
+    "msg": "rustflags uniformization"
+   },
+   {
+    "date": "2026-09-02T17:38:56Z",
+    "msg": "download all crates"
+   },
+   {
+    "date": "2026-09-02T17:44:30Z",
+    "msg": "custom commands for targets"
+   },
+   {
+    "date": "2026-09-02T22:27:41Z",
+    "msg": "Merge branch 'main' into actions-some-cache-fixes"
+   }
+  ],
+  "before_head": "59d224381c2a9854597558ca90f8ddfa7ae6be20",
+  "final_head": "644046f142cca7800cf2a83d72b0d8e5fc82e973",
+  "diff_changed": true,
+  "changed_files": [
+   ".github/workflows/update-caches.yml"
+  ],
+  "class": "failing jobs run only in the queue (wasm, iOS/Android, examples, unused deps)"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25331,
+  "title": "Deprecate `FilteredResources` and similair structs",
+  "ejections": [
+   "2026-08-31T21:58:49Z"
+  ],
+  "failed_jobs": [
+   "Example Run / Compare Windows screenshots / Send screenshots to Pixel Eagle",
+   "validation jobs / run-examples-on-wasm"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-09-01T10:49:08Z",
+    "msg": "Merge branch 'main' of https://github.com/bevyengine/bevy into remove-filtered-resource"
+   }
+  ],
+  "before_head": "dbf161b0b809ad94c0743b7f399054d22795d0c9",
+  "final_head": "52e46176c0f65fe6d5e7ea8569e03d036899c7bf",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/bevy_ecs/src/system/system_param.rs"
+  ],
+  "class": "failing jobs run only in the queue (wasm, iOS/Android, examples, unused deps)"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25244,
+  "title": "Solari: Improve CPU performance",
+  "ejections": [
+   "2026-08-31T20:56:57Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-31T23:56:34Z",
+    "msg": "Merge branch 'main' into solari7-cpu-perf"
+   }
+  ],
+  "before_head": "8d5b98b50e75cb7e795aa05948f7782900d90da9",
+  "final_head": "82dfd5c987237cbeaebb3307e111bf3c420096b0",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25555,
+  "title": "block scene for UI testbed",
+  "ejections": [
+   "2026-08-26T21:53:31Z"
+  ],
+  "failed_jobs": [
+   "CI / build (macos-latest)",
+   "Example Run / Compare Linux screenshots / Send screenshots to Pixel Eagle"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-28T11:12:43Z",
+    "msg": "Merge branch 'main' into block-ui-testbed"
+   },
+   {
+    "date": "2026-08-28T19:04:34Z",
+    "msg": "Merge branch 'main' into block-ui-testbed"
+   }
+  ],
+  "before_head": "997f16833e43889fbb56a6f319b6aa4029f9cbd9",
+  "final_head": "5f68b01d84905d6082fe0f2eb03322e49b00effe",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25506,
+  "title": "Fix issues where load_untyped_async would not correctly propagate the \"modifiers\".",
+  "ejections": [
+   "2026-08-25T01:20:50Z"
+  ],
+  "failed_jobs": [
+   "Example Run / Compare Linux screenshots / Send screenshots to Pixel Eagle",
+   "validation jobs / check-unused-dependencies"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-26T00:06:21Z",
+    "msg": "Merge `main` branch into fix-load-untyped-async."
+   }
+  ],
+  "before_head": "1515a9721ed1e4fad0e9c32f2ee264c1055ace02",
+  "final_head": "d6c9d73e75b84626a386b9bd03ae93c1a8102030",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25456,
+  "title": "Simplified `FeathersColorSlider` using grid layout",
+  "ejections": [
+   "2026-08-20T17:21:20Z"
+  ],
+  "failed_jobs": [
+   "CI / build (macos-latest)",
+   "CI / ci",
+   "Example Run / Compare Linux screenshots / Send screenshots to Pixel Eagle"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-25T02:03:13Z",
+    "msg": "Merge remote-tracking branch 'origin/main' into color-slider-remove-endcap-nodes"
+   },
+   {
+    "date": "2026-08-25T02:04:50Z",
+    "msg": "Remove unrelated change"
+   }
+  ],
+  "before_head": "a36154977aef38424f6db6319dc523fa1a37cb69",
+  "final_head": "63975fb5008e1ec32f63b4eeaee98b45780c157b",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/bevy_feathers/src/assets/shaders/color_plane.wesl",
+   "examples/ui/widgets/feathers_gallery.rs"
+  ],
+  "class": "code change after a PR-CI job failed in the queue; cause not determined"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25427,
+  "title": "Prevent windows from closing when a monitor is disconnected.",
+  "ejections": [
+   "2026-08-18T01:52:28Z",
+   "2026-08-18T04:02:38Z"
+  ],
+  "failed_jobs": [
+   "Example Run / Compare Linux screenshots / Send screenshots to Pixel Eagle"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-18T03:11:29Z",
+    "msg": "Merge branch 'main' into patch-issue-24867"
+   },
+   {
+    "date": "2026-08-18T22:33:11Z",
+    "msg": "Merge branch 'main' into patch-issue-24867"
+   }
+  ],
+  "before_head": "59836ab3c33df4ced90b1a4056fd2b86b551afd0",
+  "final_head": "df950384d7caff2baef10d979a1644b42b5db16f",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25429,
+  "title": "Add a static hint of whether the summary tick is present or not",
+  "ejections": [
+   "2026-08-18T02:53:22Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-18T03:11:18Z",
+    "msg": "Merge branch 'main' into summary-tick-type-hint"
+   },
+   {
+    "date": "2026-08-18T06:47:18Z",
+    "msg": "Merge branch 'main' into summary-tick-type-hint"
+   }
+  ],
+  "before_head": "406a03e33f1ceb4e1a4a67d2fc596f2edaa5b06d",
+  "final_head": "3ce868bd7ebad161d48b9d5109cb6e09a7a6dc64",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25361,
+  "title": "add \"wayland-data-control\" feature to arboard, if \"wayland\" feature set",
+  "ejections": [
+   "2026-08-11T17:26:40Z"
+  ],
+  "failed_jobs": [
+   "validation jobs / build-and-install-on-iOS",
+   "validation jobs / build-android"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-11T17:58:08Z",
+    "msg": "Merge branch 'main' into bevy_clipboard-wayland_bug"
+   },
+   {
+    "date": "2026-08-11T18:51:11Z",
+    "msg": "added `?` to dependency, to not accidentally pull arboard without `\"system_clipboard\"`"
+   },
+   {
+    "date": "2026-08-11T19:02:20Z",
+    "msg": "Don't pull bevy_clipboard if wayland enabled, but do pass feature to bevy_clipboard if it is."
+   }
+  ],
+  "before_head": "e73eeaf7ff70ed5e07c1f12df8f1dcd0d64e10f5",
+  "final_head": "cc12e723a8fbb47d241d6d1d2d878ddf41dffca6",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/bevy_clipboard/Cargo.toml",
+   "crates/bevy_internal/Cargo.toml"
+  ],
+  "class": "failing jobs run only in the queue (wasm, iOS/Android, examples, unused deps)"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 25259,
+  "title": "Fix mesh re-allocation logic",
+  "ejections": [
+   "2026-08-04T01:14:58Z"
+  ],
+  "failed_jobs": [
+   "CI / build (macos-latest)"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-04T01:17:52Z",
+    "msg": "Merge branch 'main' into fix-mesh-reallocation"
+   }
+  ],
+  "before_head": "465a87f584f5bfe14f1c1e83bacac3e2f65fd9e7",
+  "final_head": "f25d4f971024b9e7d26945ef8e97ac4b5889931c",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "bevyengine/bevy",
+  "pr": 24969,
+  "title": "Full contextual theming",
+  "ejections": [
+   "2026-07-27T02:47:35Z"
+  ],
+  "failed_jobs": [
+   "CI / ci"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-07-27T04:14:12Z",
+    "msg": "Merge remote-tracking branch 'upstream/main' into theme_override"
+   },
+   {
+    "date": "2026-07-27T04:22:47Z",
+    "msg": "Fix example merge conflict."
+   }
+  ],
+  "before_head": "2aaf9ac571e38b612064f235f483b9dc18863568",
+  "final_head": "df06dc9bbbbe6f2c1018edb063fc7112055c9a4b",
+  "diff_changed": true,
+  "changed_files": [
+   "examples/ui/styling/box_shadow.rs"
+  ],
+  "class": "semantic conflict with main (\"Fix example merge conflict\")"
+ },
+ {
+  "repo": "junit-team/junit-framework",
+  "pr": 5982,
+  "title": "Update jackson monorepo to v3.2.2 (main)",
+  "ejections": [
+   "2026-08-15T09:04:50Z"
+  ],
+  "failed_jobs": [
+   "CI / Cross-Version / OpenJ9 25",
+   "CI / Status"
+  ],
+  "commits_after": [
+   {
+    "date": "2026-08-15T09:11:39Z",
+    "msg": "Update jackson monorepo to v3.2.2"
+   }
+  ],
+  "before_head": "3b780ac069792affa53f546088192dfbec81d97b",
+  "final_head": "9daf5d8d83d1e13d7a3785ef1bc062be3218b003",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "rust-lang/rust-analyzer",
+  "pr": 23467,
+  "title": "fix: Improve in-block heuristic check in nested ambiguous",
+  "ejections": [
+   "2026-10-05T01:29:59Z",
+   "2026-10-05T10:02:46Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-05T09:37:31Z",
+    "msg": "fix: Improve in-block heuristic check in nested ambiguous"
+   },
+   {
+    "date": "2026-10-05T10:07:19Z",
+    "msg": "Combination some 'let' snippets"
+   },
+   {
+    "date": "2026-10-05T11:28:26Z",
+    "msg": "Add heuristic conditions"
+   }
+  ],
+  "before_head": "099f7d4a4699aeeb43c1b7c504e1de241b8da404",
+  "final_head": "d01c33c9e4fed8f06c39a0d68db0b102d2ba4876",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/ide-completion/src/completions/expr.rs",
+   "crates/ide-completion/src/context/analysis.rs",
+   "crates/ide-completion/src/tests/expression.rs"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "rust-lang/rust-analyzer",
+  "pr": 23382,
+  "title": "fix: complete 'false' in cfg attribute",
+  "ejections": [
+   "2026-09-24T23:23:40Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-25T03:03:27Z",
+    "msg": "fix: complete 'false' in cfg attribute"
+   }
+  ],
+  "before_head": "4703da5169ef5b7b6a06d0b73c7d128a5b313d10",
+  "final_head": "b8742972be3b63486fffa9b4bfa08d1bf1af7e72",
+  "diff_changed": true,
+  "changed_files": [
+   "crates/ide-completion/src/tests/expression.rs"
+  ],
+  "class": "code change; failing job and cause not determined"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39491,
+  "title": "Merge release into master (20261019)",
+  "ejections": [
+   "2026-10-19T03:14:47Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-19T03:43:57Z",
+    "msg": "Drop removed virtualConfiguration fixture call"
+   }
+  ],
+  "before_head": "860fadae3639c39c830b8d5e42ad3716315ad28a",
+  "final_head": "4a09b0e8eb054f960c96898105bc6ba174b893cc",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/software/dependency-management/src/integTest/groovy/org/gradle/integtests/resolve/alignment/ForcingPlatformAlignmentTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39309,
+  "title": "Update Documentation Infrastructure: Replace gradle-guides-plugin with a local plugin",
+  "ejections": [
+   "2026-10-05T15:58:02Z",
+   "2026-10-14T23:22:52Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-14T22:09:17Z",
+    "msg": "Merge remote-tracking branch 'origin/master' into lkasso/update-asciidoctor"
+   },
+   {
+    "date": "2026-10-14T23:24:05Z",
+    "msg": "Merge branch 'master' into lkasso/update-asciidoctor"
+   },
+   {
+    "date": "2026-10-14T23:30:56Z",
+    "msg": "remove samples from DocsDistributionIntegrationSpec"
+   }
+  ],
+  "before_head": "0d56d8d975b8d758a0552b60229ce77716fbbb24",
+  "final_head": "ce598080feda49d39eb16e60b310003b59739b89",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/documentation/docs/build.gradle.kts",
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/DocsDistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39422,
+  "title": "Assert every condition on single emitted problems in tests",
+  "ejections": [
+   "2026-10-08T09:03:50Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-08T09:41:26Z",
+    "msg": "Assert every condition on single emitted problems"
+   },
+   {
+    "date": "2026-10-08T09:41:26Z",
+    "msg": "Fix expectations exposed by verifyAll"
+   }
+  ],
+  "before_head": "a08df1200e9d585598beb07223ee66903c643f81",
+  "final_head": "f3e4740f03a857381387d5ec12912bde52435f4e",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-runtime/logging/src/test/groovy/org/gradle/internal/deprecation/DeprecationMessagesTest.groovy",
+   "platforms/core-runtime/logging/src/test/groovy/org/gradle/internal/deprecation/LoggingDeprecatedFeatureHandlerTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38404,
+  "title": "Add reproducer for issue 36234",
+  "ejections": [
+   "2026-08-18T21:29:32Z",
+   "2026-08-19T08:16:39Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-06T21:01:01Z",
+    "msg": "Add regression test for issue 36234"
+   }
+  ],
+  "before_head": "42d5beab6f432da2a28e17fe00c03d7a4d13ed68",
+  "final_head": "db17eeee3e0ffb053c1b9d79f6118b6cc82a9dec",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/software/dependency-management/src/integTest/groovy/org/gradle/integtests/resolve/platforms/PlatformImportedToTestFixturesForkResolveIntegrationTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39234,
+  "title": "Fix JUnitPlatformTestClassProcessor filtering to support custom test sources",
+  "ejections": [
+   "2026-10-05T18:00:26Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-10-05T20:21:42Z",
+    "msg": "Adapt tests for JDK 27 ArchUnit incompatibilities"
+   }
+  ],
+  "before_head": "ba6f4020657b2332a7fa74269663cafddfce9771",
+  "final_head": "a863812a6234b6386cfed979d00f90a952fcc61b",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/jvm/testing-jvm/src/integTest/groovy/org/gradle/testing/junit/junit5/platform/JUnit5PlatformFilteringIntegrationTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39321,
+  "title": "Update tested Kotlin versions",
+  "ejections": [
+   "2026-09-26T20:51:23Z",
+   "2026-09-29T17:15:04Z",
+   "2026-09-30T09:39:43Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-30T07:05:20Z",
+    "msg": "Update Kotlin versions"
+   },
+   {
+    "date": "2026-09-30T07:05:20Z",
+    "msg": "Adapt tests to changes in Kotlin `2.5.0`"
+   }
+  ],
+  "before_head": "90445038485777a78c98329be2cee13309db19b3",
+  "final_head": "1468784a3e380726d28cfca2ad387dce1258c6c3",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-configuration/kotlin-dsl-integ-tests/src/integTest/kotlin/org/gradle/kotlin/dsl/plugins/dsl/KotlinDslPluginWithExplicitKGPVersionTest.kt",
+   "testing/smoke-test/src/smokeTest/groovy/org/gradle/smoketests/KotlinMultiplatformPluginSmokeTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39075,
+  "title": "Add predefined problem group hierarchy to the Problems API",
+  "ejections": [
+   "2026-09-29T18:21:48Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-30T06:08:04Z",
+    "msg": "Render problem ids as name followed by group chain"
+   },
+   {
+    "date": "2026-09-30T06:08:04Z",
+    "msg": "Implement the predefined problem groups"
+   },
+   {
+    "date": "2026-09-30T06:08:04Z",
+    "msg": "Keep Gradle-owned groups when building problems"
+   },
+   {
+    "date": "2026-09-30T06:08:05Z",
+    "msg": "Walk problem groups through the internal view"
+   },
+   {
+    "date": "2026-09-30T06:08:05Z",
+    "msg": "Serialize problem groups explicitly in the trace"
+   },
+   {
+    "date": "2026-09-30T06:08:05Z",
+    "msg": "Test predefined problem groups end to end"
+   },
+   {
+    "date": "2026-09-30T06:08:07Z",
+    "msg": "Document the predefined problem groups"
+   }
+  ],
+  "before_head": "c94b01bc7e5a0616161b5c6552ab1c64ba28ec32",
+  "final_head": "d11f5a64bbb17311630edac30878cc56d0b1d12c",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/DocsDistributionIntegrationSpec.groovy",
+   "testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/executer/ResultAssertion.java"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39195,
+  "title": "Update Documentation: add new pages for securing your Gradle build",
+  "ejections": [
+   "2026-09-24T17:26:20Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-25T15:55:15Z",
+    "msg": "Merge branch 'master' into lkasso/documentation/security-supply-chain-guide"
+   }
+  ],
+  "before_head": "03745efcf1c3647e4b3e765c3c152ad4d8dc9811",
+  "final_head": "17496ef90e01fe10b6d0ac3b08cf363103615c20",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39297,
+  "title": "Update Documentation: Fix Java/JVM plugins doc issues",
+  "ejections": [
+   "2026-09-23T21:32:10Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-24T03:58:01Z",
+    "msg": "Fix test fixtures sample and shrink diagrams"
+   }
+  ],
+  "before_head": "b62ef999f09392687b240368cdae123d04620ea9",
+  "final_head": "5febb15d49b9cf241a78f08caef0b7db560642a7",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/documentation/docs/src/docs/userguide/img/java-library-ignore-deprecated-main.png",
+   "platforms/documentation/docs/src/docs/userguide/img/java-library-ignore-deprecated-test.png",
+   "platforms/documentation/docs/src/docs/userguide/img/java-main-configurations.png",
+   "platforms/documentation/docs/src/docs/userguide/img/java-platform-configurations.png",
+   "platforms/documentation/docs/src/docs/userguide/img/java-test-configurations.png",
+   "platforms/documentation/docs/src/docs/userguide/img/javaPluginTasks.png",
+   "platforms/documentation/docs/src/snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/kotlin/build.gradle.kts",
+   "platforms/documentation/docs/src/snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/tests/integrationTest.sample.conf"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39206,
+  "title": "cobexer/merge release to master",
+  "ejections": [
+   "2026-09-17T16:41:42Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-17T17:44:22Z",
+    "msg": "Publish version 9.8.0-20260917172619+0000"
+   }
+  ],
+  "before_head": "88bd75127172e8764ba057ec9c484f40b52c8933",
+  "final_head": "cdc3f050444430c03d99d2b4619059d6929fd364",
+  "diff_changed": true,
+  "changed_files": [
+   "released-versions.json"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 39148,
+  "title": "Merge release into master",
+  "ejections": [
+   "2026-09-14T05:05:27Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-14T05:26:51Z",
+    "msg": "Lower all/docs distribution size baselines"
+   }
+  ],
+  "before_head": "71795e8b61aba5ea88854135423d28e287635633",
+  "final_head": "b1f9c104c26f1c7f1fadfc101ae1382d211be23e",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/AllDistributionIntegrationSpec.groovy",
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/DocsDistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38888,
+  "title": "Protect against deadlock from null command/arguments",
+  "ejections": [
+   "2026-09-02T09:25:08Z",
+   "2026-09-03T18:17:20Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-10T05:30:01Z",
+    "msg": "Protect against deadlock from null command/arguments"
+   },
+   {
+    "date": "2026-09-10T05:30:01Z",
+    "msg": "Harden DefaultExecHandle against losing the failure cause"
+   },
+   {
+    "date": "2026-09-10T05:30:01Z",
+    "msg": "Fix bug in startProcess if connectStreams throws"
+   }
+  ],
+  "before_head": "1d15b2f3b7a9c0330d44ad8a27d1c6122a6430e7",
+  "final_head": "637b9105b965c18cb3d7a874bfe25d4547a1c44b",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38762,
+  "title": "Preserve file collection display names in the configuration cache",
+  "ejections": [
+   "2026-09-01T12:21:03Z",
+   "2026-09-03T20:07:46Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-09-02T00:39:51Z",
+    "msg": "Update configuration cache test expectations for preserved display names"
+   }
+  ],
+  "before_head": "68244b032c0938d11e71955d144279e1574daa55",
+  "final_head": "9480f2fdb02a01553129e481b98fc712e587e1cf",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-configuration/configuration-cache/src/integTest/groovy/org/gradle/internal/cc/impl/ConfigurationCacheTaskExecutionIntegrationTest.groovy",
+   "platforms/core-configuration/configuration-cache/src/integTest/groovy/org/gradle/internal/cc/impl/ConfigurationCacheUnsupportedTypesIntegrationTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38563,
+  "title": "Deprecate restricting KotlinDslScriptsModel to explicit scripts",
+  "ejections": [
+   "2026-08-24T13:02:38Z",
+   "2026-08-24T15:06:21Z",
+   "2026-08-25T01:13:47Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-25T08:14:22Z",
+    "msg": "Target the deprecation at Gradle 9.9"
+   }
+  ],
+  "before_head": "cd416cf38346e60f6298621b68bd0a006d7e6073",
+  "final_head": "b5939761f89ca555202bcb65de99c6b8651fc747",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-configuration/kotlin-dsl-tooling-builders/src/crossVersionTest/groovy/org/gradle/kotlin/dsl/tooling/builders/AbstractKotlinScriptModelCrossVersionTest.groovy",
+   "platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_9.adoc"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38890,
+  "title": "Parse HTTP directory listings without jsoup",
+  "ejections": [
+   "2026-08-19T17:49:22Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-19T21:06:01Z",
+    "msg": "Drop jsoup from the expected distribution jar count"
+   }
+  ],
+  "before_head": "b547c79ec55cced9973460f7fbba7a2f13304523",
+  "final_head": "7cd60f9f80e71839723b71c1190d7a8b37d68ae7",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/DistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38086,
+  "title": "Fix Windows start script not exiting when failing to locate Java",
+  "ejections": [
+   "2026-08-12T20:19:26Z",
+   "2026-08-18T06:14:01Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-19T05:46:36Z",
+    "msg": "Fix Windows start script not exiting when failing to locate Java"
+   },
+   {
+    "date": "2026-08-19T05:46:36Z",
+    "msg": "Assert the directory is printed for the invalid JAVA_HOME"
+   },
+   {
+    "date": "2026-08-19T05:46:36Z",
+    "msg": "Remove trailing space from echo lines in Windows start script"
+   }
+  ],
+  "before_head": "5e928abd2530643ba4cfd263384799719f9a7744",
+  "final_head": "1eb2e30c7b4250d93f31c3734cc2fd1123d48468",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/jvm/plugins-application/src/integTest/groovy/org/gradle/api/plugins/ApplicationPluginIntegrationTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 37320,
+  "title": "Update Documentation: how `strictly` works",
+  "ejections": [
+   "2026-08-12T03:23:50Z",
+   "2026-08-12T18:06:05Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-12T16:14:47Z",
+    "msg": "fix failing test, update constraint"
+   },
+   {
+    "date": "2026-08-13T16:34:36Z",
+    "msg": "fix test out file"
+   }
+  ],
+  "before_head": "91c76eff7a279e45a5e2bcdac3e05e40c53067de",
+  "final_head": "3e965b6ac0ae07438a81d3c91614b608dbad4169",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_versions.adoc",
+   "platforms/documentation/docs/src/snippets/dependencyManagement/declaringConstraints/tests/declaring-constraints.out",
+   "platforms/documentation/docs/src/snippets/dependencyManagement/richVersionsConstraints/groovy/security/build.gradle",
+   "platforms/documentation/docs/src/snippets/dependencyManagement/richVersionsConstraints/kotlin/security/build.gradle.kts",
+   "platforms/documentation/docs/src/snippets/dependencyManagement/richVersionsConstraints/tests/security.out"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38806,
+  "title": "Merge release into master",
+  "ejections": [
+   "2026-08-12T09:08:34Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-12T09:52:25Z",
+    "msg": "Bump expected all-distribution size for BouncyCastle 1.85"
+   }
+  ],
+  "before_head": "6e9c8ba94250f4f62ea235256c1293f5149f83c3",
+  "final_head": "a8302bad2e26bee67c5a0718bc54cd2280cbf099",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/AllDistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38757,
+  "title": "Update Documentation: Rework plugin reference and add missing core plugins",
+  "ejections": [
+   "2026-08-07T03:26:31Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-07T07:32:50Z",
+    "msg": "init draft"
+   },
+   {
+    "date": "2026-08-07T07:32:51Z",
+    "msg": "add missing core plugin pages"
+   },
+   {
+    "date": "2026-08-07T07:32:51Z",
+    "msg": "update the plugin reference descriptions"
+   },
+   {
+    "date": "2026-08-07T07:32:51Z",
+    "msg": "add wrapper"
+   },
+   {
+    "date": "2026-08-07T07:32:51Z",
+    "msg": "DocsDistributionIntegrationSpec: update size"
+   }
+  ],
+  "before_head": "182cd20fbec16848a9c9383b341e23f6e205a01e",
+  "final_head": "d665941b1ac06286a8a59c178720c01ce0fe0404",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/DocsDistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38760,
+  "title": "Merge release into master (20260806)",
+  "ejections": [
+   "2026-08-06T06:54:37Z",
+   "2026-08-06T07:39:09Z",
+   "2026-08-06T08:52:33Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-06T09:17:55Z",
+    "msg": "Rebaseline performance tests to unblock master"
+   }
+  ],
+  "before_head": "d1fe5275a66f2eb953125b919ad2144f64fbb840",
+  "final_head": "96510383c1526465fb261e2a215bf2879a746ae3",
+  "diff_changed": true,
+  "changed_files": [
+   "gradle.properties"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38484,
+  "title": "Properly serialize exception is daemon messages",
+  "ejections": [
+   "2026-08-03T11:10:27Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-08-03T11:30:30Z",
+    "msg": "Minor: tests polishing"
+   }
+  ],
+  "before_head": "270070a2ec4fdf03fc774be5f757182cba1e14b7",
+  "final_head": "ef0d533a56975c8f4db9ac893d6385dbb930a487",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-configuration/configuration-cache/src/integTest/groovy/org/gradle/internal/cc/impl/ConfigurationCacheIntegrityCheckIntegrationTest.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 37893,
+  "title": "Consolidate queue processing of BuildOperationQueue",
+  "ejections": [
+   "2026-07-29T19:28:24Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-30T16:44:44Z",
+    "msg": "Fix bug with waiting for lease check"
+   },
+   {
+    "date": "2026-07-30T17:08:26Z",
+    "msg": "Fix potential bug with operation tracking"
+   },
+   {
+    "date": "2026-07-30T18:38:18Z",
+    "msg": "Keep processing work in processWorkUsingCurrentThreadUntilEmpty"
+   },
+   {
+    "date": "2026-07-31T06:08:16Z",
+    "msg": "Fix duplicated coordination service instances in tests"
+   }
+  ],
+  "before_head": "902cf296eeaa0716117a5260c4196263aa26eab1",
+  "final_head": "2f2bbe40bc947137946f1c19269b28986d9671fd",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-runtime/base-services/src/main/java/org/gradle/internal/work/SubmissionQueue.java",
+   "platforms/core-runtime/base-services/src/main/java/org/gradle/internal/work/WorkerLeaseQueueProcessor.java",
+   "platforms/core-runtime/base-services/src/test/groovy/org/gradle/internal/work/WorkerLeaseQueueProcessorTest.groovy",
+   "subprojects/core/src/main/java/org/gradle/internal/operations/DefaultBuildOperationQueue.java",
+   "subprojects/core/src/test/groovy/org/gradle/internal/operations/DefaultBuildOperationExecutorParallelExecutionTest.groovy",
+   "subprojects/core/src/test/groovy/org/gradle/internal/operations/DefaultBuildOperationQueueTest.groovy",
+   "subprojects/core/src/test/groovy/org/gradle/internal/operations/MaxWorkersTest.groovy",
+   "subprojects/core/src/testFixtures/groovy/org/gradle/internal/operations/BuildOperationExecutorSupport.java"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 36110,
+  "title": "Enable NullAway in multiple projects",
+  "ejections": [
+   "2026-07-30T11:14:01Z",
+   "2026-07-30T13:20:55Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-30T12:39:44Z",
+    "msg": "Use the latest JDK 21 patch release for Windows ARM unit tests"
+   }
+  ],
+  "before_head": "d82c95327e29090d468373454f7b3aeb688fe59f",
+  "final_head": "3fcc523916a002ac2ee039c87af2de1b35abd3c9",
+  "diff_changed": true,
+  "changed_files": [
+   ".github/workflows/contributor-pr.yml"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38586,
+  "title": "Update Documentation: Document Gradle installation for bootstrapping new projects",
+  "ejections": [
+   "2026-07-28T21:08:20Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-29T00:22:30Z",
+    "msg": "Update expected distribution size"
+   }
+  ],
+  "before_head": "8e5b47e0266fd6b3e80bc20502cad56b61888eb8",
+  "final_head": "6cca2d98a15e74a75ce81d0ee4c7d3e695d0e7ab",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/distributions-integ-tests/src/integTest/groovy/org/gradle/SrcDistributionIntegrationSpec.groovy"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38532,
+  "title": "Update Documentation: Fix inconsistent repository paths in plugin",
+  "ejections": [
+   "2026-07-20T20:21:21Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-28T19:16:22Z",
+    "msg": "Merge branch 'master' into fix-plugin-repo-path-inconsistency"
+   }
+  ],
+  "before_head": "f87fb089ede826f874d4dfe3d47ff40e749934d7",
+  "final_head": "8cbf7b1309f86ccc82b7c1b5dbf8f85ff462c72f",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38645,
+  "title": "Merge release into master",
+  "ejections": [
+   "2026-07-28T04:24:42Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-28T05:06:59Z",
+    "msg": "Remove stale accepted API change for KotlinSettingsScriptTemplate.buildscript"
+   }
+  ],
+  "before_head": "20c9311defb0e39ad5e52d6a103bfc73678dea85",
+  "final_head": "9d11dfefd09facb8b920ae6b80259c00d5ab09bd",
+  "diff_changed": true,
+  "changed_files": [
+   "testing/architecture-test/src/changes/accepted-changes/accepted-public-api-changes.json"
+  ],
+  "class": "repository-wide check (distribution size, API list, version list, performance baseline)"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38569,
+  "title": "Consolidate daemon bootstrap communication",
+  "ejections": [
+   "2026-07-27T16:24:59Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-27T18:11:17Z",
+    "msg": "Add round trip tests for writeDaemonServerConfiguration and readDaemonServerConfiguration"
+   }
+  ],
+  "before_head": "9205a2db6d8a349329dbd792537f100901bf768d",
+  "final_head": "4435c9b33a6f9d715c867167cb8980c499dae988",
+  "diff_changed": true,
+  "changed_files": [
+   "platforms/core-runtime/client-services/src/test/groovy/org/gradle/launcher/daemon/bootstrap/DaemonStartupCommunicationSpec.groovy"
+  ],
+  "class": "test or code fix; PR CI is a subset of queue CI, failing test not identified"
+ },
+ {
+  "repo": "gradle/gradle",
+  "pr": 38556,
+  "title": "Remove core dependency from workers",
+  "ejections": [
+   "2026-07-19T19:22:03Z",
+   "2026-07-20T08:47:41Z",
+   "2026-07-21T07:17:49Z",
+   "2026-07-21T14:26:58Z"
+  ],
+  "failed_jobs": [],
+  "commits_after": [
+   {
+    "date": "2026-07-21T14:48:18Z",
+    "msg": "Split out worker shared services"
+   },
+   {
+    "date": "2026-07-21T14:48:19Z",
+    "msg": "Split out legacy mixin classloader"
+   },
+   {
+    "date": "2026-07-21T14:48:19Z",
+    "msg": "Split :ant-impl into :isolated-ant-builder"
+   },
+   {
+    "date": "2026-07-21T14:48:19Z",
+    "msg": "Move RelativePathUtil out of :core"
+   },
+   {
+    "date": "2026-07-21T14:48:19Z",
+    "msg": "Move VerificationException, MarkedVerificationException to :core-api"
+   },
+   {
+    "date": "2026-07-21T14:48:20Z",
+    "msg": "Remove worker target runtime from :core"
+   },
+   {
+    "date": "2026-07-21T14:48:20Z",
+    "msg": "Account for new projects"
+   },
+   {
+    "date": "2026-07-21T14:48:20Z",
+    "msg": "Rewrite lock-contention worker test to not reach into service internals"
+   }
+  ],
+  "before_head": "49f408d52978ea0094b2619fb9b5b9283de673dd",
+  "final_head": "22d9811b7e5afcc54882511361e198e40bc18273",
+  "diff_changed": false,
+  "changed_files": [],
+  "class": "diff unchanged: rebase or merge of main only"
+ }
+]

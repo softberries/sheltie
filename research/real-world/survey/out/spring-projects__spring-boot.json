@@ -1,0 +1,401 @@
+{
+ "repo": "spring-projects/spring-boot",
+ "branch": "main",
+ "language": "Java",
+ "stars": 81771,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "off",
+ "workflows": 15,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 1494,
+ "bors_merges": 0,
+ "reverts": 7,
+ "fix_build": 1,
+ "committers": {
+  "philwebb": 237,
+  "snicoll": 882,
+  "wilkinsona": 311,
+  "mhalbritter": 51,
+  "bclozel": 12,
+  "yyuneu": 1
+ },
+ "runs_push_main": 1382,
+ "runs_push_main_failed": 144,
+ "runs_merge_group": 0,
+ "runs_pull_request": 1092,
+ "merged_prs_total": 329,
+ "sample": [
+  {
+   "n": 52285,
+   "merged": "2026-10-18T22:46:58Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52284,
+   "merged": "2026-10-18T22:25:27Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52280,
+   "merged": "2026-10-17T21:10:42Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52246,
+   "merged": "2026-10-17T07:26:02Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52193,
+   "merged": "2026-10-17T02:04:24Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52205,
+   "merged": "2026-10-17T01:55:15Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52207,
+   "merged": "2026-10-17T01:50:26Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52228,
+   "merged": "2026-10-17T01:18:57Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52249,
+   "merged": "2026-10-17T00:36:42Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52244,
+   "merged": "2026-10-17T00:08:50Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52125,
+   "merged": "2026-10-14T07:44:04Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52175,
+   "merged": "2026-10-13T14:43:58Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52161,
+   "merged": "2026-10-13T12:55:00Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52181,
+   "merged": "2026-10-13T09:42:31Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52121,
+   "merged": "2026-10-12T13:21:16Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52047,
+   "merged": "2026-10-12T13:08:00Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51970,
+   "merged": "2026-10-12T12:57:29Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51940,
+   "merged": "2026-10-12T11:31:17Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51938,
+   "merged": "2026-10-12T11:24:35Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51372,
+   "merged": "2026-10-08T14:06:53Z",
+   "by": "mhalbritter",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52045,
+   "merged": "2026-10-07T14:54:48Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51959,
+   "merged": "2026-10-07T14:44:15Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51957,
+   "merged": "2026-10-07T14:07:42Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51956,
+   "merged": "2026-10-07T13:49:01Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51939,
+   "merged": "2026-10-07T13:33:38Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 52037,
+   "merged": "2026-10-07T13:09:16Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51937,
+   "merged": "2026-10-06T09:06:06Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 50489,
+   "merged": "2026-10-01T11:04:55Z",
+   "by": "wilkinsona",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51893,
+   "merged": "2026-10-01T10:25:26Z",
+   "by": "wilkinsona",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51901,
+   "merged": "2026-10-01T09:48:54Z",
+   "by": "wilkinsona",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51900,
+   "merged": "2026-10-01T09:45:59Z",
+   "by": "wilkinsona",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51827,
+   "merged": "2026-09-29T02:36:59Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51867,
+   "merged": "2026-09-28T22:36:23Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51896,
+   "merged": "2026-09-28T21:20:37Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51892,
+   "merged": "2026-09-28T16:18:41Z",
+   "by": "philwebb",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51872,
+   "merged": "2026-09-28T11:16:56Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51870,
+   "merged": "2026-09-28T10:42:53Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51869,
+   "merged": "2026-09-28T09:23:39Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51852,
+   "merged": "2026-09-28T09:20:16Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 2,
+   "method": "merge",
+   "behind": 0
+  },
+  {
+   "n": 51850,
+   "merged": "2026-09-28T09:07:31Z",
+   "by": "snicoll",
+   "queued": false,
+   "commits": 1,
+   "method": "merge",
+   "behind": 0
+  }
+ ],
+ "sample_up_to_date": "40/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "philwebb": 14,
+  "snicoll": 21,
+  "mhalbritter": 1,
+  "wilkinsona": 4
+ }
+}

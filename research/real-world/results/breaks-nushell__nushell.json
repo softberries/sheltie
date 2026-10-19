@@ -1,0 +1,83 @@
+{
+ "repo": "nushell/nushell",
+ "tool": "cargo",
+ "landings": 368,
+ "pr_landings": 364,
+ "direct_pushes": 4,
+ "tested": 346,
+ "ci_workflows": [
+  "Continuous Integration"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 1380.0,
+ "flaky_reruns_on_main": 0,
+ "stale": 186,
+ "median_between": 1.0,
+ "sheltie_rebuilds": 87,
+ "sheltie_merge_engine": 45,
+ "sheltie_extra_ci_seconds": 120060.0,
+ "leaky": 179,
+ "missing_footprints": 0,
+ "red_episodes": 3,
+ "persistent_red": 0,
+ "persistent_red_seconds": 0,
+ "verdicts": {},
+ "overlap_base_rate": 0.2514450867052023,
+ "overlap_by_chance": 0,
+ "episodes": [
+  {
+   "first_red": "88bf737d8df2f3aab12cdf4c2b3c676dd7abf58f",
+   "first_red_index": 276,
+   "range": [
+    276,
+    276
+   ],
+   "workflows": [
+    "Continuous Integration"
+   ],
+   "persistent": false,
+   "red_seconds": 21434.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    19175
+   ]
+  },
+  {
+   "first_red": "c8095a3d10ca15ebedf4591de5a0286f64c28070",
+   "first_red_index": 340,
+   "range": [
+    340,
+    340
+   ],
+   "workflows": [
+    "Continuous Integration"
+   ],
+   "persistent": false,
+   "red_seconds": 30.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    19252
+   ]
+  },
+  {
+   "first_red": "973c5909186f0f8f25dc3776723b28f3e0ecad4f",
+   "first_red_index": 358,
+   "range": [
+    358,
+    358
+   ],
+   "workflows": [
+    "Continuous Integration"
+   ],
+   "persistent": false,
+   "red_seconds": 5912.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    19271
+   ]
+  }
+ ]
+}

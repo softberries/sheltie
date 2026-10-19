@@ -1,0 +1,397 @@
+{
+ "repo": "gohugoio/hugo",
+ "tool": "go",
+ "landings": 182,
+ "pr_landings": 144,
+ "direct_pushes": 38,
+ "tested": 143,
+ "ci_workflows": [
+  "Test"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 3934.0,
+ "flaky_reruns_on_main": 0,
+ "stale": 81,
+ "median_between": 1,
+ "sheltie_rebuilds": 64,
+ "sheltie_merge_engine": 37,
+ "sheltie_extra_ci_seconds": 251776.0,
+ "leaky": 21,
+ "missing_footprints": 0,
+ "red_episodes": 20,
+ "persistent_red": 5,
+ "persistent_red_seconds": 158255.0,
+ "verdicts": {
+  "tested on the current main: not an interaction": 4,
+  "stale base, overlapping landing: Sheltie rebuilds before landing": 1
+ },
+ "overlap_base_rate": 0.44755244755244755,
+ "overlap_by_chance": 2.2377622377622375,
+ "episodes": [
+  {
+   "first_red": "8930802ef283c655ecad534418a4077319d65a46",
+   "first_red_index": 2,
+   "range": [
+    2,
+    2
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 5241.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15107
+   ]
+  },
+  {
+   "first_red": "f228c87d417ae5b4461edf4ff80de717efceb661",
+   "first_red_index": 6,
+   "range": [
+    6,
+    6
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 62601.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    15133
+   ]
+  },
+  {
+   "first_red": "635532a20f98f1f5cfb7cff52b4b5cc47c700766",
+   "first_red_index": 18,
+   "range": [
+    18,
+    18
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 24580.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15150
+   ]
+  },
+  {
+   "first_red": "94f3908ec6a1618361ef07c61ac0402b7d21e07a",
+   "first_red_index": 27,
+   "range": [
+    27,
+    27
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 110172.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15172
+   ]
+  },
+  {
+   "first_red": "03dc9170b3e410f50f2e74fdd4428865a5310e61",
+   "first_red_index": 38,
+   "range": [
+    38,
+    38
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 16.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15197
+   ]
+  },
+  {
+   "first_red": "8405b802cf647b88e3de872d6fb01323107aaf9b",
+   "first_red_index": 46,
+   "range": [
+    46,
+    46
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 13135.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15215
+   ]
+  },
+  {
+   "first_red": "723579ff54d7cdca32b92cc04416b98633980a3b",
+   "first_red_index": 51,
+   "range": [
+    50,
+    51
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 274.0,
+   "candidates": 2,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    15236
+   ]
+  },
+  {
+   "first_red": "df4ac34856bb193fb540b4b4aabc1d43b0178863",
+   "first_red_index": 54,
+   "range": [
+    54,
+    54
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 3481.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15246
+   ]
+  },
+  {
+   "first_red": "5f0d88b8a3652bbee992f4cbba2b018527f16a15",
+   "first_red_index": 74,
+   "range": [
+    74,
+    74
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 86489.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15272
+   ]
+  },
+  {
+   "first_red": "423e9cead1ce279dc1db3a4be4fff36cb49479ad",
+   "first_red_index": 79,
+   "range": [
+    79,
+    79
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 28231.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15287
+   ]
+  },
+  {
+   "first_red": "701dd3374e1cc0046a0d8a58b877d38e91559291",
+   "first_red_index": 88,
+   "range": [
+    88,
+    88
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 5498.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15292
+   ]
+  },
+  {
+   "first_red": "857120b72b01745d94bcc16fe08dfa859e161f55",
+   "first_red_index": 91,
+   "range": [
+    91,
+    91
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 77066.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15308
+   ]
+  },
+  {
+   "first_red": "d692a243a058bf6d28f8e2bea99ee5b83a417c8e",
+   "first_red_index": 110,
+   "range": [
+    110,
+    110
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 87447.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15353
+   ]
+  },
+  {
+   "first_red": "10bb97ba354ed628ea29917a902acaa23b0902be",
+   "first_red_index": 114,
+   "range": [
+    114,
+    114
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 766.0,
+   "candidates": 1,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null
+   ]
+  },
+  {
+   "first_red": "09fa49be210071f44326252a436d9e1169820d78",
+   "first_red_index": 125,
+   "range": [
+    123,
+    125
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 95757.0,
+   "candidates": 3,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    null,
+    15370
+   ]
+  },
+  {
+   "first_red": "90861931ad376b188878f9079e7c9900dcfcdaca",
+   "first_red_index": 133,
+   "range": [
+    133,
+    133
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 144.0,
+   "candidates": 1,
+   "verdict": "stale base, no overlap: Sheltie lands it too",
+   "prs": [
+    15377
+   ]
+  },
+  {
+   "first_red": "806a62e85b9ca299623073240b570afa36597afe",
+   "first_red_index": 137,
+   "range": [
+    137,
+    137
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": true,
+   "red_seconds": 13457.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15386
+   ]
+  },
+  {
+   "first_red": "140d9362fd08663fd6a3ee830ac97e4cafa37c53",
+   "first_red_index": 142,
+   "range": [
+    142,
+    142
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 2805.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    15391
+   ]
+  },
+  {
+   "first_red": "ec69d0e64931715e490ae411cba2b305636d20e0",
+   "first_red_index": 150,
+   "range": [
+    148,
+    150
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 174577.0,
+   "candidates": 3,
+   "verdict": "direct push or untested change in range",
+   "prs": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "first_red": "8c88da3723b007ca2ea4593f7e7483aa9b140fc6",
+   "first_red_index": 152,
+   "range": [
+    152,
+    152
+   ],
+   "workflows": [
+    "Test"
+   ],
+   "persistent": false,
+   "red_seconds": 27093.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    15406
+   ]
+  }
+ ]
+}

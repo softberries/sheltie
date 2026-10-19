@@ -1,0 +1,404 @@
+{
+ "repo": "home-assistant/core",
+ "branch": "dev",
+ "language": "Python",
+ "stars": 91592,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": false,
+ "ruleset_required_checks": 8,
+ "allowed_merge_methods": [
+  "squash"
+ ],
+ "classic_checks_enforcement": "off",
+ "workflows": 19,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 6946,
+ "bors_merges": 0,
+ "reverts": 16,
+ "fix_build": 39,
+ "committers": {
+  "web-flow": 6287,
+  "frenck": 344,
+  "bramkragten": 315
+ },
+ "runs_push_main": 2500,
+ "runs_push_main_failed": 418,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 95223,
+ "sample": [
+  {
+   "n": 187167,
+   "merged": "2026-10-19T07:35:19Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 116
+  },
+  {
+   "n": 186102,
+   "merged": "2026-10-19T07:34:59Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 841
+  },
+  {
+   "n": 186983,
+   "merged": "2026-10-19T07:34:40Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 189
+  },
+  {
+   "n": 187215,
+   "merged": "2026-10-19T07:33:30Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 72
+  },
+  {
+   "n": 187296,
+   "merged": "2026-10-19T07:33:26Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 187171,
+   "merged": "2026-10-19T07:33:10Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 6,
+   "method": "squash",
+   "behind": 107
+  },
+  {
+   "n": 185641,
+   "merged": "2026-10-19T07:32:50Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1136
+  },
+  {
+   "n": 187223,
+   "merged": "2026-10-19T07:32:34Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 65
+  },
+  {
+   "n": 187292,
+   "merged": "2026-10-19T07:20:21Z",
+   "by": "epenet",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 187282,
+   "merged": "2026-10-19T07:08:49Z",
+   "by": "epenet",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 7
+  },
+  {
+   "n": 187283,
+   "merged": "2026-10-19T06:53:44Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 187246,
+   "merged": "2026-10-19T06:53:25Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 187284,
+   "merged": "2026-10-19T06:46:58Z",
+   "by": "erwindouna",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 187293,
+   "merged": "2026-10-19T06:46:19Z",
+   "by": "erwindouna",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 187294,
+   "merged": "2026-10-19T06:46:04Z",
+   "by": "erwindouna",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 187091,
+   "merged": "2026-10-19T05:42:53Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 7
+  },
+  {
+   "n": 179190,
+   "merged": "2026-10-19T05:33:04Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 185164,
+   "merged": "2026-10-19T05:23:15Z",
+   "by": "MartinHjelmare",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 1155
+  },
+  {
+   "n": 186068,
+   "merged": "2026-10-19T04:53:26Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 6,
+   "method": "squash",
+   "behind": 839
+  },
+  {
+   "n": 187124,
+   "merged": "2026-10-19T04:53:07Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 109
+  },
+  {
+   "n": 185795,
+   "merged": "2026-10-19T04:52:47Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1041
+  },
+  {
+   "n": 184482,
+   "merged": "2026-10-19T04:52:28Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1938
+  },
+  {
+   "n": 187262,
+   "merged": "2026-10-19T04:52:09Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 187273,
+   "merged": "2026-10-19T03:00:39Z",
+   "by": "allenporter",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 187251,
+   "merged": "2026-10-19T02:53:21Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 26
+  },
+  {
+   "n": 187245,
+   "merged": "2026-10-19T02:53:03Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 25
+  },
+  {
+   "n": 187244,
+   "merged": "2026-10-19T02:52:44Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 24
+  },
+  {
+   "n": 187214,
+   "merged": "2026-10-19T02:38:57Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 23
+  },
+  {
+   "n": 186952,
+   "merged": "2026-10-19T02:38:38Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 186827,
+   "merged": "2026-10-19T02:26:37Z",
+   "by": "frenck",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 286
+  },
+  {
+   "n": 187211,
+   "merged": "2026-10-19T02:22:37Z",
+   "by": "balloob",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 54
+  },
+  {
+   "n": 187102,
+   "merged": "2026-10-19T02:21:38Z",
+   "by": "balloob",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 130
+  },
+  {
+   "n": 184953,
+   "merged": "2026-10-19T02:20:04Z",
+   "by": "balloob",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 658
+  },
+  {
+   "n": 187256,
+   "merged": "2026-10-19T01:41:29Z",
+   "by": "balloob",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 73
+  },
+  {
+   "n": 187043,
+   "merged": "2026-10-18T06:52:32Z",
+   "by": "thecode",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 18
+  },
+  {
+   "n": 187005,
+   "merged": "2026-10-18T06:44:32Z",
+   "by": "bieniu",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 189
+  },
+  {
+   "n": 187086,
+   "merged": "2026-10-18T06:32:59Z",
+   "by": "MartinHjelmare",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 187021,
+   "merged": "2026-10-18T06:32:02Z",
+   "by": "thecode",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 17
+  },
+  {
+   "n": 187100,
+   "merged": "2026-10-18T06:29:29Z",
+   "by": "thecode",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 186967,
+   "merged": "2026-10-17T16:03:44Z",
+   "by": "allenporter",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 44
+  }
+ ],
+ "sample_up_to_date": "1/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "frenck": 23,
+  "epenet": 2,
+  "erwindouna": 3,
+  "MartinHjelmare": 2,
+  "allenporter": 2,
+  "balloob": 4,
+  "thecode": 3,
+  "bieniu": 1
+ }
+}

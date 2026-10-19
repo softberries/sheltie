@@ -1,0 +1,87 @@
+{
+ "repo": "square/okhttp",
+ "tool": "gradle",
+ "landings": 153,
+ "pr_landings": 147,
+ "direct_pushes": 6,
+ "tested": 38,
+ "ci_workflows": [
+  "build",
+  "containers",
+  "docs"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 1796.5,
+ "flaky_reruns_on_main": 0,
+ "stale": 21,
+ "median_between": 1.0,
+ "sheltie_rebuilds": 14,
+ "sheltie_merge_engine": 13,
+ "sheltie_extra_ci_seconds": 25151.0,
+ "leaky": 6,
+ "missing_footprints": 0,
+ "red_episodes": 3,
+ "persistent_red": 2,
+ "persistent_red_seconds": 123955.0,
+ "verdicts": {
+  "stale base, overlapping landing: Sheltie rebuilds before landing": 2
+ },
+ "overlap_base_rate": 0.3684210526315789,
+ "overlap_by_chance": 0.736842105263158,
+ "episodes": [
+  {
+   "first_red": "2007d560c289b044f2b932ac0b30101c5fffc9a8",
+   "first_red_index": 14,
+   "range": [
+    14,
+    14
+   ],
+   "workflows": [
+    "containers"
+   ],
+   "persistent": true,
+   "red_seconds": 123955.0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    9502
+   ]
+  },
+  {
+   "first_red": "a7c54497eb6faa3e7a7acb1fae1f75126aaa9c06",
+   "first_red_index": 30,
+   "range": [
+    30,
+    30
+   ],
+   "workflows": [
+    "build"
+   ],
+   "persistent": false,
+   "red_seconds": 877.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    9609
+   ]
+  },
+  {
+   "first_red": "e005148cce0a1294d5c402df942a3e92150c21ff",
+   "first_red_index": 32,
+   "range": [
+    32,
+    32
+   ],
+   "workflows": [
+    "build"
+   ],
+   "persistent": true,
+   "red_seconds": 0,
+   "candidates": 1,
+   "verdict": "stale base, overlapping landing: Sheltie rebuilds before landing",
+   "prs": [
+    9607
+   ]
+  }
+ ]
+}

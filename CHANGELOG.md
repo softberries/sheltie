@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- [Sheltie on real repositories](docs/real-world.md): what Sheltie would have done on 23
+  open-source projects over 90 days, with what it could not prove, a PDF, and the scripts and
+  data to reproduce it (`research/real-world`).
+
 ### Changed
 
 - ROI report: each change is replayed against the branch it was tested on (the merge base of

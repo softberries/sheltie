@@ -1,0 +1,86 @@
+{
+ "rust-lang/rust-analyzer": {
+  "with_base": {
+   "ci_runs": 83,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 517,
+   "total_wait_seconds": 51301
+  },
+  "without_base": {
+   "ci_runs": 0,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 0
+  }
+ },
+ "junit-team/junit-framework": {
+  "with_base": {
+   "ci_runs": 36,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 544,
+   "total_wait_seconds": 26125
+  },
+  "without_base": {
+   "ci_runs": 3,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 2850
+  }
+ },
+ "trinodb/trino": {
+  "with_base": {
+   "ci_runs": 348,
+   "median_wait_seconds": 1464,
+   "p90_wait_seconds": 5000,
+   "total_wait_seconds": 1452217
+  },
+  "without_base": {
+   "ci_runs": 0,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 0
+  }
+ },
+ "bevyengine/bevy": {
+  "with_base": {
+   "ci_runs": 224,
+   "median_wait_seconds": 941,
+   "p90_wait_seconds": 3991,
+   "total_wait_seconds": 868586
+  },
+  "without_base": {
+   "ci_runs": 0,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 0
+  }
+ },
+ "gradle/gradle": {
+  "with_base": {
+   "ci_runs": 170,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 7409,
+   "total_wait_seconds": 1031017
+  },
+  "without_base": {
+   "ci_runs": 0,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 0
+  }
+ },
+ "rust-lang/rust": {
+  "with_base": {
+   "ci_runs": 116,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 11328,
+   "total_wait_seconds": 1689464
+  },
+  "without_base": {
+   "ci_runs": 0,
+   "median_wait_seconds": 0,
+   "p90_wait_seconds": 0,
+   "total_wait_seconds": 0
+  }
+ }
+}

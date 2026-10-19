@@ -1,0 +1,419 @@
+{
+ "repo": "trinodb/trino",
+ "branch": "master",
+ "language": "Java",
+ "stars": 13345,
+ "ruleset_merge_queue": true,
+ "ruleset_strict": false,
+ "ruleset_required_checks": 2,
+ "allowed_merge_methods": [
+  "squash",
+  "rebase"
+ ],
+ "classic_checks_enforcement": "off",
+ "workflows": 11,
+ "merge_group_workflows": [
+  "cancel-stale-merge-queue.yml",
+  "ci.yml",
+  "cla.yml"
+ ],
+ "queue_bot_config": [],
+ "commits_90d": 1434,
+ "bors_merges": 0,
+ "reverts": 3,
+ "fix_build": 7,
+ "committers": {
+  "chenjian2664": 26,
+  "ebyhr": 314,
+  "raunaqmorarka": 185,
+  "findepi": 245,
+  "martint": 38,
+  "kokosing": 13,
+  "losipiuk": 22,
+  "electrum": 37,
+  "hashhar": 2,
+  "mosabua": 4,
+  "Praveen2112": 4,
+  "wendigo": 288,
+  "pettyjamesm": 1,
+  "dain": 254,
+  "sopel39": 1
+ },
+ "runs_push_main": 657,
+ "runs_push_main_failed": 1,
+ "runs_merge_group": 2500,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 17116,
+ "sample": [
+  {
+   "n": 31566,
+   "merged": "2026-10-19T07:14:20Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 2,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31621,
+   "merged": "2026-10-19T07:14:19Z",
+   "by": "chenjian2664",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 37
+  },
+  {
+   "n": 31653,
+   "merged": "2026-10-19T03:15:40Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 31650,
+   "merged": "2026-10-19T03:09:57Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 31651,
+   "merged": "2026-10-19T02:00:59Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 31652,
+   "merged": "2026-10-19T02:00:59Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 31649,
+   "merged": "2026-10-19T02:00:59Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 31648,
+   "merged": "2026-10-19T01:59:36Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 31646,
+   "merged": "2026-10-18T23:37:33Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 31638,
+   "merged": "2026-10-18T19:28:04Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 31617,
+   "merged": "2026-10-18T05:39:55Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 23
+  },
+  {
+   "n": 31642,
+   "merged": "2026-10-17T04:55:24Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 29295,
+   "merged": "2026-10-17T03:16:01Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 75
+  },
+  {
+   "n": 31634,
+   "merged": "2026-10-17T02:56:54Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 2,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31636,
+   "merged": "2026-10-17T02:43:04Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 31641,
+   "merged": "2026-10-16T23:46:47Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 10
+  },
+  {
+   "n": 31609,
+   "merged": "2026-10-16T19:40:08Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 6,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31625,
+   "merged": "2026-10-16T18:06:00Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 31608,
+   "merged": "2026-10-16T18:01:40Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 3,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31637,
+   "merged": "2026-10-16T16:03:17Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 31624,
+   "merged": "2026-10-16T11:14:01Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 31626,
+   "merged": "2026-10-16T08:34:04Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 31629,
+   "merged": "2026-10-16T08:33:47Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 31620,
+   "merged": "2026-10-16T08:32:50Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 31623,
+   "merged": "2026-10-16T08:32:50Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 924
+  },
+  {
+   "n": 31627,
+   "merged": "2026-10-16T07:26:03Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 31628,
+   "merged": "2026-10-16T07:17:17Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 31540,
+   "merged": "2026-10-16T06:17:36Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 75
+  },
+  {
+   "n": 31578,
+   "merged": "2026-10-16T04:23:28Z",
+   "by": "raunaqmorarka",
+   "queued": true,
+   "commits": 2,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31586,
+   "merged": "2026-10-16T02:47:14Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 34
+  },
+  {
+   "n": 31513,
+   "merged": "2026-10-15T23:12:39Z",
+   "by": "martint",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 83
+  },
+  {
+   "n": 31603,
+   "merged": "2026-10-15T15:09:54Z",
+   "by": "kokosing",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 9
+  },
+  {
+   "n": 31525,
+   "merged": "2026-10-15T10:50:09Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 2,
+   "method": "rebase",
+   "behind": null
+  },
+  {
+   "n": 31606,
+   "merged": "2026-10-15T10:01:37Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 31594,
+   "merged": "2026-10-15T08:58:22Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 13
+  },
+  {
+   "n": 31592,
+   "merged": "2026-10-15T08:22:29Z",
+   "by": "findepi",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 14
+  },
+  {
+   "n": 31604,
+   "merged": "2026-10-15T07:30:41Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 31605,
+   "merged": "2026-10-15T07:30:41Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 30612,
+   "merged": "2026-10-15T01:17:49Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 30
+  },
+  {
+   "n": 31602,
+   "merged": "2026-10-15T00:56:46Z",
+   "by": "ebyhr",
+   "queued": true,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  }
+ ],
+ "sample_up_to_date": "5/34",
+ "sample_queued": 39,
+ "sample_merged_by": {
+  "ebyhr": 21,
+  "chenjian2664": 1,
+  "raunaqmorarka": 9,
+  "findepi": 7,
+  "martint": 1,
+  "kokosing": 1
+ }
+}

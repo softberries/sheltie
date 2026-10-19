@@ -1,0 +1,51 @@
+{
+ "repo": "tokio-rs/tokio",
+ "tool": "cargo",
+ "landings": 166,
+ "pr_landings": 163,
+ "direct_pushes": 3,
+ "tested": 162,
+ "ci_workflows": [
+  "CI",
+  "Loom",
+  "Stress Test"
+ ],
+ "post_merge_ci": true,
+ "ci_seconds_median": 4564.5,
+ "flaky_reruns_on_main": 8,
+ "stale": 75,
+ "median_between": 0.0,
+ "sheltie_rebuilds": 36,
+ "sheltie_merge_engine": 12,
+ "sheltie_extra_ci_seconds": 164322.0,
+ "leaky": 8,
+ "missing_footprints": 0,
+ "red_episodes": 1,
+ "persistent_red": 1,
+ "persistent_red_seconds": 367195.0,
+ "verdicts": {
+  "tested on the current main: not an interaction": 1
+ },
+ "overlap_base_rate": 0.2222222222222222,
+ "overlap_by_chance": 0.2222222222222222,
+ "episodes": [
+  {
+   "first_red": "86678437268b2a34cc72b3cff6ef2148c75e23af",
+   "first_red_index": 125,
+   "range": [
+    125,
+    125
+   ],
+   "workflows": [
+    "CI"
+   ],
+   "persistent": true,
+   "red_seconds": 367195.0,
+   "candidates": 1,
+   "verdict": "tested on the current main: not an interaction",
+   "prs": [
+    8568
+   ]
+  }
+ ]
+}

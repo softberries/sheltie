@@ -1,0 +1,394 @@
+{
+ "repo": "google/guava",
+ "branch": "master",
+ "language": "Java",
+ "stars": 51916,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": null,
+ "ruleset_required_checks": 0,
+ "allowed_merge_methods": null,
+ "classic_checks_enforcement": "non_admins",
+ "workflows": 2,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 119,
+ "bors_merges": 0,
+ "reverts": 0,
+ "fix_build": 0,
+ "committers": {
+  "Google Java Core Libraries": 119
+ },
+ "runs_push_main": 238,
+ "runs_push_main_failed": 2,
+ "runs_merge_group": 0,
+ "runs_pull_request": 706,
+ "merged_prs_total": 1524,
+ "sample": [
+  {
+   "n": 8752,
+   "merged": "2026-10-18T17:41:12Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8757,
+   "merged": "2026-10-18T17:10:22Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8748,
+   "merged": "2026-10-17T14:22:29Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8747,
+   "merged": "2026-10-16T16:31:35Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8745,
+   "merged": "2026-10-14T19:33:32Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8739,
+   "merged": "2026-10-13T20:32:51Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8737,
+   "merged": "2026-10-09T21:19:24Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8736,
+   "merged": "2026-10-09T20:21:11Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8734,
+   "merged": "2026-10-08T16:49:12Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8733,
+   "merged": "2026-10-07T21:12:04Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8728,
+   "merged": "2026-10-07T20:07:19Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8731,
+   "merged": "2026-10-07T20:06:13Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8732,
+   "merged": "2026-10-07T20:03:47Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8730,
+   "merged": "2026-10-07T17:24:26Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8729,
+   "merged": "2026-10-07T15:48:58Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8721,
+   "merged": "2026-10-07T12:58:06Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8716,
+   "merged": "2026-10-07T02:51:36Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8717,
+   "merged": "2026-10-07T00:20:03Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8719,
+   "merged": "2026-10-06T22:09:28Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8718,
+   "merged": "2026-10-06T16:48:16Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8714,
+   "merged": "2026-10-05T16:58:41Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8713,
+   "merged": "2026-10-05T12:59:53Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8709,
+   "merged": "2026-10-03T02:59:11Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8708,
+   "merged": "2026-10-02T17:59:43Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8707,
+   "merged": "2026-10-01T17:41:38Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8706,
+   "merged": "2026-10-01T15:45:39Z",
+   "by": "cpovirk",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 8704,
+   "merged": "2026-09-29T22:01:32Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8703,
+   "merged": "2026-09-29T13:50:24Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8702,
+   "merged": "2026-09-28T21:04:39Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8701,
+   "merged": "2026-09-28T17:40:59Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8700,
+   "merged": "2026-09-28T17:28:00Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8699,
+   "merged": "2026-09-26T23:44:35Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8698,
+   "merged": "2026-09-24T21:58:15Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8697,
+   "merged": "2026-09-24T19:36:28Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8695,
+   "merged": "2026-09-24T16:27:32Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8694,
+   "merged": "2026-09-24T13:33:52Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8685,
+   "merged": "2026-09-23T19:26:29Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8690,
+   "merged": "2026-09-23T17:35:58Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 8689,
+   "merged": "2026-09-23T15:19:56Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  },
+  {
+   "n": 7913,
+   "merged": "2025-08-04T16:02:23Z",
+   "by": "copybara-service",
+   "queued": false,
+   "commits": 1,
+   "method": "fast-forward",
+   "behind": 0
+  }
+ ],
+ "sample_up_to_date": "40/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "copybara-service": 39,
+  "cpovirk": 1
+ }
+}

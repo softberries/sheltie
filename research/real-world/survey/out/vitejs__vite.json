@@ -1,0 +1,400 @@
+{
+ "repo": "vitejs/vite",
+ "branch": "main",
+ "language": "TypeScript",
+ "stars": 83394,
+ "ruleset_merge_queue": false,
+ "ruleset_strict": false,
+ "ruleset_required_checks": 3,
+ "allowed_merge_methods": [
+  "squash",
+  "rebase"
+ ],
+ "classic_checks_enforcement": "off",
+ "workflows": 13,
+ "merge_group_workflows": [],
+ "queue_bot_config": [],
+ "commits_90d": 324,
+ "bors_merges": 0,
+ "reverts": 1,
+ "fix_build": 10,
+ "committers": {
+  "web-flow": 317,
+  "sapphi-red": 7
+ },
+ "runs_push_main": 886,
+ "runs_push_main_failed": 118,
+ "runs_merge_group": 0,
+ "runs_pull_request": 2500,
+ "merged_prs_total": 6817,
+ "sample": [
+  {
+   "n": 23826,
+   "merged": "2026-10-19T07:24:14Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 7,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23794,
+   "merged": "2026-10-19T06:04:01Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 23827,
+   "merged": "2026-10-19T05:32:58Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23806,
+   "merged": "2026-10-18T06:48:24Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 23788,
+   "merged": "2026-10-16T12:00:01Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23786,
+   "merged": "2026-10-16T09:24:54Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23778,
+   "merged": "2026-10-15T11:45:21Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23777,
+   "merged": "2026-10-15T10:49:49Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 23746,
+   "merged": "2026-10-15T10:48:54Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 23676,
+   "merged": "2026-10-15T10:37:55Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 27
+  },
+  {
+   "n": 23743,
+   "merged": "2026-10-15T10:36:33Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 23761,
+   "merged": "2026-10-15T10:35:38Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 6
+  },
+  {
+   "n": 23709,
+   "merged": "2026-10-15T10:31:52Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 23
+  },
+  {
+   "n": 23744,
+   "merged": "2026-10-15T10:30:30Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 5
+  },
+  {
+   "n": 23742,
+   "merged": "2026-10-15T05:19:41Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23741,
+   "merged": "2026-10-15T05:13:52Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23728,
+   "merged": "2026-10-14T08:28:18Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 11
+  },
+  {
+   "n": 23739,
+   "merged": "2026-10-14T08:10:17Z",
+   "by": "btea",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23758,
+   "merged": "2026-10-14T03:49:47Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23731,
+   "merged": "2026-10-13T09:39:36Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23733,
+   "merged": "2026-10-13T09:13:00Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 23740,
+   "merged": "2026-10-13T09:09:48Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23713,
+   "merged": "2026-10-13T08:50:52Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 7
+  },
+  {
+   "n": 23730,
+   "merged": "2026-10-12T09:39:31Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 4
+  },
+  {
+   "n": 23720,
+   "merged": "2026-10-12T07:12:15Z",
+   "by": "bluwy",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 3
+  },
+  {
+   "n": 23726,
+   "merged": "2026-10-12T07:09:46Z",
+   "by": "bluwy",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 23718,
+   "merged": "2026-10-12T07:04:15Z",
+   "by": "bluwy",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23712,
+   "merged": "2026-10-12T05:22:15Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23707,
+   "merged": "2026-10-09T16:29:12Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23667,
+   "merged": "2026-10-09T14:00:20Z",
+   "by": "btea",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 27
+  },
+  {
+   "n": 23705,
+   "merged": "2026-10-09T08:10:22Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 2
+  },
+  {
+   "n": 23685,
+   "merged": "2026-10-09T08:10:21Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23684,
+   "merged": "2026-10-09T08:10:19Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23683,
+   "merged": "2026-10-09T07:30:56Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23681,
+   "merged": "2026-10-09T07:30:55Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 2,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23680,
+   "merged": "2026-10-09T04:06:31Z",
+   "by": "h-a-n-a",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23641,
+   "merged": "2026-10-09T02:12:26Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 3,
+   "method": "squash",
+   "behind": 1
+  },
+  {
+   "n": 23702,
+   "merged": "2026-10-08T11:57:09Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  },
+  {
+   "n": 23643,
+   "merged": "2026-10-08T10:55:02Z",
+   "by": "sapphi-red",
+   "queued": false,
+   "commits": 4,
+   "method": "squash",
+   "behind": 24
+  },
+  {
+   "n": 23397,
+   "merged": "2026-08-29T10:52:24Z",
+   "by": "bluwy",
+   "queued": false,
+   "commits": 1,
+   "method": "squash",
+   "behind": 0
+  }
+ ],
+ "sample_up_to_date": "15/40",
+ "sample_queued": 0,
+ "sample_merged_by": {
+  "sapphi-red": 21,
+  "h-a-n-a": 13,
+  "btea": 2,
+  "bluwy": 4
+ }
+}
