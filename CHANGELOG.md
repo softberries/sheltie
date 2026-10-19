@@ -22,6 +22,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `#[path]` in a file that is not `mod.rs` are found, instead of making footprints leaky.
 - Adapters: two checkouts of the same commit in one process no longer collide on the
   worktree directory name.
+- `sheltie-cargo`: modules declared inside a macro invocation (`cfg_rt! { mod pool; }`, as
+  tokio does) are followed, instead of their files counting as outside the module graph.
+- `sheltie-node`: a `package.json` starting with a UTF-8 byte order mark is read, as Node
+  reads it.
+- `.circleci/**` is a plain file for every adapter, like `.github/**` and `.gitlab-ci.yml`.
 
 ## [0.4.0] - 2026-10-19
 
