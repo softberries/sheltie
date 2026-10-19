@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-adapter"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-cargo"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-core"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "chrono",
  "serde",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-go"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "sheltie-adapter",
@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-gradle"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "regex",
@@ -568,7 +568,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-graph"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "serde",
  "sheltie-core",
@@ -576,7 +576,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-maven"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "sheltie-adapter",
@@ -585,7 +585,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-node"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "globset",
@@ -596,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-python"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "globset",
@@ -607,7 +607,7 @@ dependencies = [
 
 [[package]]
 name = "sheltie-scheduler"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "chrono",
  "serde",

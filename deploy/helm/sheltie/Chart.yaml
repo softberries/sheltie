@@ -2,8 +2,8 @@ apiVersion: v2
 name: sheltie
 description: Sheltie, a parallel merge engine for agent-generated pull requests (control plane).
 type: application
-version: 0.4.0
-appVersion: "0.4.0"
+version: 0.5.0
+appVersion: "0.5.0"
 home: https://sheltie.dev
 sources:
   - https://github.com/softberries/sheltie
