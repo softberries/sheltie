@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- ROI report: each change is replayed against the branch it was tested on (the merge base of
+  its pull request head, from merge commits or fetched `refs/pull/*/head`), so Sheltie's
+  rebuilds after overlapping landings are counted. The report says how many changes had no
+  known base; those still count as tested when they landed, which favours Sheltie.
 - `sheltie-go`: files a package embeds with `//go:embed` are resolved from the tree (the go
   command's pattern rules) and belong to the package, which stays hermetic. Only a pattern
   that cannot be resolved makes it leaky.
