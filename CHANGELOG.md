@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-20
+
 ### Added
 
 - Acceptance tests found automatically (fail-to-pass): tests the pull request adds or
@@ -25,6 +27,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   is to the original.
 - The server waits up to 150 minutes for a replay report (was 90), and the replay job's limit
   is 90 minutes (was 60), for the fail-to-pass runs.
+
+### Upgrading
+
+- Bump `@v0.5.0` and `sheltie-version` in your workflows to `v0.6.0`. The server applies a
+  database migration (`replay_runs.details`) at start.
+- If `[replay]` is enabled, pull requests without a `sheltie-intent` block are now replayed
+  too, so replay spend can rise; `daily_budget_usd` and `max_attempts` still cap it. Set
+  `test_commands` for languages your `test_command` does not run, so tests the pull request
+  adds can be found and used.
 
 ## [0.5.0] - 2026-10-19
 
@@ -307,7 +318,8 @@ The first public release.
 - The merge and replay workflows replace an earlier result branch when a resolution is retried
   onto a newer head, instead of failing the push.
 
-[Unreleased]: https://github.com/softberries/sheltie/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/softberries/sheltie/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/softberries/sheltie/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/softberries/sheltie/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/softberries/sheltie/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/softberries/sheltie/compare/v0.2.0...v0.3.0
